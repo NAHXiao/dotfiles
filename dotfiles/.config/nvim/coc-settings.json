@@ -1,0 +1,5 @@
+{
+		"suggest.noselect":true,
+    "coc.preferences.formatOnType": true,
+    "coc.preferences.extensionUpdateCheck": "daily"
+}

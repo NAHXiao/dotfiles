@@ -1,7 +1,7 @@
 #!/bin/bash
 WIFINAME=wlan0
 ETHNAME=p11p1
-JLUIP='49.140.103.122'
+JLUIP='49.140'
 function is_connected_to_wifi(){
         iw dev "$1" link 2>&1 | grep -E '^Connected to' > /dev/null 2>&1 && return 0
 		return 1

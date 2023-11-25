@@ -18,7 +18,7 @@
 }
 {
     "label" : "logout",
-    "action" : "rm /tmp/wangsf/$(echo $WAYLAND_DISPLAY)_env ;rm -rf /tmp/wangsf/${WAYLAND_DISPLAY}; hyprctl dispatch exit 0",
+    "action" : "rm /tmp/$(whoami)/$(echo $WAYLAND_DISPLAY)_env ;rm -rf /tmp/$(whoami)/${WAYLAND_DISPLAY}; hyprctl dispatch exit 0",
     "text" : "Logout",
     "keybind" : "4"
 }

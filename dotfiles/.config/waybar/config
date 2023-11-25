@@ -50,8 +50,8 @@
     "format": "↑{bandwidthUpBytes} ↓{bandwidthDownBytes}",
   },
   "battery": {
-    "on-scroll-up": "intelbacklight -inc 9600",
-    "on-scroll-down": " { if [[ $(intelbacklight -get) -lt 9601 ]] ; then intelbacklight -set 1 ;else  intelbacklight -dec 9600 ;fi ; }",
+	    "on-scroll-up": "lightctl up ",
+        "on-scroll-down": "lightctl down",
     "states": {
       "warning": 30,
       "critical": 15
@@ -92,12 +92,15 @@
       "rofi",
       "org.wezfurlong.wezterm",
       "DrClientLinux",
-      "dwrg.exe"
+      "dwrg.exe",
+	  "flameshot"
     ]
   },
   "clock": {
         "format": "{:󱦺 %I:%M %p  %d/%m/%Y}",
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+	    "on-scroll-up": "lightctl up ",
+        "on-scroll-down": "lightctl down"
   },
   "cpu": {
     "format": "{usage}% ",
@@ -198,7 +201,7 @@
 	},
   "custom/launcher": {
     "format": " X  ",
-    "on-click": "sleep 0.3;hyprctl kill",
+    "on-click": "sleep 0.3 ;hyprctl kill",
     "on-click-middle": "killall rofi || $HOME/.config/rofi/launchers/type-7/launcher.sh",
     "on-click-right": "hyprctl dispatch togglefloating",
     "on-scroll-up": "hyprctl dispatch workspace e+1",

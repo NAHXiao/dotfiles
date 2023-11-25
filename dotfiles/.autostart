@@ -12,6 +12,7 @@ wayvnc&
 }&
 /usr/lib/xdg-desktop-portal &
 /usr/lib/kdeconnectd &
+kdeconnect-indicator &
 wallpaper.sh HuTao.png &
 # hyprdim -n -p -i &
 fcitx5&

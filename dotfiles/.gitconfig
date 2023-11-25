@@ -1,5 +1,5 @@
 [safe]
-	directory = /home/wangsf/workspace
+	directory = $HOME/workspace
 [user]
 	name = NAHxiao
 	email = xiaohanzero@163.com
@@ -10,3 +10,5 @@
 	editor = nvim
 [credential]
 	helper = store
+[init]
+	defaultBranch = main

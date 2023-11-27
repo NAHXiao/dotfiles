@@ -128,7 +128,26 @@
     "on-click-right": "pavucontrol -t 1",
     "on-click-middle": "$HOME/.scripts/rofi-bluetooth  & $HOME/.scripts/close_rofi_while_not_focus.sh "
   },
-
+  "custom/pulseaudio": {
+    "format": "{icon} {volume}%",
+    "tooltip": false,
+    "format-muted": " Muted",
+    "on-click": "pamixer -t",
+    "on-scroll-up": "pamixer -i 5",
+    "on-scroll-down": "pamixer -d 5",
+    "scroll-step": 5,
+    "format-icons": {
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""]
+    },
+    "on-click-right": "pavucontrol -t 1",
+    "on-click-middle": "$HOME/.scripts/rofi-bluetooth  & $HOME/.scripts/close_rofi_while_not_focus.sh "
+  },
   "pulseaudio#microphone": {
     "format": "{format_source}",
     "format-source": " {volume}%",

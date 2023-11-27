@@ -22,7 +22,7 @@ end
 -- remap the key used to leave insert mode
 -- map("i", "jk", "", {})
 --map('n', 'n', [[:NvimTreeToggle]], {})
-
+map('n', '<leader>P', "ggVGp")
 --vim.cmd([[
 --" " Copy to clipboard
 --vnoremap  <leader>y  "+y
@@ -72,6 +72,7 @@ tnoremap <A-j> <C-\><C-n><C-w><C-j><CR>
 tnoremap <A-k> <C-\><C-n><C-w><C-k><CR>
 tnoremap <A-l> <C-\><C-n><C-w><C-l><CR>
 ]])
+map('i', "<C-space>", "<C-[>")
 map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
 map('i', "<C-j>", "<C-[>o")

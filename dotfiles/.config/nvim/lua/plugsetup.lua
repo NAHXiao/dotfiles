@@ -572,7 +572,6 @@ vim.cmd([[
         let g:copilot_no_tab_map = v:true
 ]])
 
---vim.cmd([[imap <silent><script><expr> <c-0> lua CmpFirst() <CR>]])
 vim.g.copilot_filetypes = {
     ["*"] = false,
     ["javascript"] = true,

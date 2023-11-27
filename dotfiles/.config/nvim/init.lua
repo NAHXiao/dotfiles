@@ -18,7 +18,8 @@ hi ColorColumn guifg=NONE guibg=#204563 gui=NONE
 "报错背景透明
 hi Pmenu ctermfg=15 ctermbg=9 guifg=Red guibg=NONE
 ]])
-
+--禁用保存后的提示
+vim.cmd("autocmd BufWritePost * silent! !clear")
 ----------------------------------------
 --        为透明文档添加边框       -----
 ----------------------------------------

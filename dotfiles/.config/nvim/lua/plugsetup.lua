@@ -328,10 +328,6 @@ require('FTerm').setup({
         width = 0.9,
     },
 })
---[[ vim.keymap.set('n', 't', '<CMD>lua require("FTerm").toggle()<CR>') ]]
-vim.keymap.set('t', '<Esc>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
-vim.keymap.set('n', '<c-space>', '<CMD>lua require("FTerm").toggle()<CR>')
-vim.keymap.set('t', '<c-space>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
 
 
 ----------------------------------------
@@ -341,7 +337,8 @@ require('nvim-treesitter.configs').setup {
     ensure_installed = { "bash", "c", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "hcl", "html",
         "http", "javascript", "json", "lua", "make", "markdown", "python", "regex", "ruby", "rust", "toml", "vim", "yaml",
         "zig" },
-    auto_install = true,
+    -- TODO if true  some .d will open failed
+    auto_install = false,
     highlight = {
         enable = true,
     },
@@ -495,45 +492,21 @@ do
             "--offset-encoding=utf-16",
         },
     }
-
-    -- Global mappings.
-    -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-    vim.keymap.set('n', '<space>e', vim.diagnostic.open_float)
-    vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-    vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-    vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist)
-
-    -- Use LspAttach autocommand to only map the following keys
-    -- after the language server attaches to the current buffer
-    vim.api.nvim_create_autocmd('LspAttach', {
-        group = vim.api.nvim_create_augroup('UserLspConfig', {}),
-        callback = function(ev)
-            -- Enable completion triggered by <c-x><c-o>
-            vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-
-            -- Buffer local mappings.
-            -- See `:help vim.lsp.*` for documentation on any of the below functions
-            local opts = { buffer = ev.buf }
-            vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-            vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-            vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-            vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-            vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-            vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
-            vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
-            vim.keymap.set('n', '<space>wl', function()
-                print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-            end, opts)
-            vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
-            vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
-            vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-            vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-            vim.keymap.set('n', '<space>f', function()
-                vim.lsp.buf.format { async = true }
-            end, opts)
-        end,
-    })
 end
+
+--[[ vim.diagnostic.config({
+    underline = true,
+    signs = true,
+    virtual_text = false,
+    float = {
+        show_header = true,
+        source = 'if_many',
+        border = 'rounded',
+        focusable = false,
+    },
+    update_in_insert = false, -- default to false
+    severity_sort = false,    -- default to false
+}) ]]
 
 
 ----------------------------------------
@@ -566,11 +539,6 @@ require('hlargs').setup()
     suggestion = { enabled = false },
     panel = { enabled = false },
 }) ]]
-vim.cmd([[
-        "inoremap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
-        imap <silent><script><expr> <c-j> copilot#Accept("\<c-j>")
-        let g:copilot_no_tab_map = v:true
-]])
 
 vim.g.copilot_filetypes = {
     ["*"] = false,
@@ -585,3 +553,31 @@ vim.g.copilot_filetypes = {
     ["go"] = true,
     ["python"] = true,
 }
+
+local function is_file_extension(extensions)
+    local current_extension = vim.fn.expand('%:e'):lower()
+    for _, ext in ipairs(extensions) do
+        if current_extension == ext then
+            return true
+        end
+    end
+    return false
+end
+
+-- 禁用rust .rs 的`
+--
+
+local function auto_disable_grave_for_rs()
+    if is_file_extension({ 'rs' }) then
+        vim.cmd([[
+let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"',  '```':'```', '"""':'"""', "'''":"'''"}
+]])
+    end
+end
+
+auto_disable_grave_for_rs()
+
+
+-- crates
+require('crates').setup({
+})

@@ -39,9 +39,9 @@ opt.foldenable = true
 --[[跨文件搜索]]
 vim.cmd("set path+=$PWD/**")
 --@netrw内置文件浏览器
-opt.cp = false
-vim.cmd("filetype plugin on")
-opt.grepprg = 'rg --vimgrep --smart-case --follow'
+--opt.cp = false
+--vim.cmd("filetype plugin on")
+--opt.grepprg = 'rg --vimgrep --smart-case --follow'
 --Coc
 opt.signcolumn = "yes"
 opt.updatetime = 100

@@ -16,7 +16,11 @@ end
 -- yss)
 -- ds{ds(
 -- ysiw)
-
+--重启lsp
+map('n', '<leader>rl', ':LspRestart<CR>')
+-- 翻页
+map('n', '<C-f>', '<PageDown>')
+map('n', '<C-b>', '<PageUp>')
 --local map = vim.api.nvim_set_keymap
 
 -- remap the key used to leave insert mode
@@ -35,7 +39,7 @@ map('n', '<leader>P', "ggVGp")
 --vnoremap <leader>p "+p
 --vnoremap <leader>P "+P
 --]])
-map('n', '<C-f>', ':Files<CR>', { silent = true })
+--map('n', '<C-f>', ':Files<CR>', { silent = true })
 map('n', '<leader>-f', ':Rg<CR>', { silent = true })
 map('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
 
@@ -86,11 +90,11 @@ map('i', "<C-Enter>", "<C-[>jI")
 -- Comment.nvim configuration
 -- current line
 vim.keymap.set('n', '<C-/>', '<Plug>(comment_toggle_linewise_current)')
-vim.keymap.set('n', '<C-/>', '<Plug>(comment_toggle_blockwise_current)')
+vim.keymap.set('v', '<C-.>', '<Plug>(comment_toggle_blockwise_current)')
 
 -- Toggle in VISUAL mode
 vim.keymap.set('x', '<C-/>', '<Plug>(comment_toggle_linewise_visual)')
-vim.keymap.set('x', '<C-/>', '<Plug>(comment_toggle_blockwise_visual)')
+vim.keymap.set('x', '<C-.>', '<Plug>(comment_toggle_blockwise_visual)')
 
 
 
@@ -168,64 +172,7 @@ nmap <F9> <cmd>call vimspector#StepInto()<cr>")
 map('n', "<F3>", ":call vimspector#ToggleBreakpoint()<cr>")
 map('n', "<F4>", ":call vimspector#AddWatch()<cr>")
 map('n', "<F7>", ":call vimspector#Evaluate()<cr>")
--- Run
--- 判断当前缓冲区文件扩展名的函数
-function is_file_extension(extensions)
-    local current_extension = vim.fn.expand('%:e'):lower()
-    for _, ext in ipairs(extensions) do
-        if current_extension == ext then
-            return true
-        end
-    end
-    return false
-end
 
-function CompileAndRunning()
-    local current_file = vim.fn.expand('%:p')
-    local current_file_without_extension = vim.fn.expand('%:t:r')
-    local cpp_extensions = { 'cpp', 'cxx', 'CPP' }
-    local echo_gaps = [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-    local echo_gaps_twice =
-    [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-
-    if is_file_extension(cpp_extensions) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
-        current_file_without_extension })
-    elseif is_file_extension({ 'rs' }) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'cargo', 'build', '&&', echo_gaps_twice
-        , '&&', 'cargo run' })
-    elseif is_file_extension({ 'py' }) then
-        require('FTerm').run({ echo_gaps_twice })
-        require('FTerm').run({ 'python', current_file })
-    end
-end
-
-map('n', "<F2>", ":lua CompileAndRunning() <CR>")
-
-
--- LSP Navigation
--- Code Actions
-map('n', "ca", ":lua vim.lsp.buf.code_action()<CR>")
-vim.cmd([[
-nnoremap <silent> <c-]>     <cmd>lua vim.lsp.buf.definition()<CR>
-nnoremap <silent> <c-k>     <cmd>lua vim.lsp.buf.signature_help()<CR>
-nnoremap <silent> K         <cmd>lua vim.lsp.buf.hover()<CR>
-nnoremap <silent> gi        <cmd>lua vim.lsp.buf.implementation()<CR>
-nnoremap <silent> gc        <cmd>lua vim.lsp.buf.incoming_calls()<CR>
-nnoremap <silent> gd        <cmd>lua vim.lsp.buf.type_definition()<CR>
-nnoremap <silent> gr        <cmd>lua vim.lsp.buf.references()<CR>
-nnoremap <silent> gn        <cmd>lua vim.lsp.buf.rename()<CR>
-nnoremap <silent> gs        <cmd>lua vim.lsp.buf.document_symbol()<CR>
-nnoremap <silent> gw        <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
-]])
-
-vim.cmd([[
-nnoremap <silent> g[ <cmd>lua vim.diagnostic.goto_prev()<CR>
-nnoremap <silent> g] <cmd>lua vim.diagnostic.goto_next()<CR>
-]])
 
 
 -- Crates Nvim
@@ -285,3 +232,151 @@ vim.keymap.set('n', 'cb', '<Plug>(comment_toggle_blockwise_current)')
 -- Toggle in VISUAL mode
 vim.keymap.set('x', 'cc', '<Plug>(comment_toggle_linewise_visual)')
 vim.keymap.set('x', 'cb', '<Plug>(comment_toggle_blockwise_visual)')
+
+
+-- FTerm
+--[[ vim.keymap.set('n', 't', '<CMD>lua require("FTerm").toggle()<CR>') ]]
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+vim.keymap.set('n', '<c-space>', '<CMD>lua require("FTerm").toggle()<CR>')
+vim.keymap.set('t', '<c-space>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+
+
+-- Run
+-- 判断当前缓冲区文件扩展名的函数
+function is_file_extension(extensions)
+    local current_extension = vim.fn.expand('%:e'):lower()
+    for _, ext in ipairs(extensions) do
+        if current_extension == ext then
+            return true
+        end
+    end
+    return false
+end
+
+function CompileAndRunning()
+    local current_file = vim.fn.expand('%:p')
+    local current_file_without_extension = vim.fn.expand('%:t:r')
+    local cpp_extensions = { 'cpp', 'cxx', 'CPP' }
+    local echo_gaps = [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
+    local echo_gaps_twice =
+    [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
+
+    if is_file_extension(cpp_extensions) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
+            echo_gaps_twice, '&&', './' ..
+        current_file_without_extension })
+    elseif is_file_extension({ 'rs' }) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'cargo', 'build', '&&', echo_gaps_twice
+        , '&&', 'cargorun.py' })
+    elseif is_file_extension({ 'py' }) then
+        require('FTerm').run({ echo_gaps_twice })
+        require('FTerm').run({ 'python', current_file })
+    end
+end
+
+function CompileAndRunningRelease()
+    local current_file = vim.fn.expand('%:p')
+    local current_file_without_extension = vim.fn.expand('%:t:r')
+    local cpp_extensions = { 'cpp', 'cxx', 'CPP' }
+    local echo_gaps = [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
+    local echo_gaps_twice =
+    [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
+
+    if is_file_extension(cpp_extensions) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
+            echo_gaps_twice, '&&', './' ..
+        current_file_without_extension })
+    elseif is_file_extension({ 'rs' }) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'cargo', 'build', '--release &&', echo_gaps_twice
+        , '&&', 'cargorun.py release' })
+    elseif is_file_extension({ 'py' }) then
+        require('FTerm').run({ echo_gaps_twice })
+        require('FTerm').run({ 'python', current_file })
+    end
+end
+
+map('n', "<F2>", ":lua CompileAndRunning() <CR>")
+map('n', "<F14>", ":lua CompileAndRunningRelease() <CR>")
+
+
+-- lsp
+
+-- Global mappings.
+-- See `:help vim.diagnostic.*` for documentation on any of the below functions
+vim.keymap.set('n', '<leader>q', vim.diagnostic.open_float)
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
+-- 诊断列表->TroubleToggle
+--[[ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist) ]]
+vim.keymap.set('n', '<leader>i', function()
+    -- If we find a floating window, close it.
+    local found_float = false
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_get_config(win).relative ~= '' then
+            vim.api.nvim_win_close(win, true)
+            found_float = true
+        end
+    end
+
+    if found_float then
+        return
+    end
+
+    vim.diagnostic.open_float(nil, { focus = false, scope = 'cursor' })
+end, { desc = 'Toggle Diagnostics' })
+
+
+-- Use LspAttach autocommand to only map the following keys
+-- after the language server attaches to the current buffer
+vim.api.nvim_create_autocmd('LspAttach', {
+    group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+    callback = function(ev)
+        -- Enable completion triggered by <c-x><c-o>
+        vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+
+        -- Buffer local mappings.
+        -- See `:help vim.lsp.*` for documentation on any of the below functions
+        local opts = { buffer = ev.buf }
+        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+        vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
+        vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
+        vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
+        vim.keymap.set('n', '<space>wl', function()
+            print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+        end, opts)
+        vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
+        vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
+        vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
+        vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+        vim.keymap.set('n', '<space>f', function()
+            vim.lsp.buf.format { async = true }
+        end, opts)
+    end,
+})
+
+-- LSP Navigation
+-- Code Actions
+map('n', "ca", ":lua vim.lsp.buf.code_action()<CR>")
+vim.cmd([[
+nnoremap <silent> gc        <cmd>lua vim.lsp.buf.incoming_calls()<CR>
+nnoremap <silent> gs        <cmd>lua vim.lsp.buf.document_symbol()<CR>
+nnoremap <silent> gw        <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+nnoremap <silent> g[ <cmd>lua vim.diagnostic.goto_prev()<CR>
+nnoremap <silent> g] <cmd>lua vim.diagnostic.goto_next()<CR>
+]])
+
+
+
+-- copilot
+vim.cmd([[
+        "inoremap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
+        imap <silent><script><expr> <c-j> copilot#Accept("\<c-j>")
+        let g:copilot_no_tab_map = v:true
+]])

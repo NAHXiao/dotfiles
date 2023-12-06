@@ -4,8 +4,28 @@ require('impatient')
 -- LEADER
 vim.g.mapleader = " "
 -- TODO
-vim.g.localleader = "\\"
+vim.g.localleader = " "
 vim.o.timeoutlen = 800
+
+DebugToFile = function(log)
+    if log == nil then
+        return
+    end
+    local file = io.open('/home/wangsf/tmp/nvim.log', 'a')
+    file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. ' ' .. tostring(log) .. '\n')
+    file:close()
+end
+
+-- Color theme
+if tostring(vim.fn.getenv('WEZTERM_EXECUTABLE')) ~= '/usr/bin/wezterm-gui' then
+    require('kanagawa').setup({
+        keywordStyle = { italic = false, bold = true },
+    })
+    vim.cmd("colorscheme kanagawa")
+end
+
+
+
 
 -- Highlight colors
 vim.cmd([[

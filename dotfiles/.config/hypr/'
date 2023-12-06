@@ -121,12 +121,14 @@ plugin {
 
         # example buttons (R -> L)
         # hyprbars-button = color, size, on-click
-        hyprbars-button = rgb(ff4040), 15, 󰖭, hyprctl dispatch killactive
-        hyprbars-button = rgb(eeee11), 15, , hyprctl dispatch fullscreen 1
-        hyprbars-button = rgb(00ee11), 15, ⊙, hyprctl dispatch togglefloating        
-        hyprbars-button = rgb(ffffff), 15, ⬆, hyprctl dispatch pin
+        hyprbars-button = rgb(ff4040), 10, 󰖭, hyprctl dispatch killactive
+        hyprbars-button = rgb(eeee11), 10, , hyprctl dispatch fullscreen 1
+        hyprbars-button = rgb(eeee11), 10, ⊙, hyprctl dispatch fullscreen 1
+        
+        hyprbars-button = rgb(eeee11), 10, 𝥩, hyprctl dispatch pin
     }
 }
+# hyprbars-button = color, size, icon, on-click
 
 source = $HOME/.config/hypr/windowrule.conf
 source = $HOME/.config/hypr/keybinds.conf

@@ -14,7 +14,7 @@ window#waybar {
 /* 	opacity: 0.2; */
 /* } */
 #workspaces button {
-	background: #252733;
+	/* background: #252733; */
 	padding: 0 5px;
 	color: #c2caea;
 	margin-top: 6px;
@@ -33,7 +33,7 @@ window#waybar {
 /* 	text-shadow: inherit; */
 /* } */
 /* #workspaces button:hover { */
-/* 	background: #fdbdbd; */
+	bacrground: #fdbdbd;
 /* 	border: #e69e9e; */
 /* 	padding: 0 5px; */
 /* } */
@@ -49,14 +49,14 @@ window#waybar {
 	font-size: 4px;
 	margin-bottom: 0px;
 	border-radius: 10px;
-	background: #161320;
+	/* background: #161320; */
 	transition: none;
 }
 
 #tags button {
 	transition: none;
 	color: #B5E8E0;
-	background: #B5E8E0;
+	/* background: #B5E8E0; */
 	font-size: 16px;
 	border-radius: 2px;
 }
@@ -64,7 +64,7 @@ window#waybar {
 #tags button.occupied {
 	transition: none;
 	color: #F28FAD;
-	background: transparent;
+	/* background: transparent; */
 	font-size: 4px;
 }
 
@@ -96,7 +96,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #cd79c1;
-	background: #252733;
+	/* background: #252733; */
 }
 #temperature {
 	margin-top: 6px;
@@ -107,7 +107,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #7dda9f;
-	background-color: #252733;
+	/* background-color: #252733; */
 }
 #pulseaudio {
 	margin-top: 6px;
@@ -118,14 +118,14 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #ac92c6;
-	background: #2d2d3a;
+	/* background: #2d2d3a; */
 }
 
 
  #battery {
 	padding: 2px 10px;
 	color: #ac92c6;
-    background: #332E41;
+    /* background: #332E41; */
     margin-top: 6px;
     margin-bottom: 0px;
 	margin-left: 8px;
@@ -135,7 +135,7 @@ window#waybar {
 
 @keyframes blink {
     to {
-        background-color: #BF616A;
+        /* background-color: #BF616A; */
         color: #B5E8E0;
     }
 }
@@ -149,7 +149,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #161320;
-	background: #F8BD96;
+	/* background: #F8BD96; */
 }
 #tray {
 	margin-top: 6px;
@@ -160,7 +160,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #aea4d0;
-	background: #45495c;
+	/* background: #45495c; */
 	/*background: #1A1826;*/
 }
 
@@ -173,7 +173,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #7dda9f;
-	background-color: #252733;
+	/* background-color: #252733; */
 }
 #cpu {
 	margin-top: 6px;
@@ -184,7 +184,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #f48f8f;
-	background-color: #252733;
+	/* background-color: #252733; */
 }
 
 #disk {
@@ -196,7 +196,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: rgb(228, 189, 134);
-	background: #2a3139;
+	/* background: #2a3139; */
 }
 
 #clock {
@@ -208,7 +208,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #e68da5;
-	background: #292c3a;
+	/* background: #292c3a; */
 }
 
 #custom-launcher {
@@ -221,7 +221,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 
 #custom-power {
@@ -235,7 +235,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #161320;
-	background: #F28FAD;
+	/* background: #F28FAD; */
 }
 
 #custom-wallpaper {
@@ -247,7 +247,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #161320;
-	background: #C9CBFF;
+	/* background: #C9CBFF; */
 }
 
 
@@ -260,11 +260,11 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #161320;
-	background: #F2CDCD;
+	/* background: #F2CDCD; */
 }
 #custom-notification {
   font-family: "NotoSansMono Nerd Font";
-	background: #F2CDCD;
+	/* background: #F2CDCD; */
 	transition: none;
 	margin-top: 8px;
 	margin-left: 4px;
@@ -286,7 +286,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
 	color: #161320;
-	background: #45495c;
+	/* background: #45495c; */
 	/* background: transparent; */
 }
 #window {
@@ -304,7 +304,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 #custom-shutdown {
 	font-size: 24px;
@@ -316,7 +316,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 #custom-hibernate {
 	font-size: 24px;
@@ -328,7 +328,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 #custom-logout {
 	font-size: 24px;
@@ -340,7 +340,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 #custom-lock{
 	font-size: 24px;
@@ -352,7 +352,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 #submap{
     border-radius: 20px;
@@ -370,7 +370,7 @@ window#waybar {
 	border-radius: 10px;
 	transition: none;
     color: #e17f69;
-    background: #312e2e;
+    /* background: #312e2e; */
 }
 
 /*margin 左右间隔*/

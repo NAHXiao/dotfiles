@@ -136,6 +136,13 @@ unset HTTP_PROXY
 unset HTTPS_PROXY
 unset socks_proxy
 }
+function set_proxy(){
+export http_proxy=$1
+export https_proxy=$1
+export HTTP_PROXY=$1
+export HTTPS_PROXY=$1
+export socks_proxy=$1
+}
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
 		command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
@@ -144,3 +151,8 @@ function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
 		command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
 }
+
+function ran(){
+    ranger "." $* "$HOME" "$HOME/tmp" "$HOME/workspace" "$HOME/git" /mnt /
+}
+

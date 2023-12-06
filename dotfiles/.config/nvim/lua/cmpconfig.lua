@@ -120,11 +120,13 @@ cmp.setup({
         --['<C-e>'] = cmp.mapping({ i = cmp.mapping.close(), c = cmp.mapping.close() }),
         --mapping = cmp.mapping.preset.insert({
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
+        ["<C-e>"] = cmp.mapping.abort(),
+
         --[[ ['<CR>'] = cmp.mapping({
-            i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true }),
+            i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
             c = function()
                 if cmp.visible() then
-                    cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = true })
+                    cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
                 end
             end,
         }), ]]

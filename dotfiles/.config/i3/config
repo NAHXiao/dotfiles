@@ -61,7 +61,7 @@ set $mod_b Mod4
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec --no-startup-id  $HOME/scripts/terminal.sh
+bindsym $mod+Return exec --no-startup-id  kitty
 #bindsym $mod+Return exec tmux
 #bindsym $mod+Return exec st
 # kill focused window

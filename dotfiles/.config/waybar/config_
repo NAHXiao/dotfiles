@@ -4,12 +4,9 @@
   "modules-left": [
     "group/hardware",
     "network#speed",
-	"hyprland/workspaces",
     "wlr/taskbar",
-    //"custom/pulseaudio",
-    "hyprland/submap"
   ],
-  "modules-center": ["hyprland/window"],
+  //"modules-center": ["hyprland/window"],
   "modules-right": [
     "tray",
     "pulseaudio",

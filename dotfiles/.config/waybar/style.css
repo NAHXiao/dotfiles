@@ -11,7 +11,7 @@ window#waybar {
 #custom-launcher,#custom-power,#custom-reboot,#custom-shutdown,#custom-hibernate,#custom-logout,#custom-lock,#custom-workspace,
 #battery,#memory,#disk,#cpu,#temperature,
 #workspaces button,#taskbar,#submap,#tray,
-#pulseaudio,#network,#clock,#window
+#pulseaudio,#network,#clock,#window,#idle_inhibitor
 {
 /* 背景色 */
 /* background: #11111b;  */

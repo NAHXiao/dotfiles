@@ -4,6 +4,7 @@
   "modules-left": [
     "group/hardware",
     "network#speed",
+    "idle_inhibitor",
 	"hyprland/workspaces",
     "wlr/taskbar",
     "hyprland/submap"
@@ -230,5 +231,15 @@
     "on-click": "sleep 1 ; hyprctl dispatch dpms && $HOME/.scripts/idle.sh",
     "on-click-right": "sleep 1 ; hyprctl dispatch dpms && $HOME/.scripts/idle.sh",
     "on-click-middle": "sleep 1 ; hyprctl dispatch dpms && $HOME/.scripts/idle.sh",
-	}
+	},
+    "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+        "activated": "",
+        "deactivated": "",
+    },
+    "tooltip-format-activated":"屏幕常亮已开启",
+    "tooltip-format-deactivated":"屏幕常亮已关闭",
+    "timeout":120,
+}
 }

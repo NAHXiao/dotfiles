@@ -30,7 +30,7 @@ return {
         }
     },
     warn_about_missing_glyphs = false,
-    font_size = 18,
+    font_size = 15,
     -- line_height = 1.0,
     line_height = 1.1,
     -- dpi = 192.0,

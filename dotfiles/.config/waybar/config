@@ -6,7 +6,6 @@
     "network#speed",
 	"hyprland/workspaces",
     "wlr/taskbar",
-    //"custom/pulseaudio",
     "hyprland/submap"
   ],
   "modules-center": ["hyprland/window"],
@@ -18,26 +17,6 @@
     "clock",
 	"group/arch"
   ],
-  "custom/notification": {
-    "tooltip": false,
-    "format": "{icon}",
-    "format-icons": {
-      "notification": "<span foreground='red'><sup></sup></span>",
-      "none": "",
-      "dnd-notification": "<span foreground='red'><sup></sup></span>",
-      "dnd-none": "",
-      "inhibited-notification": "<span foreground='red'><sup></sup></span>",
-      "inhibited-none": "",
-      "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
-      "dnd-inhibited-none": ""
-    },
-    "return-type": "json",
-    "exec-if": "which swaync-client",
-    "exec": "swaync-client -swb",
-    "on-click": "swaync-client -t -sw",
-    "on-click-right": "swaync-client -d -sw",
-    "escape": true
-  },
   "network": {
     "format-wifi": " {essid} ({signalStrength}%) ",
     "format-ethernet": "󰍹 {ifname}",
@@ -223,7 +202,7 @@
 		]
 	},
   "custom/launcher": {
-    "format": " X  ",
+    "format": "x ",
     "on-click": "sleep 0.3 ;hyprctl kill",
     "on-click-middle": "killall rofi || $HOME/.config/rofi/launchers/type-7/launcher.sh",
     "on-click-right": "hyprctl dispatch togglefloating",

@@ -266,6 +266,11 @@ function CompileAndRunning()
         require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
             echo_gaps_twice, '&&', './' ..
         current_file_without_extension })
+    elseif is_file_extension({ 'c' }) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'gcc', current_file, '-o', current_file_without_extension, '&&',
+            echo_gaps_twice, '&&', './' ..
+        current_file_without_extension })
     elseif is_file_extension({ 'rs' }) then
         require('FTerm').run({ echo_gaps })
         require('FTerm').run({ 'cargo', 'build', '&&', echo_gaps_twice
@@ -289,6 +294,11 @@ function CompileAndRunningRelease()
         require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
             echo_gaps_twice, '&&', './' ..
         current_file_without_extension })
+    elseif is_file_extension({ 'c' }) then
+        require('FTerm').run({ echo_gaps })
+        require('FTerm').run({ 'gcc', current_file, '-o', current_file_without_extension, '&&',
+            echo_gaps_twice, '&&', './' ..
+        current_file_without_extension })
     elseif is_file_extension({ 'rs' }) then
         require('FTerm').run({ echo_gaps })
         require('FTerm').run({ 'cargo', 'build', '--release &&', echo_gaps_twice
@@ -301,6 +311,12 @@ end
 
 map('n', "<F2>", ":lua CompileAndRunning() <CR>")
 map('n', "<F14>", ":lua CompileAndRunningRelease() <CR>")
+-- cargo test
+CargoTest = function()
+    require('FTerm').run({ 'cargo', 'test' })
+end
+map('n', "<F50>", [[:lua CargoTest() <CR>]])
+map('n', "<F1>", [[:lua CargoTest() <CR>]])
 
 
 -- lsp

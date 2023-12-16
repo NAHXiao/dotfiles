@@ -6,12 +6,15 @@ LINK="https://mojie.cyou/api/v1/client/subscribe?token=0ce896d17bde60480c9e1a8bb
 wget --no-proxy "$LINK" -O "$FOLDER"/"$FILE"
 # wget "$LINK" -O "$FOLDER"/"$FILE"
 if [[ -f "$FOLDER"/"$FILE"  && -s "$FOLDER"/"$FILE" ]]; then 
-sed -i '/^secret.*/d' "$FOLDER"/"$FILE"
-sed -i "s/external-controller:.*/external-controller: \'127.0.0.1:9090\'/g" "$FOLDER"/"$FILE"
-sed -i "s/ipv6.*/ipv6: true/g" "$FOLDER"/"$FILE"
-sed -i "s/allow-lan.*/allow-lan: true/g" "$FOLDER"/"$FILE"
+# sed -i '/^secret.*/d' "$FOLDER"/"$FILE"
+# sed -i "s/external-controller:.*/external-controller: \'127.0.0.1:9090\'/g" "$FOLDER"/"$FILE"
+# sed -i "s/ipv6.*/ipv6: true/g" "$FOLDER"/"$FILE"
+# sed -i "s/allow-lan.*/allow-lan: true/g" "$FOLDER"/"$FILE"
 
 sed -i "/rules/a\    - \'DOMAIN-SUFFIX,claude.ai,ChatGPT\'" "$FOLDER"/"$FILE"
+sed -i "/rules/a\    - \'DOMAIN-SUFFIX,anthropic.com,ChatGPT\'" "$FOLDER"/"$FILE"
+sed -i "/rules/a\    - \'DOMAIN-KEYWORD,anthropic,ChatGPT\'" "$FOLDER"/"$FILE"
+
 sed -i "/rules/a\    - \'DOMAIN-SUFFIX,chat.openai.com,ChatGPT\'" "$FOLDER"/"$FILE"
 rm "$FOLDER"/config.yaml
 ln -s "$FOLDER"/"$FILE" "$FOLDER"/config.yaml

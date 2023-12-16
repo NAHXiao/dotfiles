@@ -30,15 +30,16 @@ return {
         }
     },
     warn_about_missing_glyphs = false,
-    font_size = 11,
-    line_height = 1.0,
-    dpi = 192.0,
+    font_size = 18,
+    -- line_height = 1.0,
+    line_height = 1.1,
+    -- dpi = 192.0,
     -- Cursor style
     default_cursor_style = "BlinkingUnderline",
     -- X11
     enable_wayland = true,
     -- Keybinds
-    disable_default_key_bindings = true,
+    -- disable_default_key_bindings = true,
     keys = {
         {
             key = [[\]],

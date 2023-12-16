@@ -34,18 +34,18 @@ def cargorun(cargo_workspace,mode):
             try:
                 if mode == 'release':
                     if os.path.exists(cargo_workspace+'/target/release/' + binary_name):
-                        subprocess.run([cargo_workspace+'/target/release/' + binary_name],check=True)
+                        subprocess.run([cargo_workspace+'/target/release/' + binary_name]+ArgList,check=True)
                     else:
                         subprocess.run(['cargo','build','--release'])
-                        subprocess.run([cargo_workspace+'/target/release/' + binary_name],check=True)
+                        subprocess.run([cargo_workspace+'/target/release/' + binary_name]+ArgList,check=True)
                 elif mode == 'debug':
                     if os.path.exists(cargo_workspace+'/target/debug/' + binary_name):
-                        subprocess.run([cargo_workspace+'/target/debug/' + binary_name],check=True)                
+                        subprocess.run([cargo_workspace+'/target/debug/' + binary_name]+ArgList,check=True)                
                     else:
                         subprocess.run(['cargo','build'])
-                        subprocess.run([cargo_workspace+'/target/debug/' + binary_name],check=True)
+                        subprocess.run([cargo_workspace+'/target/debug/' + binary_name]+ArgList,check=True)
                 else:
-                    subprocess.run(['cargo','run'])
+                    subprocess.run(['cargo','run']+ArgList)
             except subprocess.CalledProcessError as e:
                 returncode=e.returncode
             if not returncode:
@@ -56,11 +56,16 @@ def cargorun(cargo_workspace,mode):
 
 
 argvList=sys.argv
-if len(argvList)>1:
-    mode=argvList[1]
+if len(argvList)>1 and argvList[1]=='release':
+    mode='release'
 else:
     mode="debug"
-
+# 以--为分界线,解析出子程序参数,写入ArgList
+ArgList=[]
+for i in range(len(argvList)):
+    if argvList[i]=="--":
+        ArgList=argvList[i+1:]
+        break
 try:
     cargorun(find_cargo_dir(),mode)
 except KeyboardInterrupt:

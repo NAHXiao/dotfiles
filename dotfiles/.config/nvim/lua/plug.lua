@@ -106,3 +106,4 @@ return require('packer').startup(function(use)
     use 'tpope/vim-surround'                  -- Add "", '', (), hello=>"hello"=><q>hello</q>
     use { 'phaazon/hop.nvim', branch = 'v2' } -- Navitage to any word in the file 快速跳转
 end)                                          -- init.lua
+

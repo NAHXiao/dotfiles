@@ -145,11 +145,11 @@ export socks_proxy=$1
 }
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
-		command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
+	[[ -n $WEZTERM_EXECUTABLE ]] && command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
 }
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
-		command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
+	[[ -n $WEZTERM_EXECUTABLE ]] && command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
 }
 
 function ran(){

@@ -178,7 +178,9 @@
       "(.*) — Mozilla Firefox": "$1"
     },
     "separate-outputs": true,
-    "max-length": 35
+    "max-length": 35,
+    "on-click":"hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so | grep -v 'ok' && hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so",
+    "on-click-right":"$HOME/.scripts/tog_float.sh"
   },
   "hyprland/submap": {
     "format": "M: {}",

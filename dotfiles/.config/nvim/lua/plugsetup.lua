@@ -339,9 +339,10 @@ require('nvim-treesitter.configs').setup {
         "zig" },
     -- TODO if true  some .d will open failed
     auto_install = false,
-    highlight = {
-        enable = true,
-    },
+    -- highlight = {
+    -- -- 打开会导致python缩进异常
+    --     enable = true,
+    -- },
     incremental_selection = {
         enable = true,
         keymaps = {

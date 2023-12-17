@@ -34,6 +34,23 @@ export XDG_MUSIC_DIR="$HOME/Music"
 export XDG_PICTURES_DIR="$HOME/Pictures"
 export XDG_VIDEOS_DIR="$HOME/Videos"
 
+export LC_ALL=en_US.UTF-8  
+# export LANG=en_US.UTF-8
+# export LC_CTYPE="zh.CN.UTF-8"
+# export LC_NUMERIC="zh.CN.UTF-8"
+# export LC_TIME="zh.CN.UTF-8"
+# export LC_COLLATE="zh.CN.UTF-8"
+# export LC_MONETARY="zh.CN.UTF-8"
+# export LC_MESSAGES="zh.CN.UTF-8"
+# export LC_PAPER="zh.CN.UTF-8"
+# export LC_NAME="zh.CN.UTF-8"
+# export LC_ADDRESS="zh.CN.UTF-8"
+# export LC_TELEPHONE="zh.CN.UTF-8"
+# export LC_MEASUREMENT="zh.CN.UTF-8"
+# export LC_IDENTIFICATION="zh.CN.UTF-8"
+export LANG="zh.CN.UTF-8"
+export LANGUAGE="zh.CN.UTF-8"
+
 ## Comment this to use normal manpager
 export MANPAGER='nvim +Man! +"set nocul" +"set noshowcmd" +"set noruler" +"set noshowmode" +"set laststatus=0" +"set showtabline=0" +"set nonumber"'
 

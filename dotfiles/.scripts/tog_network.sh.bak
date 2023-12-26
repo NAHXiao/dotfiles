@@ -24,7 +24,7 @@ function if_JLU_then_drcom(){
             }
         done &
         echo $! > "$XDG_RUNTIME_DIR/drcomloop.pid"
-    fi
+fi
 }
 switch_interface
 if_JLU_then_drcom

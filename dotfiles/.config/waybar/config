@@ -21,6 +21,7 @@
   "network": {
     "format-wifi": " {essid} ({signalStrength}%) ",
     "format-ethernet": "󰍹 {ifname}",
+    "interval":5,
     "tooltip-format": "{ifname} via {gwaddr} 󰍹",
     "format-linked": "{ifname} (No IP) 󰍹",
     "format-disconnected": "Disconnected ⚠",
@@ -106,7 +107,7 @@
       "default": ["", "", ""]
     },
     "on-click-right": "pavucontrol -t 1",
-    "on-click-middle": "$HOME/.scripts/rofi-bluetooth  & $HOME/.scripts/close_rofi_while_not_focus.sh "
+    "on-click-middle": "blueberry"
   },
   "custom/pulseaudio": {
     "format": "{}",

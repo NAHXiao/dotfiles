@@ -5,8 +5,10 @@
 #
 #
 #
+alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
+alias ra='ranger'
 
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'
@@ -56,7 +58,6 @@ alias sr='source ~/.config/zsh/env.zsh'
 alias ..="cd .."
 alias psg="ps aux | grep -v grep | grep -i -e VSZ -e" 
 alias mkdir="mkdir -p"
-alias fm='ranger'
 alias pacin="pacman -Slq | fzf -m --preview 'cat <(pacman -Si {1}) <(pacman -Fl {1} | awk \"{print \$2}\")' | xargs -ro sudo pacman -S"
 alias paruin="paru -Slq | fzf -m --preview 'cat <(paru -Si {1}) <(paru -Fl {1} | awk \"{print \$2}\")' | xargs -ro  paru -S"
 alias pacrem="pacman -Qq | fzf --multi --preview 'pacman -Qi {1}' | xargs -ro sudo pacman -Rns"
@@ -77,7 +78,6 @@ alias grep='grep --color=auto'
 alias mv='mv -v'
 alias cp='cp -vr'
 #alias rm='rm -vr'
-#alias rm='trush'
 alias commit="git add . && git commit -m"
 alias push="git push"
 alias git-rm="git ls-files --deleted -z | xargs -0 git rm"

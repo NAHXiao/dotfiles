@@ -10,8 +10,8 @@ opt.signcolumn = "yes"    -- str:  Show the sign column
 
 -- [[ Filetypes ]]
 opt.encoding = "utf8" -- str:  String encoding to use
---opt.fileencoding = "utf8,ucs-bom,cp936" -- str:  File encoding to use
-
+-- opt.fileencoding = "utf8" -- str:  File encoding to use
+vim.cmd([[set fileencodings=ucs-bom,utf-8,cp936]])
 -- [[ Theme ]]
 opt.syntax = "ON"        -- str:  Allow syntax highlighting 语法高亮
 opt.termguicolors = true -- bool: If term supports ui color then enable 真彩色

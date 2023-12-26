@@ -25,3 +25,4 @@ wl-paste --watch cliphist store&
 # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
 # hyprdim -n -p -i &
 "$HOME"/.scripts/env.sh
+nm-applet&

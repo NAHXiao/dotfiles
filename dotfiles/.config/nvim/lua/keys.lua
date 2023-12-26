@@ -81,8 +81,31 @@ map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
 map('i', "<C-j>", "<C-[>o")
 map('i', "<C-k>", "<C-[>O")
-map('i', "<S-Enter>", "<C-[>jA")
-map('i', "<C-Enter>", "<C-[>jI")
+
+
+vim.api.nvim_command([[
+  function! GotoNextEnd()
+    let lnum = line('.')
+    let nlines = line('$')
+    if lnum == nlines
+      call append(lnum, '')
+    endif
+      call cursor(lnum + 1, col([lnum + 1, '$']))
+  endfunction
+]])
+vim.api.nvim_command([[
+  function! GotoNextBegin()
+    let lnum = line('.')
+    let nlines = line('$')
+    if lnum == nlines
+      call append(lnum, '')
+    endif
+      call cursor(lnum + 1, col([lnum + 1, 1]))
+  endfunction
+]])
+map('i', '<C-CR>', [[<Esc>:call GotoNextBegin()<CR>i]], { noremap = true, silent = true })
+map('i', '<S-CR>', [[<Esc>:call GotoNextEnd()<CR>a]], { noremap = true, silent = true })
+
 -- map('n', "<C-/>", ":Commentary<CR>")
 -- map('i', "<C-/>", "<C-[>:Commentary<CR>")
 -- map('v', "<C-/>", "<C-[>:Commentary<CR>")
@@ -278,6 +301,8 @@ function CompileAndRunning()
     elseif is_file_extension({ 'py' }) then
         require('FTerm').run({ echo_gaps_twice })
         require('FTerm').run({ 'python', current_file })
+    elseif is_file_extension({ "sh" }) then
+        require('FTerm').toggle();
     end
 end
 
@@ -310,6 +335,7 @@ function CompileAndRunningRelease()
 end
 
 map('n', "<F2>", ":lua CompileAndRunning() <CR>")
+map('t', "<F2>", "<C-\\><C-n><CMD>lua require('FTerm').toggle()<CR>")
 map('n', "<F14>", ":lua CompileAndRunningRelease() <CR>")
 -- cargo test
 CargoTest = function()

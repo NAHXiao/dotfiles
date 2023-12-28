@@ -54,46 +54,27 @@ def cargorun(cargo_workspace,mode):
             else:
                 print("\033[31mProcess return "+str(returncode)+"\033[0m")
 
-#################全局变量#####################
+#################参数处理#####################
 
 argvList=sys.argv
 mode='debug'
 use_default_args=False
-DefaultArgsFile=''
-CustomArgsFile=''
-SubArgList=[]
+
 def set_globals(global_var_name:str,new_value):
     globals()[global_var_name]=new_value
-#################参数定义#####################
-#True表示参数错误
-ArgEnumDict={
-        '-m=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
-        '--mode=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
-        '-c=':lambda x: set_globals('use_default_args',True) or set_globals('CustomArgsFile',x),
-        '--config=':lambda x: set_globals('use_default_args',True) or set_globals('CustomArgsFile',x),
-}
 ArgOptionDict={
         '-r':lambda:set_globals('mode','release'),
         '--release':lambda:set_globals('mode','release'),
         '-d':lambda:set_globals('mode','debug'),
         '--debug':lambda:set_globals('mode','debug'),
         '-D':lambda:set_globals('use_default_args',True),
-        '--default-args':lambda:set_globals('use_default_args',True),
-        '-h':lambda:print("Usage: cargorun [options] [--] [subargs]") or sys.exit(0),
-        '--help':lambda:print(\
-'''
-Usage: cargorun [options] [--] [subargs]
-Options:
-    -r, --release: build in release mode
-    -d, --debug: build in debug mode
-    -m=<debug|release>, --mode=<...>: build in mode
-    -D, --default-args: use and update default args
-    -c=<argfile>,--config=<argfile>: indicate the default args file
-    -h, --help: print this help
-'''
-) or sys.exit(0),
+        '--default-args':lambda:set_globals('use_default_args',True)
 }
-#################参数Parse#####################
+ArgEnumDict={
+        '-m=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
+        '--mode=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
+}
+SubArgList=[]
 SubArgIsSetted=False
 for i in range(1,len(argvList)):
     if argvList[i]=="--":
@@ -124,15 +105,8 @@ for i in range(1,len(argvList)):
 CargoWorkspace=find_cargo_dir()
 if not CargoWorkspace:
     print("not found Cargo.toml")
-    sys.exit(1)
-if not CustomArgsFile:
-    DefaultArgsFile=os.path.join(str(CargoWorkspace),'.cargo_run_args')
-else:
-    if not os.path.exists(CustomArgsFile):
-        print("not found "+CustomArgsFile)
-        sys.exit(1)
+DefaultArgsFile=os.path.join(str(CargoWorkspace),'.cargo_run_args')
 
-#################处理arg_config选项#####################
 # 1 1 use new , update
 # 1 0 use new , no update
 # 0 1 use default
@@ -154,37 +128,3 @@ try:
     cargorun(CargoWorkspace,mode)
 except KeyboardInterrupt:
     sys.exit(1)
-
-
-
-'''
-import argparse
-
-# 全局变量
-mode = 'debug'
-use_default_args = False
-DefaultArgsFile = ''
-CustomArgsFile = ''
-SubArgList = []
-
-# 参数定义
-parser = argparse.ArgumentParser(description='Command-line tool.')
-parser.add_argument('-m', '--mode', choices=['debug', 'release'], default='debug', help='Build mode.')
-parser.add_argument('-D', '--default-args', action='store_true', help='Use and update default args.')
-parser.add_argument('-c', '--config', type=argparse.FileType('r'), help='Indicate the default args file.')
-
-# 解析命令行参数
-args, unknown_args = parser.parse_known_args()
-
-# 更新全局变量
-mode = args.mode
-use_default_args = args.default_args
-if args.config:
-    CustomArgsFile = args.config.name
-
-# 处理未识别的子参数
-if '--' in unknown_args:
-    SubArgList = unknown_args[unknown_args.index('--') + 1:]
-
-# 其他全局变量操作可以根据需要添加
-'''

@@ -79,8 +79,8 @@ tnoremap <A-l> <C-\><C-n><C-w><C-l><CR>
 map('i', "<C-space>", "<C-[>")
 map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
-map('i', "<C-j>", "<C-[>o")
-map('i', "<C-k>", "<C-[>O")
+-- map('i', "<C-j>", "<C-[>o")
+-- map('i', "<C-k>", "<C-[>O")
 
 
 vim.api.nvim_command([[
@@ -126,7 +126,11 @@ map('n', "<C-s>", "<C-[>:wa<CR>")
 
 
 --
-map("n", "sv", ":luafile ~/.config/nvim/init.lua<cr>")
+map("n", "sv",
+    [[
+:luafile ~/.config/nvim/init.lua<cr>
+:luafile ~/.config/nvim/lua/cmpconfig.lua<cr>
+    ]])
 
 -- Hop
 --map("n", "HH", ":HopWord<cr>")
@@ -264,75 +268,6 @@ vim.keymap.set('n', '<c-space>', '<CMD>lua require("FTerm").toggle()<CR>')
 vim.keymap.set('t', '<c-space>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
 
 
--- Run
--- 判断当前缓冲区文件扩展名的函数
-function is_file_extension(extensions)
-    local current_extension = vim.fn.expand('%:e'):lower()
-    for _, ext in ipairs(extensions) do
-        if current_extension == ext then
-            return true
-        end
-    end
-    return false
-end
-
-function CompileAndRunning()
-    local current_file = vim.fn.expand('%:p')
-    local current_file_without_extension = vim.fn.expand('%:t:r')
-    local cpp_extensions = { 'cpp', 'cxx', 'CPP' }
-    local echo_gaps = [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-    local echo_gaps_twice =
-    [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-
-    if is_file_extension(cpp_extensions) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
-        current_file_without_extension })
-    elseif is_file_extension({ 'c' }) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'gcc', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
-        current_file_without_extension })
-    elseif is_file_extension({ 'rs' }) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'cargo', 'build', '&&', echo_gaps_twice
-        , '&&', 'cargorun.py' })
-    elseif is_file_extension({ 'py' }) then
-        require('FTerm').run({ echo_gaps_twice })
-        require('FTerm').run({ 'python', current_file })
-    elseif is_file_extension({ "sh" }) then
-        require('FTerm').toggle();
-    end
-end
-
-function CompileAndRunningRelease()
-    local current_file = vim.fn.expand('%:p')
-    local current_file_without_extension = vim.fn.expand('%:t:r')
-    local cpp_extensions = { 'cpp', 'cxx', 'CPP' }
-    local echo_gaps = [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-    local echo_gaps_twice =
-    [[(echo;printf '%*s\n' "$(tput cols)" | tr ' ' '-';printf '%*s\n' "$(tput cols)" | tr ' ' '-';echo)]]
-
-    if is_file_extension(cpp_extensions) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
-        current_file_without_extension })
-    elseif is_file_extension({ 'c' }) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'gcc', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
-        current_file_without_extension })
-    elseif is_file_extension({ 'rs' }) then
-        require('FTerm').run({ echo_gaps })
-        require('FTerm').run({ 'cargo', 'build', '--release &&', echo_gaps_twice
-        , '&&', 'cargorun.py release' })
-    elseif is_file_extension({ 'py' }) then
-        require('FTerm').run({ echo_gaps_twice })
-        require('FTerm').run({ 'python', current_file })
-    end
-end
 
 map('n', "<F2>", ":lua CompileAndRunning() <CR>")
 map('t', "<F2>", "<C-\\><C-n><CMD>lua require('FTerm').toggle()<CR>")

@@ -519,6 +519,7 @@ end
 --             cmp                  ----
 ----------------------------------------
 --require("cmpconfig")
+-- require('cmp_vsnip').setup()
 require("cmpconfig")
 
 ----------------------------------------
@@ -565,20 +566,23 @@ local function is_file_extension(extensions)
     return false
 end
 
+
 -- 禁用rust .rs 的`
 --
-
-local function auto_disable_grave_for_rs()
-    if is_file_extension({ 'rs' }) then
-        vim.cmd([[
-let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"',  '```':'```', '"""':'"""', "'''":"'''"}
-]])
-    end
-end
-
-auto_disable_grave_for_rs()
+-- local function auto_disable_grave_for_rs()
+--     if is_file_extension({ 'rs' }) then
+--         vim.cmd([[
+-- let g:AutoPairs = {'(':')', '[':']', '{':'}',"'":"'",'"':'"',  '```':'```', '"""':'"""', "'''":"'''"}
+-- ]])
+--     end
+-- end
+--
+-- auto_disable_grave_for_rs()
 
 
 -- crates
-require('crates').setup({
-})
+require('crates').setup({})
+
+
+
+config = function() require("nvim-autopairs").setup {} end

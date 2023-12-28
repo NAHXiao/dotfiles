@@ -7,14 +7,6 @@ vim.g.mapleader = " "
 vim.g.localleader = " "
 vim.o.timeoutlen = 800
 
-DebugToFile = function(log)
-    if log == nil then
-        return
-    end
-    local file = io.open('/home/wangsf/tmp/nvim.log', 'a')
-    file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. ' ' .. tostring(log) .. '\n')
-    file:close()
-end
 
 -- Color theme
 if tostring(vim.fn.getenv('WEZTERM_EXECUTABLE')) ~= '/usr/bin/wezterm-gui' then
@@ -60,6 +52,7 @@ vim.lsp.buf.hover({
 
 
 -- IMPORTS
+require('func')
 require("vars")      -- Variables
 require("opts")      -- Options
 require("keys")      -- Keymaps

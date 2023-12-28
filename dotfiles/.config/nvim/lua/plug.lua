@@ -7,7 +7,6 @@ return require('packer').startup(function(use)
     ----------------------
     --use { 'neoclide/coc.nvim', branch = 'release' }
     use 'wbthomason/packer.nvim'                                             -- Packer package manager
-    use 'hrsh7th/vim-vsnip'                                                  -- Snippet engine
     use { 'kyazdani42/nvim-tree.lua',                                        -- Filesystem navigation
         requires = 'kyazdani42/nvim-web-devicons' }                          -- Filesystem icons
     use 'lewis6991/impatient.nvim'                                           -- Makes neovim faster ???
@@ -66,18 +65,28 @@ return require('packer').startup(function(use)
     ----------------------
     -- cmp
     ----------------------
-    use 'hrsh7th/cmp-nvim-lsp'     -- LSP completion source for nvim-cmp
-    use 'onsails/lspkind.nvim'     -- shows icons in cmp
-    use 'hrsh7th/cmp-buffer'       -- Useful completion sources
-    use 'hrsh7th/cmp-path'         -- Useful completion sources
-    use 'hrsh7th/cmp-nvim-lua'
-    use 'hrsh7th/cmp-emoji'        --输入: 可以显示表情
+    use 'hrsh7th/nvim-cmp'     -- Completion framework
+    use 'hrsh7th/cmp-nvim-lsp' -- LSP completion source for nvim-cmp
+    use({
+        "L3MON4D3/LuaSnip",
+        -- follow latest release.
+        tag = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+        -- install jsregexp (optional!:).
+        run = "make install_jsregexp",
+        dependencies = { "rafamadriz/friendly-snippets" },
+    })
     use 'saadparwaiz1/cmp_luasnip' -- snippets for completion'
+    use "rafamadriz/friendly-snippets"
+    -- use 'hrsh7th/vim-vsnip'        -- Snippet engine
+    -- use 'hrsh7th/vim-vsnip-integ'  -- Snippet engine : LSP
+    use 'onsails/lspkind.nvim' -- shows icons in cmp
+    use 'hrsh7th/cmp-buffer'   -- Useful completion sources
+    use 'hrsh7th/cmp-path'     -- Useful completion sources
+    use 'hrsh7th/cmp-nvim-lua'
+    use 'hrsh7th/cmp-emoji'    --输入: 可以显示表情
     use "hrsh7th/cmp-cmdline"
-    use 'L3MON4D3/LuaSnip'         -- snippets for completion 右下角processing提示
-    use 'hrsh7th/nvim-cmp'         -- Completion framework
     use 'hrsh7th/cmp-nvim-lsp-signature-help'
-    use 'hrsh7th/cmp-vsnip'        -- Snippet completion source for nvim-cmp
+    use 'hrsh7th/cmp-vsnip' -- Snippet completion source for nvim-cmp
     use 'petertriho/cmp-git'
     --[[ use 'zbirenbaum/copilot.lua'
     use {
@@ -98,12 +107,11 @@ return require('packer').startup(function(use)
             require("better_escape").setup()
         end,
     }
-    use 'jiangmiao/auto-pairs'
-    --[[ use {
+    -- use 'jiangmiao/auto-pairs'
+    use {
         "windwp/nvim-autopairs", -- Autocomplete (), {}, []
         config = function() require("nvim-autopairs").setup {} end
-    } ]]
+    }
     use 'tpope/vim-surround'                  -- Add "", '', (), hello=>"hello"=><q>hello</q>
     use { 'phaazon/hop.nvim', branch = 'v2' } -- Navitage to any word in the file 快速跳转
 end)                                          -- init.lua
-

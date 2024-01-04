@@ -99,7 +99,25 @@ return require('packer').startup(function(use)
     ----------------------
     -- Little Tools
     ----------------------
-    use 'github/copilot.vim'
+    -- use 'github/copilot.vim'
+    use {
+        "zbirenbaum/copilot.lua",
+        cmd = "Copilot",
+        event = "InsertEnter",
+        config = function()
+            require("copilot").setup({
+                suggestion = { enabled = false },
+                panel = { enabled = false },
+            })
+        end,
+    }
+    use {
+        "zbirenbaum/copilot-cmp",
+        after = { "copilot.lua" },
+        config = function()
+            require("copilot_cmp").setup()
+        end
+    }
     use 'simrat39/symbols-outline.nvim' -- enable symbols tab
     use {
         "max397574/better-escape.nvim",

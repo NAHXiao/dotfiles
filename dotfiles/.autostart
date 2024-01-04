@@ -9,8 +9,6 @@ killall xdg-desktop-portal
 sleep 2
 dbus-launch waybar& 
 wayvnc&
-# "$HOME"/.scripts/hypr_float.sh
-# "$HOME"/.scripts/tog_float.sh
 }&
 /usr/lib/kdeconnectd &
 kdeconnect-indicator &
@@ -21,8 +19,9 @@ udiskie-mount&
 swaync&
 avizo-service&
 mpd&
+playerctld&
 wl-paste --watch cliphist store&
 # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
 # hyprdim -n -p -i &
-"$HOME"/.scripts/env.sh
+# "$HOME"/.scripts/env.sh
 nm-applet&

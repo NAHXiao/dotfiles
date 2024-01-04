@@ -36,6 +36,15 @@ local t = function(str)
 end
 local cmp = require("cmp")
 
+local has_words_before = function()
+    if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then return false end
+    -- local line, col = table.unpack(vim.api.nvim_win_get_cursor(0))
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local line   = cursor[1]
+    local col    = cursor[2]
+    return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
+end
+
 cmp.setup({
     preselect = cmp.PreselectMode.None,
     snippet = {
@@ -52,30 +61,31 @@ cmp.setup({
         ["<Tab>"] = cmp.mapping({
             c = function()
                 if cmp.visible() then
-                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
                 else
                     cmp.complete()
                 end
             end,
-            i = function(fallback)
+            i = vim.schedule_wrap(function(fallback)
                 if cmp.visible() then
-                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
                 else
                     fallback()
                 end
-            end,
+            end
+            )
         }),
         ["<S-Tab>"] = cmp.mapping({
             c = function()
                 if cmp.visible() then
-                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
                 else
                     cmp.complete()
                 end
             end,
             i = function(fallback)
                 if cmp.visible() then
-                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
                 else
                     fallback()
                 end
@@ -160,11 +170,10 @@ cmp.setup({
         { name = "buffer" },
         { name = "path" },
     }),
-    --[[ sorting = {
+    sorting = {
         priority_weight = 2,
         comparators = {
             require("copilot_cmp.comparators").prioritize,
-
             -- Below is the default comparitor list and order for nvim-cmp
             cmp.config.compare.offset,
             -- cmp.config.compare.scopes, --this is commented in nvim-cmp too
@@ -177,7 +186,7 @@ cmp.setup({
             cmp.config.compare.length,
             cmp.config.compare.order,
         },
-    }, ]]
+    },
 })
 
 -- Set configuration for specific filetype.
@@ -205,6 +214,41 @@ cmp.setup.cmdline(":", {
     }, {
         { name = "cmdline" },
     }),
+    mapping = {
+        ["<Tab>"] = cmp.mapping({
+            c = function()
+                if cmp.visible() then
+                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                else
+                    cmp.complete()
+                end
+            end,
+            i = vim.schedule_wrap(function(fallback)
+                if cmp.visible() then
+                    cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                else
+                    fallback()
+                end
+            end
+            )
+        }),
+        ["<S-Tab>"] = cmp.mapping({
+            c = function()
+                if cmp.visible() then
+                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                else
+                    cmp.complete()
+                end
+            end,
+            i = function(fallback)
+                if cmp.visible() then
+                    cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                else
+                    fallback()
+                end
+            end,
+        }),
+    }
 })
 -- 函数补全括号
 local cmp_autopairs = require('nvim-autopairs.completion.cmp')

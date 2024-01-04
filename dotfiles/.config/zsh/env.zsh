@@ -35,6 +35,7 @@ export XDG_PICTURES_DIR="$HOME/Pictures"
 export XDG_VIDEOS_DIR="$HOME/Videos"
 
 export LC_ALL=en_US.UTF-8  
+
 # export LANG=en_US.UTF-8
 # export LC_CTYPE="zh.CN.UTF-8"
 # export LC_NUMERIC="zh.CN.UTF-8"
@@ -48,8 +49,9 @@ export LC_ALL=en_US.UTF-8
 # export LC_TELEPHONE="zh.CN.UTF-8"
 # export LC_MEASUREMENT="zh.CN.UTF-8"
 # export LC_IDENTIFICATION="zh.CN.UTF-8"
-export LANG="zh.CN.UTF-8"
-export LANGUAGE="zh.CN.UTF-8"
+
+export LANG=zh.CN.UTF-8
+export LANGUAGE=zh.CN.UTF-8
 
 ## Comment this to use normal manpager
 export MANPAGER='nvim +Man! +"set nocul" +"set noshowcmd" +"set noruler" +"set noshowmode" +"set laststatus=0" +"set showtabline=0" +"set nonumber"'

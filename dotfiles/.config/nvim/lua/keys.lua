@@ -70,6 +70,8 @@ noremap <A-h> <C-[><C-w><C-h><CR>
 noremap <A-j> <C-[><C-w><C-j><CR>
 noremap <A-k> <C-[><C-w><C-k><CR>
 noremap <A-l> <C-[><C-w><C-l><CR>
+"切换系统剪贴板
+noremap <A-y> :ToggleClipboard<CR>
 
 tnoremap <A-h> <C-\><C-n><C-w><C-h><CR>
 tnoremap <A-j> <C-\><C-n><C-w><C-j><CR>
@@ -249,6 +251,13 @@ vim.cmd([[
     cnoreabbrev Q q
     cnoreabbrev Qa qa
     cnoreabbrev Qall qall
+    cnoreabbrev WQA wqa
+    cnoreabbrev WQa wqa
+    cnoreabbrev WqA wqa
+    cnoreabbrev Wqa wqa
+    cnoreabbrev wQA wqa
+    cnoreabbrev wQa wqa
+    cnoreabbrev wqA wqa
 ]])
 
 -- Comment.nvim configuration

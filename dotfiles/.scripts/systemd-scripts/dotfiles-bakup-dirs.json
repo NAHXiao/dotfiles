@@ -28,5 +28,8 @@
   "$HOME/.gitconfig",
   "$HOME/.zshenv",
   "$HOME/HuTao.png",
-  "$HOME/.autostart"
+  "$HOME/.autostart",
+  "$HOME/.profile",
+  "$HOME/.tmux.conf",
+  "$HOME/.npmrc"
 ]

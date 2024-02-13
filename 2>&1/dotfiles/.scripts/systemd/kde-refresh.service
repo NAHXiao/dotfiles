@@ -1,0 +1,10 @@
+[Unit]
+Description=kde-refresh service
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/bin/kdeconnect-cli --list-devices 
+[Install]
+; WantedBy=multi-user.target
+WantedBy=default.target

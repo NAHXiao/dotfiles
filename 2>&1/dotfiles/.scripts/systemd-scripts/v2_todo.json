@@ -1,0 +1,50 @@
+[
+  {
+    "basepath": "$HOME",
+    "remoterepolink": "git@github.com:NAHXiao/dotfiles.git",
+    "localrepopath": "$HOME/.dotfilesrepo",
+	"rsyncto":"$HOME/.dotfilesrepo/dotfiles",
+    "filelist": [
+      "$HOME/.config/ranger",
+      "$HOME/.config/rofi",
+      "$HOME/.config/starship",
+      "$HOME/.config/swayidle",
+      "$HOME/.config/swaylock",
+      "$HOME/.config/swaync",
+      "$HOME/.config/systemd",
+      "$HOME/.config/waybar",
+      "$HOME/.config/wezterm",
+      "$HOME/.config/wlogout",
+      "$HOME/.config/wofi",
+      "$HOME/.config/zsh",
+      "$HOME/.config/nvim",
+      "$HOME/.scripts",
+      "$HOME/template",
+      "$HOME/.bashrc",
+      "$HOME/.gitconfig",
+      "$HOME/.zshenv",
+      "$HOME/HuTao.png",
+      "$HOME/.autostart"
+    ],
+    "excludelist": ["$HOME/.scripts/systemd/aria2/aria2.session"],
+    "localbakupdir": "/mnt/data/backup/dotfiles"
+  },
+  {
+    "basepath": "$HOME",
+    "remoterepolink": "git@github.com:NAHXiao/dotfiles.git",
+    "localrepopath": "$HOME/.privatedotfilesrepo",
+	"rsyncto":"$HOME/.dotfilesrepo/dotfiles",
+    "filelist": ["$HOME/.ssh"],
+    "excludelist": [],
+    "localbakupdir": "/mnt/data/backup/dotfiles"
+  },
+  {
+    "basepath": "$HOME",
+    "remoterepolink": "git@github.com:NAHXiao/dotfiles.git",
+    "localrepopath": "$HOME/.obsidianrepo",
+	"rsyncto":"$HOME/.dotfilesrepo/dotfiles",
+    "filelist": ["$HOME/.local/Obsidian"],
+    "excludelist": [],
+    "localbakupdir": "/mnt/data/backup/dotfiles"
+  }
+]

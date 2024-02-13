@@ -1,0 +1,13 @@
+[Unit]
+Description=dotfiles bakup service
+; After=default.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.scripts/systemd-scripts
+ExecStart=%h/.scripts/systemd-scripts/dotfiles-bakup.sh
+[Install]
+; WantedBy=multi-user.target
+; WantedBy=default.target
+WantedBy=network-online.target

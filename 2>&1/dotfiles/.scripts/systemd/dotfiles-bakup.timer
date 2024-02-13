@@ -1,8 +1,0 @@
-[Unit]
-Description=run dotfiles-bakup server - timer
-
-[Timer]
-Unit=dotfiles-bakup.service
-OnCalendar=*-*-* *:00:00
-[Install]
-WantedBy=network-online.target

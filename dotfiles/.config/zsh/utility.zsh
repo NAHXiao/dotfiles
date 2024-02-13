@@ -143,6 +143,15 @@ export HTTP_PROXY=$1
 export HTTPS_PROXY=$1
 export socks_proxy=$1
 }
+function set_proxy_wsl(){
+    for ip in $(ipconfig.exe | grep.exe -i 'IPv4' | cut -d ':' -f 2);do
+       if ping -q -c 1 -w 1 $ip >/dev/null 2>&1;then
+           set_proxy $ip:7890
+           echo "set proxy to $ip:7890"
+           break
+       fi
+    done
+}
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
 	[[ -n $WEZTERM_EXECUTABLE ]] && command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"

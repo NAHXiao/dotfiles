@@ -18,6 +18,7 @@ end
 -- ysiw)
 --重启lsp
 map('n', '<leader>rl', ':LspRestart<CR>')
+map('n', '<leader>sl', ':LspStop<CR>')
 -- 翻页
 map('n', '<C-f>', '<PageDown>')
 map('n', '<C-b>', '<PageUp>')
@@ -41,7 +42,8 @@ map('n', '<leader>P', "ggVGp")
 --]])
 --map('n', '<C-f>', ':Files<CR>', { silent = true })
 map('n', '<leader>-f', ':Rg<CR>', { silent = true })
-map('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
+map('n', '<c-n>', '<cmd>NvimTreeToggle<CR>')
+map('n', '<leader>n', '<cmd>NvimTreeToggle<CR>')
 
 --@模板
 vim.cmd([[
@@ -78,9 +80,10 @@ tnoremap <A-j> <C-\><C-n><C-w><C-j><CR>
 tnoremap <A-k> <C-\><C-n><C-w><C-k><CR>
 tnoremap <A-l> <C-\><C-n><C-w><C-l><CR>
 ]])
-map('i', "<C-space>", "<C-[>")
 map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
+map('i', "<C-h>", "<C-[>I")
+map('i', "<C-l>", "<C-[>A")
 -- map('i', "<C-j>", "<C-[>o")
 -- map('i', "<C-k>", "<C-[>O")
 
@@ -146,20 +149,26 @@ map("n", "<leader>fg", ":lua require('telescope.builtin').live_grep()<cr>")
 map("n", "<leader>fb", ":lua require('telescope.builtin').buffers()<cr>")
 map("n", "<leader>fh", ":lua require('telescope.builtin').help_tags()<cr>")
 map("n", "<leader>fd", ":lua require('telescope.builtin').diagnostics()<cr>")
-map("n", "<leader>fs", ":lua require('telescope.builtin').lsp_workspace_symbols()<cr>")
+map("n", "<leader>fs", ":lua require('telescope.builtin').lsp_workspace_symbols()<cr>") --
 map("n", "<leader>fr", ":lua require('telescope.builtin').lsp_references()<cr>")
 map("n", "<leader>fi", ":lua require('telescope.builtin').lsp_implementations()<cr>")
 map("n", "<leader>fl", ":lua require('telescope.builtin').treesitter()<cr>")
 map("n", "<leader>fk", ":lua require('telescope.builtin').keymaps()<cr>")
 
 map("n", "<leader>fc", ":lua require('telescope.builtin').commands()<cr>")
-map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
-map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")
+-- map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
+-- map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")
 map("n", "<leader>fmp", ":lua require('telescope.builtin').man_pages()<cr>")
 map("n", "<leader>fgc", ":lua require('telescope.builtin').git_commits()<cr>")
 map("n", "<leader>fgb", ":lua require('telescope.builtin').git_branches()<cr>")
-
-
+-- session
+-- map('n', '<leader>se', ":Telescope session-lens theme=get_dropdown<cr>")
+-- 
+-- map('n', '<leader>se', ":Telescope session-lens<cr>")
+map('n', '<leader>se', ':lua require("auto-session.session-lens").search_session<cr>')
+map('n', '<leader>ss', ":SessionSave<cr>")
+map('n', '<leader>sd', ":SessionDelete<cr>")
+-- map('n', '<leader>s', ":Telescope session-lens <cr>")
 
 
 -- Todo List
@@ -275,6 +284,12 @@ vim.keymap.set('x', 'cb', '<Plug>(comment_toggle_blockwise_visual)')
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
 vim.keymap.set('n', '<c-space>', '<CMD>lua require("FTerm").toggle()<CR>')
 vim.keymap.set('t', '<c-space>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+map('i', "<C-space>", "<C-[>")
+
+-- windows似乎发送不了ctrl-space,用ctrl-\代替
+vim.keymap.set('n', '<c-\\>', '<CMD>lua require("FTerm").toggle()<CR>')
+vim.keymap.set('t', '<c-\\>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+vim.keymap.set('i', "<C-\\>", "<C-[>")
 
 
 
@@ -341,7 +356,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
         vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
         vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
         vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-        vim.keymap.set('n', '<space>f', function()
+        vim.keymap.set('n', '<space>fo', function() -- f->fo
             vim.lsp.buf.format { async = true }
         end, opts)
     end,
@@ -360,9 +375,9 @@ nnoremap <silent> g] <cmd>lua vim.diagnostic.goto_next()<CR>
 
 
 
--- copilot
-vim.cmd([[
-        "inoremap <silent><script><expr> <c-space> copilot#Accept("\<CR>")
-        imap <silent><script><expr> <c-j> copilot#Accept("\<c-j>")
-        let g:copilot_no_tab_map = v:true
-]])
+--copilot
+-- vim.cmd([[
+--         inoremap <silent><script><expr> <leader><tab> copilot#Accept("\<CR>")
+--         "imap <silent><script><expr> <c-j> copilot#Accept("\<c-j>")
+--         let g:copilot_no_tab_map = v:true
+-- ]])

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
+from typing_extensions import List
 import toml
+import shutil
 import subprocess
 import sys
 def find_cargo_dir():
@@ -15,6 +17,15 @@ def find_cargo_dir():
         path = os.path.dirname(path)
     return None
 
+
+def echo_gaps():
+    terminal_width = shutil.get_terminal_size().columns
+    print("-" * terminal_width)
+
+def echo2gaps():
+    terminal_width = shutil.get_terminal_size().columns
+    print("-" * terminal_width)
+    print("-" * terminal_width)
 
 def cargorun(cargo_workspace,mode):
     """
@@ -33,19 +44,23 @@ def cargorun(cargo_workspace,mode):
             returncode=0
             try:
                 if mode == 'release':
-                    if os.path.exists(cargo_workspace+'/target/release/' + binary_name):
-                        subprocess.run([cargo_workspace+'/target/release/' + binary_name]+SubArgList,check=True)
-                    else:
-                        subprocess.run(['cargo','build','--release'])
+                    # if os.path.exists(cargo_workspace+'/target/release/' + binary_name):
+                    #     subprocess.run([cargo_workspace+'/target/release/' + binary_name]+SubArgList,check=True)
+                    # else:
+                        subprocess.run(['cargo','build','--release'],check=True)
+                        echo2gaps()
                         subprocess.run([cargo_workspace+'/target/release/' + binary_name]+SubArgList,check=True)
                 elif mode == 'debug':
-                    if os.path.exists(cargo_workspace+'/target/debug/' + binary_name):
-                        subprocess.run([cargo_workspace+'/target/debug/' + binary_name]+SubArgList,check=True)                
-                    else:
-                        subprocess.run(['cargo','build'])
+                    # if os.path.exists(cargo_workspace+'/target/debug/' + binary_name):
+                    #     subprocess.run([cargo_workspace+'/target/debug/' + binary_name]+SubArgList,check=True)                
+                    # else:
+                        subprocess.run(['cargo','build'],check=True)
+                        echo2gaps()
                         subprocess.run([cargo_workspace+'/target/debug/' + binary_name]+SubArgList,check=True)
                 else:
-                    subprocess.run(['cargo','run']+SubArgList)
+                    print("TODO")
+                    pass
+                    # subprocess.run(['cargo','run']+SubArgList)
             except subprocess.CalledProcessError as e:
                 returncode=e.returncode
             if not returncode:
@@ -53,6 +68,56 @@ def cargorun(cargo_workspace,mode):
                 print("\033[32mProcess return "+str(returncode)+"\033[0m")
             else:
                 print("\033[31mProcess return "+str(returncode)+"\033[0m")
+
+
+def get_filename_and_out(rustcArgs:List):
+    """
+	 StdOutput: 
+	 StdErr:
+     Arguments:
+    Return: (filename,outname)
+    """
+    filename=''
+    outname=''
+    lastarg=rustcArgs[0]
+    for arg in rustcArgs:
+        if arg.endswith(".rs"):
+            if lastarg not in ("-o",'--out-dir') :
+                if filename:
+                    sys.exit("too many source files")
+                filename=arg
+            else:
+                outname=arg
+        lastarg=arg
+    if outname=='':
+        outname=os.path.splitext(filename)[0]
+    return (filename,outname)
+
+
+def rustc_run(rustcArgs:List,SubArgs:List):
+    """
+	 StdOutput: 
+	 StdErr:
+     Arguments:
+    """
+    if len(rustcArgs)==0:
+        sys.exit("no source files")
+    _,outname=get_filename_and_out(rustcArgs)
+    returncode=0
+    try:
+        subprocess.run(["rustc",]+rustcArgs,check=True)
+        echo2gaps()
+        subprocess.run([outname,]+SubArgs,check=True)
+    except subprocess.CalledProcessError as e:
+        returncode=e.returncode
+    if not returncode:
+        # success
+        print("\033[32mProcess return "+str(returncode)+"\033[0m")
+    else:
+        print("\033[31mProcess return "+str(returncode)+"\033[0m")
+            
+
+    
 
 #################全局变量#####################
 
@@ -62,13 +127,14 @@ use_default_args=False
 DefaultArgsFile=''
 CustomArgsFile=''
 SubArgList=[]
+RustcArgs=[]
 def set_globals(global_var_name:str,new_value):
     globals()[global_var_name]=new_value
 #################参数定义#####################
 #True表示参数错误
 ArgEnumDict={
-        '-m=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
-        '--mode=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' else True,
+        '-m=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' or x=='singlefile' or x=='checktoml' else True,
+        '--mode=':lambda x: set_globals('mode',x)if x=='release' or x=='debug' or x=='singlefile' or x=='checktoml' else True,
         '-c=':lambda x: set_globals('use_default_args',True) or set_globals('CustomArgsFile',x),
         '--config=':lambda x: set_globals('use_default_args',True) or set_globals('CustomArgsFile',x),
 }
@@ -86,7 +152,7 @@ Usage: cargorun [options] [--] [subargs]
 Options:
     -r, --release: build in release mode
     -d, --debug: build in debug mode
-    -m=<debug|release>, --mode=<...>: build in mode
+    -m=<debug|release|singlefile|checktoml>, --mode=<...>: build in mode
     -D, --default-args: use and update default args
     -c=<argfile>,--config=<argfile>: indicate the default args file
     -h, --help: print this help
@@ -114,29 +180,47 @@ for i in range(1,len(argvList)):
             # print(argvList[i])
             if value(argvList[i][len(key):]):
                 print("Unknown option: "+argvList[i])
-                sys.exit(2)
+                sys.exit(0)
             break;
     if not Found:
-        print("Unknown option: "+argvList[i])
-        sys.exit(2)
+        if mode == 'singlefile':
+            RustcArgs.append(argvList[i])
+        else:
+            print("Unknown option: "+argvList[i])
+            sys.exit(0)
 
 
 CargoWorkspace=find_cargo_dir()
-if not CargoWorkspace:
+# checktoml mode
+if mode == 'checktoml':
+    if CargoWorkspace:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+if not CargoWorkspace and mode!='singlefile':
     print("not found Cargo.toml")
     sys.exit(1)
 if not CustomArgsFile:
-    DefaultArgsFile=os.path.join(str(CargoWorkspace),'.cargo_run_args')
+    if mode == 'singlefile':
+        if len(RustcArgs)==0:
+            sys.exit("no source files")
+        filename,_=get_filename_and_out(RustcArgs)
+        filenoext=os.path.splitext(filename)[0]
+        DefaultArgsFile=filenoext+'.args'
+        # print(DefaultArgsFile)
+    else:
+        DefaultArgsFile=os.path.join(str(CargoWorkspace),'.cargo_run.args')
 else:
     if not os.path.exists(CustomArgsFile):
         print("not found "+CustomArgsFile)
-        sys.exit(1)
-
+        sys.exit(2)
 #################处理arg_config选项#####################
 # 1 1 use new , update
 # 1 0 use new , no update
 # 0 1 use default
-# 0 0 null
+# 0 0 pass
 if SubArgIsSetted and use_default_args:
     with open(DefaultArgsFile,'w') as f:
         f.write(" ".join(SubArgList))
@@ -146,15 +230,20 @@ elif not SubArgIsSetted and use_default_args:
     try:
         with open(DefaultArgsFile,'r') as f:
             SubArgList=f.read().split()
-            print(f.read())
+            print("ArgList:",SubArgList)
     except FileNotFoundError:
         pass
+# print(SubArgList)
 #################运行#####################
 try:
-    cargorun(CargoWorkspace,mode)
-except KeyboardInterrupt:
-    sys.exit(1)
+    if mode != 'singlefile':
+        cargorun(CargoWorkspace,mode)
+    else:
+        # print(SubArgList)
+        rustc_run(RustcArgs,SubArgList)
 
+except KeyboardInterrupt:
+    sys.exit(0)
 
 
 '''

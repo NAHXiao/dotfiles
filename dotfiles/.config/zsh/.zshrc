@@ -18,5 +18,4 @@ plugins
 keybinds
 prompt
 EOF
-
 # vim:ft=zsh:nowrap

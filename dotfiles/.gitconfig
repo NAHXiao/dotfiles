@@ -1,14 +1,5 @@
-[safe]
-	directory = $HOME/workspace
 [user]
-	name = NAHxiao
 	email = xiaohanzero@163.com
-[push]
-	default = matching
-[core]
-	quotepath = false
-	editor = nvim
-[credential]
-	helper = store
+	name = NAHxiao
 [init]
 	defaultBranch = main

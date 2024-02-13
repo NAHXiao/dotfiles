@@ -1,23 +1,9 @@
 --[[ init.lua ]]
--- Impatient for faster loading
-require('impatient')
 -- LEADER
 vim.g.mapleader = " "
 -- TODO
 vim.g.localleader = " "
 vim.o.timeoutlen = 800
-
-
--- Color theme
-if tostring(vim.fn.getenv('WEZTERM_EXECUTABLE')) ~= '/usr/bin/wezterm-gui' then
-    require('kanagawa').setup({
-        keywordStyle = { italic = false, bold = true },
-    })
-    vim.cmd("colorscheme kanagawa")
-end
-
-
-
 
 -- Highlight colors
 vim.cmd([[
@@ -49,34 +35,9 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { 
 vim.lsp.buf.hover({
     border = border,
 })
-
-
 -- IMPORTS
 require('func')
 require("vars")      -- Variables
 require("opts")      -- Options
 require("keys")      -- Keymaps
-require("plug")      -- Plugins
-require("plugsetup") -- Plugins setup
-
--- vim.api.nvim_set_var设置内部变量。
--- vim.api.nvim_set_option设置选项。
--- vim.api.nvim_set_keymap设置键映
---
--- vim.g:映射到vim.api.nvim_set_var; 设置全局变量。
--- vim.o:映射到vim.api.nvim_win_set_var; 设置作用域为给定窗口的变量。
--- vim.b; 映射到vim.api.nvim_buf_set_var; 设置作用域为给定缓冲区的变量。射。
---
--- vim.g:映射到vim.api.nvim_get_var; 读取全局变量。
--- vim.o:映射到vim.api.nvim_win_get_var; 读取作用域为给定窗口的变量。
--- vim.b; 映射到vim.api.nvim_buf_get_var; 读取作用域为给定缓冲区的变量。
---
---set--get
--- vim.o:映射到vim.api.nvim_set_option; 相当于:set。
--- vim.go:映射到vim.api.nvim_set_option; 相当于:setglobal。
--- vim.bo; 映射到vim.api.nvim_buf_set_option; 相当于:setlocal缓冲区选项。
--- vim.wo:映射到vim.api.nvim_win_set_option; 相当于:setlocal窗口选项。
---
---
---
---
+require("lazyinit")

@@ -1,4 +1,4 @@
-##
+##TODO UPDATE
 ## Plugins
 ##
 
@@ -23,12 +23,15 @@ autoload compinit
 compinit
 
 zinit light-mode for \
-  hlissner/zsh-autopair \
-  zdharma-continuum/fast-syntax-highlighting \
-  MichaelAquilina/zsh-you-should-use \
-  zsh-users/zsh-autosuggestions \
   Aloxaf/fzf-tab
 
+#WSL的垃圾性能会导致卡顿
+if [[ ! $(uname -r) =~ ".*WSL.*" ]];then
+zinit light-mode for \
+  hlissner/zsh-autopair \
+  zdharma-continuum/fast-syntax-highlighting \
+  MichaelAquilina/zsh-you-should-use
+fi
 zinit ice wait'3' lucid
 zinit light zsh-users/zsh-history-substring-search
 

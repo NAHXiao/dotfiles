@@ -8,7 +8,7 @@ bindkey '^[[1;5C' emacs-forward-word
 bindkey '^[[H' beginning-of-line
 bindkey '^[[F' end-of-line
 bindkey -s '^K' 'ls^M'
-bindkey -s '^o' '_smooth_fzf^M'
+# bindkey -s '^o' '_smooth_fzf^M'
 
 # prepend sudo on the current commmand
 bindkey -M emacs '' _sudo_command_line

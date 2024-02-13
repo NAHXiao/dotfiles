@@ -2,13 +2,26 @@
 ## PATH & ENV Var
 ##
 export WAYDROIR_SDCARD="$HOME/.local/share/waydroid/data/media/0"
+
 export PNPM_HOME="$HOME/.local/share/pnpm"
+[[ -d "$PNPM_HOME" ]] &&
 export PATH="$PNPM_HOME:$PATH"
+[[ -d "$HOME/.local/share/fnm" ]] && 
+  export PATH="$HOME/.local/share/fnm:$PATH"
+[[ -d "$HOME/.scripts" ]] &&
 export PATH="$HOME/.scripts:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
+[[ -d "$HOME/.cargo/bin" ]] &&
 export PATH="$HOME/.cargo/bin:$PATH"
+[[ -d "$HOME/.local/share/gem/ruby/3.0.0/bin" ]] &&
 export PATH="$HOME/.local/share/gem/ruby/3.0.0/bin:$PATH"
+[[ -d "$HOME/.local/share/npm/bin" ]] &&
 export PATH=":$HOME/.nix-profile/bin:$PATH"
+[[ -d "/snap/bin" ]] && 
+export PATH="/snap/bin:$PATH"
+[[ -d "/usr/local/go/bin" ]] &&
+export PATH="/usr/local/go/bin:$PATH"
+
 export GPG_TTY="${TTY:-$(tty)}"
 
 export SUDO_PROMPT="passwd: "
@@ -34,6 +47,7 @@ export XDG_MUSIC_DIR="$HOME/Music"
 export XDG_PICTURES_DIR="$HOME/Pictures"
 export XDG_VIDEOS_DIR="$HOME/Videos"
 
+uname -a | grep -q microsoft ||  {
 export LC_ALL=en_US.UTF-8  
 
 # export LANG=en_US.UTF-8
@@ -52,6 +66,7 @@ export LC_ALL=en_US.UTF-8
 
 export LANG=zh.CN.UTF-8
 export LANGUAGE=zh.CN.UTF-8
+}
 
 ## Comment this to use normal manpager
 export MANPAGER='nvim +Man! +"set nocul" +"set noshowcmd" +"set noruler" +"set noshowmode" +"set laststatus=0" +"set showtabline=0" +"set nonumber"'
@@ -109,3 +124,4 @@ export XDG_VIDEOS_DIR="$HOME/Videos"
 # PA 实验
 export NEMU_HOME=$HOME/workspace/pa/ics2023/nemu
 export AM_HOME=$HOME/workspace/pa/ics2023/abstract-machine
+

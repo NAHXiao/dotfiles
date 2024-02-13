@@ -9,6 +9,7 @@ alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
 alias ra='ranger'
+alias vim='nvim'
 
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'

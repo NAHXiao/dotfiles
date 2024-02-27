@@ -17,7 +17,7 @@ return {
   "nvim-lualine/lualine.nvim",
   version = "*",
   lazy = false,
-  opt=true,
+  -- opt=true,
   dependencies = {
     "kyazdani42/nvim-web-devicons",
   },

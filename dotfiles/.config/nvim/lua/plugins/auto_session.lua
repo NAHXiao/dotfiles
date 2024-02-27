@@ -5,7 +5,7 @@ return {
     -- module = false,
     --   event = { "VeryLazy" },
     cmd = "Telescope",
-    key = {
+    keys = {
         -- {'<leader>se', '<cmd>lua require("auto-session.session-lens").search_session<cr>'},
         -- {'<leader>se', '<cmd>lua require("auto-session.session-lens").search_session<cr>'},
         -- {'<leader>ss', "<cmd>SessionSave<cr>"},

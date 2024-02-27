@@ -381,3 +381,14 @@ nnoremap <silent> g] <cmd>lua vim.diagnostic.goto_next()<CR>
 --         "imap <silent><script><expr> <c-j> copilot#Accept("\<c-j>")
 --         let g:copilot_no_tab_map = v:true
 -- ]])
+
+
+-- Leetcode
+-- nnoremap <leader>ll :LeetCodeList<cr>
+-- nnoremap <leader>lt :LeetCodeTest<cr>
+-- nnoremap <leader>ls :LeetCodeSubmit<cr>
+-- nnoremap <leader>li :LeetCodeSignIn<cr>
+-- map('n', "<leader>ll", ":LeetCodeList<cr>")
+-- map('n', "<leader>lt", ":LeetCodeTest<cr>")
+-- map('n', "<leader>ls", ":LeetCodeSubmit<cr>")
+-- map('n', "<leader>li", ":LeetCodeSignIn<<cr>")

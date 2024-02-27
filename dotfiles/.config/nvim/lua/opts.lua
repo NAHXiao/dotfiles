@@ -38,6 +38,20 @@ opt.splitright = true -- bool: Place new window to right of current one
 opt.splitbelow = true -- bool: Place new window below the current one
 -- [[ ]]
 opt.clipboard = 'unnamedplus'
+-- vim.cmd([[
+--     let g:clipboard = {
+--                 \   'name': 'WslClipboard',
+--                 \   'copy': {
+--                 \      '+': 'clip.exe',
+--                 \      '*': 'clip.exe',
+--                 \    },
+--                 \   'paste': {
+--                 \      '+': 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+--                 \      '*': 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+--                 \   },
+--                 \   'cache_enabled': 0,
+--                 \ }
+-- ]])
 --折叠
 opt.hidden = true
 opt.foldenable = true

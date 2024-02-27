@@ -3,8 +3,7 @@ FOLDER=$HOME/.config/clash
 # FOLDER=$HOME/.config/clash_win
 FILE=config_$(date +%y%m%d_%k:%0l:%S_%N).yaml
 WIN_FILE="/mnt/d/Users/Administrator/.config/clash/profiles/1707726507266.yml"
-LINK="https://mojie0201.xn--8stx8olrwkucjq3b.com/api/v1/client/subscribe?token=0ce896d17bde60480c9e1a8bb540b29e""&flag=clash"
-# LINK="https://cn.xfltd.cc/api/v1/client/subscribe?token=b6b5acea2528e94504a39715a9694edd&flag=clash"
+LINK="https://mojie.app/api/v1/client/subscribe?token=0ce896d17bde60480c9e1a8bb540b29e""&flag=clash"
 mkdir -p $FOLDER
 wget --no-proxy "$LINK" -O "$FOLDER"/"$FILE"
 # wget "$LINK" -O "$FOLDER"/"$FILE"

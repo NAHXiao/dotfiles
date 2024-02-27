@@ -25,8 +25,8 @@ compinit
 zinit light-mode for \
   Aloxaf/fzf-tab
 
-#WSL的垃圾性能会导致卡顿
-if [[ ! $(uname -r) =~ ".*WSL.*" ]];then
+#WSL的垃圾性能会导致卡顿(好像arch不怎么卡)
+if [[ ! $(uname -r) =~ ".*WSL.*"  ||  $(cat /etc/*release|grep NAME) =~ ".*Arch.*" ]];then
 zinit light-mode for \
   hlissner/zsh-autopair \
   zdharma-continuum/fast-syntax-highlighting \

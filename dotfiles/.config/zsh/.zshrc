@@ -19,3 +19,4 @@ keybinds
 prompt
 EOF
 # vim:ft=zsh:nowrap
+auto_proxy >/dev/null

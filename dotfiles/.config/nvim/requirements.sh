@@ -4,7 +4,7 @@ select pkgmanager in "apt-get" "pkg" "pacman" "paru" "scoop";do
     case $pkgmanager in
         apt-get ) 
             sudo apt-get update
-            for i in "rsync" "openssh" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
+            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
                 echo "sudo apt-get install -y $i"
                 sudo apt-get install -y $i || FAILED=$i,$FAILED
             done
@@ -12,7 +12,7 @@ select pkgmanager in "apt-get" "pkg" "pacman" "paru" "scoop";do
             break
             ;;
         pkg ) 
-            for i in "rsync" "openssh" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
+            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
                 echo "pkg install -y $i"
                 pkg install -y $i|| FAILED=$i,$FAILED
             done
@@ -34,14 +34,14 @@ select pkgmanager in "apt-get" "pkg" "pacman" "paru" "scoop";do
                 echo "paru not found"
                 exit 1
             fi
-            for i in "rsync" "openssh" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "python-pynvim" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
+            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "python-pynvim" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
                 echo "paru -S --noconfirm $i"
                 paru -S --noconfirm $i || FAILED=$i,$FAILED
             done
             break
             ;;
         scoop ) 
-            for i in "rsync" "openssh" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
+            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" "g++" "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
                 echo "scoop install $i"
                 scoop install $i || FAILED=$i,$FAILED
             done

@@ -1,5 +1,5 @@
 #!/bin/bash 
-
+mkdir ~/.config
 for configdir in $(ls -A1 dotfiles/.config) ;do
     echo delete ~/.config/${configdir} and link ./dotfiles/.config/${configdir} to ~/.config/${configdir}
     rm -rf ~/.config/${configdir}

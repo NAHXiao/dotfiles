@@ -12,7 +12,7 @@ echo delete ~/scripts and link ~/.scripts to ~/scripts
 rm -rf ~/scripts
 ln -sr ~/.scripts ~/scripts
 
-for configfile in $(/bin/ls -A1 dotfiles);do
+for configfile in $(/bin/ls -A1 dotfiles|grep -v '^\.config$');do
         echo delete ~/${configfile} and link ./dotfiles/${configfile} to ~/${configfile}
         rm -rf ~/${configfile}
         ln -sr $(pwd)/dotfiles/${configfile} ~/${configfile}

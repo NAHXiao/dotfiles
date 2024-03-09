@@ -7,6 +7,8 @@ function map(mode, lhs, rhs, opts)
     vim.api.nvim_set_keymap(mode, lhs, rhs, options)
 end
 
+-- format encoding? (\r\n -> \n)
+map('n','<leader>fe',':%s#\\r##g<CR>',{ silent = true })
 -- [[ surround ]]
 -- cs"'
 -- cs"<q>
@@ -132,10 +134,10 @@ map('n', "<C-s>", "<C-[>:wa<CR>")
 
 --
 map("n", "sv",
-    [[
+[[
 :luafile ~/.config/nvim/init.lua<cr>
 :luafile ~/.config/nvim/lua/cmpconfig.lua<cr>
-    ]])
+]])
 
 -- Hop
 --map("n", "HH", ":HopWord<cr>")
@@ -200,16 +202,16 @@ map('n', "<leader>t", ":SymbolsOutline<CR>");
 
 
 -- Vimspector
-vim.cmd([[
-nmap <F5> <cmd>call vimspector#Launch()<cr>
-nmap <F10> <cmd>call vimspector#StepOver()<cr>
-nmap <F6> <cmd>call vimspector#Reset()<cr>
-nmap <F11> <cmd>call vimspector#StepOut()<cr>")
-nmap <F9> <cmd>call vimspector#StepInto()<cr>")
-]])
-map('n', "<F3>", ":call vimspector#ToggleBreakpoint()<cr>")
-map('n', "<F4>", ":call vimspector#AddWatch()<cr>")
-map('n', "<F7>", ":call vimspector#Evaluate()<cr>")
+-- vim.cmd([[
+-- nmap <F5> <cmd>call vimspector#Launch()<cr>
+-- nmap <F10> <cmd>call vimspector#StepOver()<cr>
+-- nmap <F6> <cmd>call vimspector#Reset()<cr>
+-- nmap <F11> <cmd>call vimspector#StepOut()<cr>")
+-- nmap <F9> <cmd>call vimspector#StepInto()<cr>")
+-- ]])
+-- map('n', "<F3>", ":call vimspector#ToggleBreakpoint()<cr>")
+-- map('n', "<F4>", ":call vimspector#AddWatch()<cr>")
+-- map('n', "<F7>", ":call vimspector#Evaluate()<cr>")
 
 
 
@@ -293,15 +295,15 @@ vim.keymap.set('i', "<C-\\>", "<C-[>")
 
 
 
-map('n', "<F2>", ":lua CompileAndRunning() <CR>")
-map('t', "<F2>", "<C-\\><C-n><CMD>lua require('FTerm').toggle()<CR>")
-map('n', "<F14>", ":lua CompileAndRunningRelease() <CR>")
+map('t', "<F1>", "<C-\\><C-n><CMD>lua require('FTerm').toggle()<CR>")
+map('n', "<F1>", ":lua CompileAndRunning() <CR>")
+map('n', "<F13>", ":lua CompileAndRunningRelease() <CR>")
 -- cargo test
-CargoTest = function()
-    require('FTerm').run({ 'cargo', 'test' })
-end
-map('n', "<F50>", [[:lua CargoTest() <CR>]])
-map('n', "<F1>", [[:lua CargoTest() <CR>]])
+-- CargoTest = function()
+--     require('FTerm').run({ 'cargo', 'test' })
+-- end
+-- map('n', "<F50>", [[:lua CargoTest() <CR>]])
+-- map('n', "<F1>", [[:lua CargoTest() <CR>]])
 
 
 -- lsp

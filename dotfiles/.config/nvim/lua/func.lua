@@ -30,7 +30,7 @@ function CompileAndRunning()
     if is_file_extension(cpp_extensions) then
         require('FTerm').run({ echo_gaps })
         require('FTerm').run({ 'g++', current_file, '-o', current_file_without_extension, '&&',
-            echo_gaps_twice, '&&', './' ..
+            echo_gaps_twice, '&&', 'cat input 2>/dev/null|./' ..
         current_file_without_extension })
     elseif is_file_extension({ 'c' }) then
         require('FTerm').run({ echo_gaps })

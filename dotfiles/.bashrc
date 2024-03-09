@@ -115,18 +115,20 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
-. "$HOME/.cargo/env"
+[[ -f $HOME/.cargo/env ]] && . "$HOME/.cargo/env"
 
 # pnpm
+[[ -d "/home/wangsf/.local/share/pnpm" ]] && {
 export PNPM_HOME="/home/wangsf/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+}
 # pnpm end
 
 # fnm
-export PATH="/home/wangsf/.local/share/fnm:$PATH"
-eval "`fnm env`"
+[[ -d "/home/wangsf/.local/share/fnm" ]] && export PATH="/home/wangsf/.local/share/fnm:$PATH"
+command -v fnm &>/dev/null && eval "`fnm env`"
 export NEMU_HOME=/home/wangsf/workspace/pa/ics2023_new/nemu
 export AM_HOME=/home/wangsf/workspace/pa/ics2023_new/abstract-machine

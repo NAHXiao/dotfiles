@@ -5,11 +5,13 @@
 #
 #
 #
+[[ -f "$HOME/alist/alist" ]] && alias alist='cd $HOME/alist && ./alist server'
 alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
 alias ra='ranger'
 alias vim='nvim'
+alias vi='nvim'
 
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'
@@ -27,6 +29,7 @@ alias cwlc='cd $HOME/workspace/learn/c++'
 alias cwlr='cd $HOME/workspace/learn/rust'
 alias cwlp='cd $HOME/workspace/learn/python'
 alias cwls='cd $HOME/workspace/learn/shell'
+alias cwlj='cd $HOME/workspace/learn/java'
 
 
 alias cwll='cd $HOME/workspace/learn/leetcode'
@@ -34,6 +37,7 @@ alias cwllc='cd $HOME/workspace/learn/leetcode/c++'
 alias cwllr='cd $HOME/workspace/learn/leetcode/rust'
 alias cwllp='cd $HOME/workspace/learn/leetcode/python'
 alias cwlls='cd $HOME/workspace/learn/leetcode/rust'
+alias cwllj='cd $HOME/workspace/learn/leetcode/java'
 
 alias cwc='cd $HOME/workspace/c++'
 alias cwcl='cd $HOME/workspace/c++/learn'
@@ -42,7 +46,10 @@ alias cwr='cd $HOME/workspace/rust'
 alias cwrl='cd $HOME/workspace/rust/learn'
 
 alias cwp='cd $HOME/workspace/python'
-alias cwpl='cd $HOME/workspace/rust/learn'
+alias cwpl='cd $HOME/workspace/python/learn'
+
+alias cwj='cd $HOME/workspace/java'
+alias cwjl='cd $HOME/workspace/java/learn'
 # alias vimd='vim $(date +%y%m%d_%k:%0l:%S_%N)'
 # alias run='pnpm run'
 # alias c='/home/$(whoami)/.scripts/compile.sh'

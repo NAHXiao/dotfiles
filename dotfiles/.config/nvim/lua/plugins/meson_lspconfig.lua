@@ -23,10 +23,17 @@ return {
                 require("rust-tools").setup {}
             end,
             -- ["clangd"] = function()
-            --     require("clang-format").setup {
-            --         provideFormatter = false
-            --     }
+            --     --     require("clang-format").setup {
+            --     --         provideFormatter = false
+            --     --     }
             -- end
+        }
+        require("lspconfig").clangd.setup {
+            cmd = {
+                "clangd",
+                "--offset-encoding=utf-16",
+                --解决warning: multiple different client offset_encodings detected for buffer, this is not supported yet
+            },
         }
     end,
 }

@@ -1,3 +1,3 @@
 ZDOTDIR="$HOME/.config/zsh"
 # vim:ft=zsh
-. "$HOME/.cargo/env"
+[[ -d  "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"

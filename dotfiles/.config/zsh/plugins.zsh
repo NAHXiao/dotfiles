@@ -42,7 +42,7 @@ zinit light zdharma-continuum/history-search-multi-word
 if [[ $(uname -a ) =~ '.*X86_64.*' ]];then
 zinit ice from"gh-r" as"command" 
 else if [[ $(uname -a ) =~ '.*aarch64.*' ]];
-zinit ice from"gh-r" as"command" bpick "*arm8*"
+zinit ice from"gh-r" as"command" bpick"*arm8*"
 fi
 zinit light junegunn/fzf-bin 
 
@@ -50,7 +50,7 @@ zinit light junegunn/fzf-bin
 if [[ $(uname -a ) =~ '.*X86_64.*' ]];then
 zinit ice wait lucid from"gh-r" as"program" mv"bin/exa* -> exa"
 else if [[ $(uname -a ) =~ '.*aarch64.*' ]];
-zinit ice wait lucid from"gh-r" as"program" mv"bin/exa* -> exa" bpick "*arm*"
+zinit ice wait lucid from"gh-r" as"program" mv"bin/exa* -> exa" bpick"*arm*"
 fi
 zinit light ogham/exa
 
@@ -58,7 +58,7 @@ zinit light ogham/exa
 if [[ $(uname -a ) =~ '.*X86_64.*' ]];then
 zinit ice wait lucid from"gh-r" as"program" mv"*/bat -> bat" atload"export BAT_THEME='Nord'"
 else if [[ $(uname -a ) =~ '.*aarch64.*' ]];
-zinit ice wait lucid from"gh-r" as"program" mv"*/bat -> bat" bpick "*aarch64*" atload"export BAT_THEME='Nord'"
+zinit ice wait lucid from"gh-r" as"program" mv"*/bat -> bat" bpick"*aarch64*" atload"export BAT_THEME='Nord'"
 fi
 
 zinit light sharkdp/bat

@@ -43,7 +43,11 @@ zinit ice from"gh-r" as"command"
 zinit light junegunn/fzf-bin
 
 # EXA
+if [[ $(uname -a ) =~ '.*X86_64.*' ]];then
 zinit ice wait lucid from"gh-r" as"program" mv"bin/exa* -> exa"
+else if [[ $(uname -a ) =~ '.*aarch64.*' ]];then
+zinit ice wait lucid from"gh-r" as"program" mv"bin/exa* -> exa" bpick "*arm*"
+fi
 zinit light ogham/exa
 
 # BAT

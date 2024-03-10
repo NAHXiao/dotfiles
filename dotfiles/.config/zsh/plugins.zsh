@@ -39,7 +39,7 @@ zinit ice wait'2' lucid
 zinit light zdharma-continuum/history-search-multi-word
 
 # FZF
-if [[ command -v fzf ]];then
+if  command -v fzf &>/dev/null ;then
 if [[ $(uname -a ) =~ '.*x86_64.*' ]];then
 zinit ice from"gh-r" as"command" 
 elif [[ $(uname -a ) =~ '.*aarch64.*' ]];then

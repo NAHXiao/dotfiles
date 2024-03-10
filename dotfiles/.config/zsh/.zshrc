@@ -15,9 +15,9 @@ utility
 options
 plugins
 keybinds
-aliases
 prompt
 EOF
 # vim:ft=zsh:nowrap
 [[ $(uname -r) =~ ".*WSL.*" ]] && auto_proxy >/dev/null
 mkdir -p "$HOME/.cache/zsh" &>/dev/null
+source "$ZDOTDIR/aliases.zsh"

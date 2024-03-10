@@ -62,9 +62,9 @@ noremap <F1> <Nop>
 inoremap <F1> <Nop>
 "禁用H
 noremap <silent> H h
-tnoremap <C-[><C-[>  <C-\><C-n>:q<CR>
+"tnoremap <C-[><C-[>  <C-\><C-n>:q<CR>
 nnoremap <C-[><C-[>  :q<CR>
-tnoremap <C-[>  <C-\><C-n>
+"tnoremap <C-[>  <C-\><C-n>
 tnoremap <C-w><C-h> <C-\><C-n><C-w><C-h><CR>
 tnoremap <C-w><C-j> <C-\><C-n><C-w><C-j><CR>
 tnoremap <C-w><C-k> <C-\><C-n><C-w><C-k><CR>
@@ -86,6 +86,7 @@ map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
 map('i', "<C-h>", "<C-[>I")
 map('i', "<C-l>", "<C-[>A")
+map('t', "<leader><c-[>", "<C-\\><C-n>")
 -- map('i', "<C-j>", "<C-[>o")
 -- map('i', "<C-k>", "<C-[>O")
 

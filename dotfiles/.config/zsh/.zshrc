@@ -11,11 +11,11 @@ do
 done <<-EOF
 theme
 env
-aliases
 utility
 options
 plugins
 keybinds
+aliases
 prompt
 EOF
 # vim:ft=zsh:nowrap

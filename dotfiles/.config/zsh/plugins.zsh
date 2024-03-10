@@ -40,9 +40,9 @@ zinit light zdharma-continuum/history-search-multi-word
 
 # FZF
 if [[ $(uname -a ) =~ '.*X86_64.*' ]];then
-zinit ice from"gh-r" as"command" bpick "*arm8*"
-else if [[ $(uname -a ) =~ '.*aarch64.*' ]];
 zinit ice from"gh-r" as"command" 
+else if [[ $(uname -a ) =~ '.*aarch64.*' ]];
+zinit ice from"gh-r" as"command" bpick "*arm8*"
 fi
 zinit light junegunn/fzf-bin 
 

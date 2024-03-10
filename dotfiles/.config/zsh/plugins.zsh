@@ -39,28 +39,14 @@ zinit ice wait'2' lucid
 zinit light zdharma-continuum/history-search-multi-word
 
 # FZF
+if [[ command -v fzf ]];then
 if [[ $(uname -a ) =~ '.*x86_64.*' ]];then
 zinit ice from"gh-r" as"command" 
 elif [[ $(uname -a ) =~ '.*aarch64.*' ]];then
 zinit ice from"gh-r" as"command" bpick"*arm8*"
 fi
 zinit light junegunn/fzf-bin 
-
-# EZA
-if [[ $(uname -a ) =~ '.*x86_64.*' ]];then
-zinit ice from"gh-r" as"program" 
-elif [[ $(uname -a ) =~ '.*aarch64.*' ]];then
-zinit ice from"gh-r" as"program" bpick"*aarch64*"
-fi
-zinit light eza-community/eza
-
-# BAT
-if [[ $(uname -a ) =~ '.*x86_64.*' ]];then
-zinit ice wait lucid from"gh-r" as"program" mv"*/bat -> bat" atload"export BAT_THEME='Nord'"
-elif [[ $(uname -a ) =~ '.*aarch64.*' ]];then
-zinit ice wait lucid from"gh-r" as"program" mv"*/bat -> bat" bpick"*aarch64*" atload"export BAT_THEME='Nord'"
 fi
 
-zinit light sharkdp/bat
 
 # vim:ft=zsh

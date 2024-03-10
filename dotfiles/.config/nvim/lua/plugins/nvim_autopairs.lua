@@ -1,5 +1,5 @@
 return {
-          "windwp/nvim-autopairs",
+  "windwp/nvim-autopairs",
   version = "*",
   lazy = false,
   dependencies = {

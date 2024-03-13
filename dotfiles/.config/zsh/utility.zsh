@@ -144,7 +144,7 @@ export HTTPS_PROXY=$1
 export socks_proxy=$1
 }
 function auto_proxy(){
-    for ip in "127.0.0.1" $(ipconfig.exe | grep.exe -i 'IPv4' | cut -d ':' -f 2);do
+    for ip in "127.0.0.1" $(ipconfig.exe | grep.exe -i 'IPv4' | cut -d ':' -f 2 );do
        # if ping -q -c 1 -w 1 $ip >/dev/null 2>&1;then
        if curl --connect-timeout 1 -s -x http://$ip:7890 http://baidu.com -o/dev/null;then
            set_proxy $ip:7890

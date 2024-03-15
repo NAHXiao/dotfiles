@@ -103,6 +103,7 @@ def rustc_run(rustcArgs:List,SubArgs:List):
     if len(rustcArgs)==0:
         sys.exit("no source files")
     _,outname=get_filename_and_out(rustcArgs)
+    rustcArgs.append("-g")
     returncode=0
     try:
         subprocess.run(["rustc",]+rustcArgs,check=True)

@@ -146,11 +146,28 @@ return {
                     environment = {}
                 }
             },
+            LaunchWithArgs = {
+                adapter = "vscode-cpptools",
+                filetypes = { "cpp", "c", "objc", "rust" }, -- optional
+                default=true,
+                configuration = {
+                    request = "launch",
+                    cwd = "${workspaceFolder}",
+                    program = "${workspaceFolder}/${fileBasenameNoExtension}",
+                    --program= "${fileDirname}/${fileBasenameNoExtension}",
+                    --MIMode= "<lldb or gdb>"
+                    MIMode = "gdb",
+                    externalConsole = true,
+                    stopAtEntry = true,
+                    args = {"*${CommandLineArgs}"},
+                    environment = {}
+                }
+            },
             Attach = {
                 adapter = "vscode-cpptools",
                 filetypes = { "cpp", "c", "objc", "rust" }, -- optional
                 configuration = {
-                    name = 'Example_cpp_Attach',
+                    name = 'Attach',
                     request = "attach",
                     program = "${workspaceFolder}/${fileBasenameNoExtension}",
                     --MIMode= "<lldb or gdb>"

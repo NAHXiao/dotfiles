@@ -365,6 +365,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end,
 })
 
+vim.cmd('vnoremap K <Nop>')
 -- LSP Navigation
 -- Code Actions
 map('n', "ca", ":lua vim.lsp.buf.code_action()<CR>")

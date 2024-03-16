@@ -2,7 +2,8 @@
 return {
 'j-hui/fidget.nvim'  ,
   version = "*",
-  lazy = false,
+  lazy = true,
+  enable=false,
   dependencies = {
   },
   config = function()

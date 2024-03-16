@@ -6,7 +6,7 @@ return {
     notify.setup {
       render = "minimal",
       stages = "static",
-      top_down = false,
+      top_down = true,
     }
     vim.notify = notify
   end,

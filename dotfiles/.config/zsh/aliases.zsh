@@ -12,6 +12,7 @@ alias exitconda='conda deactivate'
 alias ra='ranger'
 alias vim='nvim'
 alias vi='nvim'
+alias viml='nvim leetcode'
 
 alias cczsh='cd $HOME/.config/zsh'
 

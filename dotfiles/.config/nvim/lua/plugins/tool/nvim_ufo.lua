@@ -8,6 +8,7 @@ return {
     "kevinhwang91/nvim-ufo",
     version = "*",
     lazy = true,
+    event = 'InsertEnter',
     dependencies = {
         "kevinhwang91/promise-async",
     },

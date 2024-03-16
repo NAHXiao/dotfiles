@@ -1,7 +1,7 @@
 return {
   'tpope/vim-surround'                  ,
   version = "*",
-  lazy = true,
+  lazy = false,
   dependencies = {
   },
   config = function()

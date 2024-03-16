@@ -13,6 +13,8 @@ alias ra='ranger'
 alias vim='nvim'
 alias vi='nvim'
 
+alias cczsh='cd $HOME/.config/zsh'
+
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'
 

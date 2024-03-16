@@ -63,7 +63,7 @@ inoremap <F1> <Nop>
 "禁用H
 noremap <silent> H h
 "tnoremap <C-[><C-[>  <C-\><C-n>:q<CR>
-nnoremap <C-[><C-[>  :q<CR>
+"nnoremap <C-[><C-[>  :q<CR>
 "tnoremap <C-[>  <C-\><C-n>
 tnoremap <C-w><C-h> <C-\><C-n><C-w><C-h><CR>
 tnoremap <C-w><C-j> <C-\><C-n><C-w><C-j><CR>

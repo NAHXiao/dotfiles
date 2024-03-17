@@ -1,8 +1,12 @@
 return {
     'simrat39/symbols-outline.nvim',
     version = "*",
-    lazy = false,
+    lazy = true,
     dependencies = {
+    },
+    -- map('n', "<leader>t", ":SymbolsOutline<CR>");
+    keys = {
+        { "<leader>t", ":SymbolsOutline<CR>", mode = "n" },
     },
     config = function()
         require("symbols-outline").setup {

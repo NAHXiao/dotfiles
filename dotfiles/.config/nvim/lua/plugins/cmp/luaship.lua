@@ -1,19 +1,10 @@
---    use({
---         "L3MON4D3/LuaSnip",
---         -- follow latest release.
---         tag = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
---         -- install jsregexp (optional!:).
---         run = "make install_jsregexp",
---         dependencies = { "rafamadriz/friendly-snippets" },
---     })
---
 return {
     "L3MON4D3/LuaSnip",
     version = "*",
     lazy = true,
     event = "InsertEnter",
     -- tag = "v2.*",
-    make= "make install_jsregexp",
+    make = "make install_jsregexp",
     dependencies = {
         "rafamadriz/friendly-snippets"
     },
@@ -123,16 +114,16 @@ std::cout<<std::endl;]]
                     snip({
                         trig = "printvec2",
                         name = "printvec2",
-                        dscr =""
+                        dscr = ""
                     }, {
-                        text("for (auto it : "),insert(1, "vec"), text({ ") {", "" }),
+                        text("for (auto it : "), insert(1, "vec"), text({ ") {", "" }),
                         text({
-                        "    for (auto it2 : it ) {" ,
-                        "        std::cout<<it2<<' ';",
-                        "    }",
-                        "    std::cout<<std::endl;",
-                        "}",
-                    }),
+                            "    for (auto it2 : it ) {",
+                            "        std::cout<<it2<<' ';",
+                            "    }",
+                            "    std::cout<<std::endl;",
+                            "}",
+                        }),
                     }),
                     snip({
                             trig = "meta",

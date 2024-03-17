@@ -2,9 +2,19 @@
 return {
     'hrsh7th/nvim-cmp',
     version = "*",
-  lazy = true,
-  event="InsertEnter",
+    lazy = true,
+    event = "InsertEnter",
     dependencies = {
+        'hrsh7th/cmp-path',
+        'hrsh7th/cmp-buffer',
+        "hrsh7th/cmp-cmdline",
+        "hrsh7th/cmp-emoji",
+        'saadparwaiz1/cmp_luasnip',
+        'hrsh7th/cmp-nvim-lsp',
+        'hrsh7th/cmp-nvim-lsp-signature-help',
+        'hrsh7th/cmp-nvim-lua',
+        "jalvesaq/cmp-nvim-r",
+        'hrsh7th/cmp-vsnip',
     },
     config = function()
         require('func')

@@ -27,9 +27,9 @@ return {
       dashboard.button("e", "󰈔  New file", "<Cmd>ene<CR>"),
       dashboard.button("se", "  Recently sessions"),
       dashboard.button("SPC f f", "󰈞  Find file"),
-      dashboard.button("SPC f w", "󰊄  Live grep"),
+      dashboard.button("SPC f g", "󰊄  Live grep"),
       dashboard.button("c", "  Configuration", "<Cmd>edit ~/.config/nvim<CR>"),
-      dashboard.button("u", "  Update plugins", "<Cmd>Lazy sync<CR>"),
+      dashboard.button("p", "  Plugins", "<Cmd>Lazy<CR>"),
       dashboard.button("q", "󰅚  Quit", "<Cmd>qa<CR>"),
     }
     alpha.setup(theta.config)

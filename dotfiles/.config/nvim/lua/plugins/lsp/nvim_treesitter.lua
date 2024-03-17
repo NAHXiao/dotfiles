@@ -7,7 +7,7 @@ return {
     },
     config = function()
         require('nvim-treesitter.configs').setup {
-            ensure_installed = { "bash", "c", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "hcl", "html",
+            ensure_installed = { "bash", "c","cpp", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "hcl", "html",
                 "http", "javascript", "json", "lua", "make", "markdown", "python", "regex", "ruby", "rust", "toml", "vim", "yaml",
                 "zig" },
             -- TODO if true  some .d will open failed

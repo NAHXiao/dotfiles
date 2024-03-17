@@ -21,13 +21,21 @@ return {
     -- map("n", "<leader>fgb", ":lua require('telescope.builtin').git_branches()<cr>")
     --
     dependencies = {
-        'nvim-telescope/telescope-fzf-native.nvim',
+        { "nvim-lua/popup.nvim" },
+        { "nvim-lua/plenary.nvim" },
+        { 'nvim-telescope/telescope-fzf-native.nvim' },
+        { "nvim-telescope/telescope-media-files.nvim", build = 'make' },
+        -- { "nvim-telescope/telescope-live-grep-args.nvim" },
     },
     cmd = "Telescope",
     keys = {
         { "<leader>ff",  "<cmd>lua require('telescope.builtin').find_files()<cr>" },
         { "<leader>fm",  "<cmd>lua require('telescope.builtin').media_files()<cr>" },
+
+        { "<leader>fgw", "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
         { "<leader>fg",  "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
+        { "<leader>fw",  "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
+
         { "<leader>fb",  "<cmd>lua require('telescope.builtin').buffers()<cr>" },
         { "<leader>fh",  "<cmd>lua require('telescope.builtin').help_tags()<cr>" },
         { "<leader>fd",  "<cmd>lua require('telescope.builtin').diagnostics()<cr>" },
@@ -40,11 +48,18 @@ return {
         { "<leader>fmp", "<cmd>lua require('telescope.builtin').man_pages()<cr>" },
         { "<leader>fgc", "<cmd>lua require('telescope.builtin').git_commits()<cr>" },
         { "<leader>fgb", "<cmd>lua require('telescope.builtin').git_branches()<cr>" },
-        {"<leader>fch", "<cmd>lua require('telescope.builtin').command_history()<cr>"},
-        {"<leader>fsh", "<cmd>lua require('telescope.builtin').search_history()<cr>"},
+        { "<leader>fch", "<cmd>lua require('telescope.builtin').command_history()<cr>" },
+        { "<leader>fsh", "<cmd>lua require('telescope.builtin').search_history()<cr>" },
+        {
+            "<leader>fn",
+            function()
+                require("telescope").extensions.notify.notify()
+            end,
+            desc = "Notify",
+        },
     },
--- map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
--- map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")
+    -- map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
+    -- map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")
     config = function()
         --- Telescope ---
         require('telescope').setup {}

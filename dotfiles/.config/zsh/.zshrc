@@ -1,9 +1,6 @@
 ## ░▀▀█░█▀▀░█░█░█▀▄░█▀▀
 ## ░▄▀░░▀▀█░█▀█░█▀▄░█░░
 ## ░▀▀▀░▀▀▀░▀░▀░▀░▀░▀▀▀
-##
-## rxyhn's Z-Shell configuration
-## https://github.com/rxyhn
 
 while read file
 do 

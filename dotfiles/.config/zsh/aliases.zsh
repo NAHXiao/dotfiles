@@ -12,9 +12,10 @@ alias exitconda='conda deactivate'
 alias ra='ranger'
 alias vim='nvim'
 alias vi='nvim'
-alias viml='nvim leetcode'
 
-alias cczsh='cd $HOME/.config/zsh'
+alias vil='nvim leetcode'
+alias viml='nvim leetcode'
+alias nviml='nvim leetcode'
 
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'
@@ -53,9 +54,6 @@ alias cwpl='cd $HOME/workspace/python/learn'
 
 alias cwj='cd $HOME/workspace/java'
 alias cwjl='cd $HOME/workspace/java/learn'
-# alias vimd='vim $(date +%y%m%d_%k:%0l:%S_%N)'
-# alias run='pnpm run'
-# alias c='/home/$(whoami)/.scripts/compile.sh'
 
 alias q="exit"
 alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
@@ -89,6 +87,7 @@ alias grep='grep --color=auto'
 alias mv='mv -v'
 alias cp='cp -vr'
 #alias rm='rm -vr'
+#############################Git##########################################
 alias commit="git add . && git commit -m"
 alias push="git push"
 alias git-rm="git ls-files --deleted -z | xargs -0 git rm"

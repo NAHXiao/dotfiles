@@ -7,6 +7,7 @@
 return {
     "kevinhwang91/nvim-ufo",
     version = "*",
+    curd=false,
     lazy = true,
     event = 'InsertEnter',
     dependencies = {

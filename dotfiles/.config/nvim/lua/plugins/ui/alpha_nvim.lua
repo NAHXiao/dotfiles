@@ -20,7 +20,6 @@ return {
       [[ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝  ]],
       [[                                                     ]],
     }
-
     theta.buttons.val = {
       { type = "text", val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
       { type = "padding", val = 1 },
@@ -28,7 +27,7 @@ return {
       dashboard.button("se", "  Recently sessions"),
       dashboard.button("SPC f f", "󰈞  Find file"),
       dashboard.button("SPC f g", "󰊄  Live grep"),
-      dashboard.button("c", "  Configuration", "<Cmd>edit ~/.config/nvim<CR>"),
+      dashboard.button("c", "  Configuration", "<Cmd>edit "..vim.fn.stdpath("config").."<CR>"),
       dashboard.button("p", "  Plugins", "<Cmd>Lazy<CR>"),
       dashboard.button("q", "󰅚  Quit", "<Cmd>qa<CR>"),
     }

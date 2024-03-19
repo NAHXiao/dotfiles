@@ -2,7 +2,6 @@ return {
     "skywind3000/asyncrun.vim",
     version = "*",
     keys = {
-        { "<F1>", '<cmd>AsyncRun -mode=term -rows=10 g++ --debug "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)"<cr>' }, --c/cpp build and run
         -- { "<F1>", '<cmd>AsyncRun -mode=term -rows=10 echo "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)"<cr>' }, --c/cpp build and run
 
         -- copen打开quickfix窗口
@@ -36,7 +35,10 @@ return {
         -- <cfile> - 光标下的文件名
         -- <root>  - 当前 buffer 的项目根目录
     },
-    lazy = false,
+    lazy = true,
     config = function()
+        vim.g.asynctasks_term_rows = 10
+        vim.g.asyncrun_open = 6--告诉 asyncrun 运行时自动打开高度为 6 的 quickfix 窗口
+        -- let g:asyncrun_open = 6
     end,
 }

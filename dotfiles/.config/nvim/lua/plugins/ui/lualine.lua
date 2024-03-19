@@ -1,8 +1,3 @@
-
---TODO
---    use { 'nvim-lualine/lualine.nvim', -- Statusline
---        requires = { 'kyazdani42/nvim-web-devicons', opt = true } }
-
 -- Esc
 -- C-Space
 -- Kr

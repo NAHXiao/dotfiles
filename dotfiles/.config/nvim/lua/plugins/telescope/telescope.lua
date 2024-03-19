@@ -57,6 +57,13 @@ return {
             end,
             desc = "Notify",
         },
+        {
+            "<leader>ft",
+            function()
+                require("telescope.builtin").colorscheme()
+            end,
+            desc = "Colorscheme",
+        },
     },
     -- map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
     -- map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")

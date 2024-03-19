@@ -24,9 +24,9 @@ return {
         { "<c-space>", '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>', mode = 't' },
         { "<c-\\>",    '<CMD>lua require("FTerm").toggle()<CR>',            mode = 'n' },
         { "<c-\\>",    '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>', mode = 't' },
-        { "<F1>",      '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>', mode = 't' },
-        { "<F1>",      ':lua CompileAndRunning() <CR>',                     mode = 'n' },
-        { "<F13>",     ':lua CompileAndRunningRelease() <CR>',              mode = 'n' },
+        -- { "<F1>",      '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>', mode = 't' },
+        -- { "<F1>",      ':lua CompileAndRunning() <CR>',                     mode = 'n' },
+        -- { "<F13>",     ':lua CompileAndRunningRelease() <CR>',              mode = 'n' },
     },
     config = function()
         local oscmd

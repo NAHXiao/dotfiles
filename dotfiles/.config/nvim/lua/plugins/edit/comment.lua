@@ -1,9 +1,9 @@
 return {
     "numToStr/Comment.nvim",
     version = "*",
-    lazy = true,
     -- cc cb
-    event = "InsertEnter",
+    lazy = true,
+    event = "VeryLazy",
     config = function()
         require('Comment').setup({
             ---Add a space b/w comment and the line
@@ -15,9 +15,9 @@ return {
             ---LHS of toggle mappings in NORMAL mode
             toggler = {
                 ---Line-comment toggle keymap
-                line = 'gcc',
+                line = 'cc',
                 ---Block-comment toggle keymap
-                block = 'gbc',
+                block = 'cb',
             },
             ---LHS of operator-pending mappings in NORMAL and VISUAL mode
             opleader = {

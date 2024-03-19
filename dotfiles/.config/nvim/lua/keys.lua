@@ -26,6 +26,7 @@ endfunction
 ]])
 
 vim.cmd([[
+tnoremap <A-q> <C-\><C-n>
 "禁用F1
 noremap <F1> <Nop>
 inoremap <F1> <Nop>

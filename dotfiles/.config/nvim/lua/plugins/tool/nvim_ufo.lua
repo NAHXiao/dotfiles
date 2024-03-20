@@ -14,11 +14,7 @@ return {
         "kevinhwang91/promise-async",
     },
     config = function()
-        vim.cmd([[
-augroup MyColors
-autocmd!
-augroup end
-]])
+        vim.cmd("augroup MyColors; autocmd!; augroup end")
 
         vim.o.foldcolumn = '1'
         vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value

@@ -3,16 +3,16 @@ return {
     version = "*",
     lazy = false,
     -- module = false,
-    --   event = { "VeryLazy" },
+    -- event = { "VeryLazy" },
     cmd = "Telescope",
-    --     map('n', '<leader>se', ':lua require("auto-session.session-lens").search_session<cr>')
+    -- map('n', '<leader>se', ':lua require("auto-session.session-lens").search_session<cr>')
     -- map('n', '<leader>ss', ":SessionSave<cr>")
     -- map('n', '<leader>sd', ":SessionDelete<cr>")
 
     keys = {
-        {"<leader>se", ":lua require('auto-session.session-lens').search_session()<cr>"},
-        {"<leader>ss", ":SessionSave<cr>"},
-        {"<leader>sd", ":SessionDelete<cr>"},
+        { "<leader>se", ":lua require('auto-session.session-lens').search_session()<cr>" },
+        { "<leader>ss", ":SessionSave<cr>" },
+        { "<leader>sd", ":SessionDelete<cr>" },
     },
     dependencies = {
         -- "nvim-telescope/telescope.nvim",

@@ -24,13 +24,13 @@ return {
         { "nvim-lua/popup.nvim" },
         { "nvim-lua/plenary.nvim" },
         { 'nvim-telescope/telescope-fzf-native.nvim' },
-        { "nvim-telescope/telescope-media-files.nvim", build = 'make' },
+        -- { "nvim-telescope/telescope-media-files.nvim", build = 'make' },
         -- { "nvim-telescope/telescope-live-grep-args.nvim" },
     },
     cmd = "Telescope",
     keys = {
         { "<leader>ff",  "<cmd>lua require('telescope.builtin').find_files()<cr>" },
-        { "<leader>fm",  "<cmd>lua require('telescope.builtin').media_files()<cr>" },
+        -- { "<leader>fm",  "<cmd>lua require('telescope.builtin').media_files()<cr>" },
 
         { "<leader>fgw", "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
         { "<leader>fg",  "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
@@ -48,7 +48,7 @@ return {
         { "<leader>fmp", "<cmd>lua require('telescope.builtin').man_pages()<cr>" },
         { "<leader>fgc", "<cmd>lua require('telescope.builtin').git_commits()<cr>" },
         { "<leader>fgb", "<cmd>lua require('telescope.builtin').git_branches()<cr>" },
-        { "<leader>fch", "<cmd>lua require('telescope.builtin').command_history()<cr>" },
+        -- { "<leader>fch", "<cmd>lua require('telescope.builtin').command_history()<cr>" },
         { "<leader>fsh", "<cmd>lua require('telescope.builtin').search_history()<cr>" },
         {
             "<leader>fn",
@@ -57,13 +57,13 @@ return {
             end,
             desc = "Notify",
         },
-        {
-            "<leader>ft",
-            function()
-                require("telescope.builtin").colorscheme()
-            end,
-            desc = "Colorscheme",
-        },
+        -- {
+        --     "<leader>ft",
+        --     function()
+        --         require("telescope.builtin").colorscheme()
+        --     end,
+        --     desc = "Colorscheme",
+        -- },
     },
     -- map("n", "<leader>fch", ":lua require('telescope.builtin').command_history()<cr>")
     -- map("n", "<leader>fsh", ":lua require('telescope.builtin').search_history()<cr>")

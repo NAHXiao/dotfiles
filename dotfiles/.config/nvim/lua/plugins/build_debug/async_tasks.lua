@@ -2,9 +2,9 @@ return {
     "skywind3000/asynctasks.vim",
     version = "*",
     keys = {
-        { "<F8>", "<cmd>AsyncTask build<cr>" },
-        { "<F7>", "<cmd>AsyncTask run<cr>" },
-        { "<F6>", "<cmd>AsyncTask run_input<cr>" },
+        { "<F6>", "<cmd>AsyncTask build<cr>",      desc = "build" },
+        { "<F7>", "<cmd>AsyncTask run<cr>",        desc = "run" },
+        { "<F8>", "<cmd>AsyncTask run_input<cr>",  desc = "run_input" },
     },
     lazy = true,
     dependencies = {

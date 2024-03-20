@@ -22,11 +22,11 @@ return {
         { "<F2>",  "<cmd>call vimspector#ToggleBreakpoint()<cr>" },
         { "<F3>",  "<cmd>call vimspector#AddWatch()<cr>" },
         { "<F4>",  "<cmd>call vimspector#Evaluate()<cr>" },
-        { "<F5>",  "<cmd>call vimspector#Launch()<cr>" },
 
-        -- { "<F17>", "<cmd>call vimspector#Stop()<cr>" },
+        { "<F5>",  "<cmd>call vimspector#Launch()<cr>" },
         { "<F17>", "<cmd>call vimspector#Reset()<cr>" },
         { "<F41>", "<cmd>call vimspector#Restart()<cr>" },
+
         -- { "<F6>",      "<cmd>NvimTreeToggle<cr>" },
         -- { "<F7>",      "<cmd>NvimTreeToggle<cr>" },
         -- { "<F8>",      "<cmd>NvimTreeToggle<cr>" },

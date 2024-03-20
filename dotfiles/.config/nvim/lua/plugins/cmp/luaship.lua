@@ -89,32 +89,25 @@ return {
                             dscr = "bits/stdc++ and namespace std"
                         },
                         {
-                            -- text({ "#include <bits/stdc++.h>", "using namespace std;", "class Solution {",
-                            --     "public:","    ",
-                            -- }),
-                            -- insert(1),
-                            -- text({"","};"}),
                             text({ "#include <bits/stdc++.h>", "using namespace std;", "" }),
                             insert(1),
                         }),
                     snip({
                         trig = "printvec",
                         name = "printvec",
-                        dscr =
-                        [[for (auto it : vec){
-    std::cout<<it<<' ';
-}
-std::cout<<std::endl;]]
+                        dscr = "use cout to print vector"
                     }, {
-                        text("for (auto it : "),
-                        insert(1, "vec"),
-                        text({ ") {", "" }),
-                        text({ "    std::cout<<it<<' ';", "}", "std::cout<<std::endl;", "" }),
+                        text("for (auto it : "), insert(1, "vec"), text({ ") {", "" }),
+                        text({
+                            "    std::cout<<it<<' ';",
+                            "}",
+                            "std::cout<<std::endl;", ""
+                        }),
                     }),
                     snip({
                         trig = "printvec2",
                         name = "printvec2",
-                        dscr = ""
+                        dscr = "use cout to print vector<vector>"
                     }, {
                         text("for (auto it : "), insert(1, "vec"), text({ ") {", "" }),
                         text({
@@ -123,25 +116,9 @@ std::cout<<std::endl;]]
                             "    }",
                             "    std::cout<<std::endl;",
                             "}",
+                            "std::cout<<std::endl;", ""
                         }),
                     }),
-                    snip({
-                            trig = "meta",
-                            name = "Metadata",
-                            dscr = "Yaml metadata format for markdown"
-                        },
-                        {
-                            text({ "---",
-                                "title: " }), insert(1, "note_title"), text({ "",
-                            "author: " }), insert(2, "author"), text({ "",
-                            "date: " }), func(date, {}), text({ "",
-                            "categories: [" }), insert(3, ""), text({ "]",
-                            "lastmod: " }), func(date, {}), text({ "",
-                            "tags: [" }), insert(4), text({ "]",
-                            "comments: true",
-                            "---", "" }),
-                            insert(0)
-                        }),
                 },
             })
         end
@@ -150,6 +127,8 @@ std::cout<<std::endl;]]
         --get_keyed_node(key) 返回与key关联的当前节点
         -----vscode luasnip ---------
         -- require("luasnip.loaders.from_vscode").lazy_load({ paths = { "~/.config/nvim/my_snip" } })
+
+        -- $HOME/.local/share/nvim/lazy/friendly-snippets/snippets
         require("luasnip.loaders.from_vscode").lazy_load()
         require("luasnip.loaders.from_vscode").lazy_load("global")
         require 'luasnip'.filetype_extend("cpp", { "cpp", "cppdoc" })
@@ -162,12 +141,12 @@ std::cout<<std::endl;]]
         require 'luasnip'.filetype_extend("nix", { "nix" })
         require 'luasnip'.filetype_extend("sql", { "sql" })
         do
-            local keymap = vim.api.nvim_set_keymap
+            local map = vim.api.nvim_set_keymap
             local opts = { noremap = true, silent = true }
-            keymap("i", "<c-j>", "<cmd>lua require'luasnip'.jump(1)<CR>", opts)
-            keymap("s", "<c-j>", "<cmd>lua require'luasnip'.jump(1)<CR>", opts)
-            keymap("i", "<c-k>", "<cmd>lua require'luasnip'.jump(-1)<CR>", opts)
-            keymap("s", "<c-k>", "<cmd>lua require'luasnip'.jump(-1)<CR>", opts)
+            map("i", "<c-j>", "<cmd>lua require'luasnip'.jump(1)<CR>", opts)
+            map("s", "<c-j>", "<cmd>lua require'luasnip'.jump(1)<CR>", opts)
+            map("i", "<c-k>", "<cmd>lua require'luasnip'.jump(-1)<CR>", opts)
+            map("s", "<c-k>", "<cmd>lua require'luasnip'.jump(-1)<CR>", opts)
         end
     end,
 }

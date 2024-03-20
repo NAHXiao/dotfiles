@@ -151,3 +151,11 @@ set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
 "           | + lines saved each register (old name for <, vi6.2)
 "           + save/restore buffer list
 ]]
+
+-- R语言shiftwidth=2
+vim.cmd([[
+augroup FileTypeIndent
+  autocmd!
+  autocmd FileType r setlocal shiftwidth=2 | setlocal tabstop=2
+augroup END
+]])

@@ -25,7 +25,7 @@ return {
             { type = "text",    val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
             { type = "padding", val = 1 },
             dashboard.button("e", "󰈔  New file", "<Cmd>ene<CR>"),
-            dashboard.button("se", "  Recently sessions"),
+            dashboard.button("SPC s l", "  Recently sessions"),
             dashboard.button("SPC f f", "󰈞  Find file"),
             dashboard.button("SPC f w", "󰊄  Live grep"),
             dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>"),

@@ -35,8 +35,8 @@ return {
                 -- For question
                 function(q)
                     local bufnr = q.bufnr
-
-                    vim.b[bufnr].copilot_enabled = false
+                    -- vim.b[bufnr].copilot_enabled = false
+                    vim.cmd("Copilot disable")
 
                     vim.keymap.set("n", "<leader>ll", "<Cmd>Leet list<CR>", { buffer = bufnr, desc = "LeetCode list" })
                     vim.keymap.set("n", "<leader>lr", "<Cmd>Leet run<CR>", { buffer = bufnr, desc = "LeetCode run" })

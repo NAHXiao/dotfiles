@@ -8,7 +8,7 @@ return {
     config = function()
         require('nvim-treesitter.configs').setup {
             ensure_installed = { "bash", "c", "cpp", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "hcl", "html",
-                "http", "javascript", "json", "lua", "make", "markdown", "python", "r", "regex", "ruby", "rust", "toml", "vim", "yaml",
+                "http", "java","javascript", "json", "lua", "make", "markdown", "python", "r", "regex", "ruby", "rust", "toml", "vim", "yaml",
                 "zig" },
             -- TODO if true  some .d will open failed
             auto_install = false,

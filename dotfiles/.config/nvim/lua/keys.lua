@@ -10,8 +10,8 @@ end
 -- format encoding? (\r\n -> \n)
 map('n','<leader>fe',':%s#\\r##g<CR>',{ silent = true })
 --重启lsp
-map('n', '<leader>rl', ':LspRestart<CR>')
-map('n', '<leader>sl', ':LspStop<CR>')
+map('n', '<leader>lr', ':LspRestart<CR>')
+map('n', '<leader>ls', ':LspStop<CR>')
 -- 翻页
 map('n', '<C-f>', '<PageDown>')
 map('n', '<C-b>', '<PageUp>')

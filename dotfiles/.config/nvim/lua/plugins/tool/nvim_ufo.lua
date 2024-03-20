@@ -2,7 +2,7 @@
 -- Nvim UFO - GOOD FOLDING      ----
 --https://github.com/kevinhwang91/nvim-ufo
 -- ---------------------------------
--- TODO 代码折叠
+-- 代码折叠
 
 return {
     "kevinhwang91/nvim-ufo",

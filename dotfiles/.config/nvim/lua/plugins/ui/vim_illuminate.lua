@@ -3,7 +3,7 @@ return {
     "RRethy/vim-illuminate",
     version = "*",
     lazy = true,
-    event='UIEnter',
+    event='VeryLazy',
     config = function()
         require('illuminate').configure({
             providers = {

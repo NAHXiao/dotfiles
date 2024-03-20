@@ -12,7 +12,7 @@ return {
         require("symbols-outline").setup {
             show_guides = false,
             position = 'left',
-            width = 30,
+            width = 20,
             wrap = false,
             keymaps = { fold = "h", unfold = "l", fold_all = "zM", unfold_all = "zR" },
             symbols = {

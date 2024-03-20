@@ -1,7 +1,7 @@
 return {
     "max397574/better-escape.nvim",
     version = "*",
-    lazy = false,
+    lazy = true,
     dependencies = {
     },
     event="InsertEnter",

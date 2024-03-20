@@ -1,14 +1,15 @@
 return {
-  "mg979/tabline.nvim",
-  -- enabled = false,
-  init = function()
-    vim.o.showtabline =2
-  end,
-  opts = {},
-  config = function(_, opts)
-    local tabline = require "tabline.setup"
+    "mg979/tabline.nvim",
+    init = function()
+        vim.o.showtabline = 2
+    end,
+    lazy = true,
+    event = "VeryLazy",
+    opts = {},
+    config = function(_, opts)
+        local tabline = require "tabline.setup"
 
-    tabline.setup(opts)
-    tabline.mappings(true)
-  end,
+        tabline.setup(opts)
+        tabline.mappings(true)
+    end,
 }

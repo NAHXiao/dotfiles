@@ -27,15 +27,6 @@ return {
                 require("lspconfig")[server_name].setup {}
             end,
             -- Next, you can provide a dedicated handler for specific servers.
-            -- For example, a handler override for the `rust_analyzer`:
-            ["rust_analyzer"] = function()
-                require("rust-tools").setup {}
-            end,
-            -- ["clangd"] = function()
-            --     --     require("clang-format").setup {
-            --     --         provideFormatter = false
-            --     --     }
-            -- end
         }
         require("lspconfig").clangd.setup {
             cmd = {

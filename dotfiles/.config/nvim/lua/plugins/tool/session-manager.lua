@@ -8,14 +8,15 @@ return {
         "nvim-lua/plenary.nvim",
     },
     keys = {
-        { "<leader>sl", "<cmd>SessionManager load_session<CR>",         desc = "Load selected" },
-        { "<leader>sd", "<cmd>SessionManager delete_session<CR>",       desc = "Delete" },
-        { "<leader>ss", "<cmd>SessionManager save_current_session<CR>", desc = "Save" },
+        { "<leader>sl", "<cmd>SessionManager load_session<CR>",         desc = "Session Load selected" },
+        { "<leader>sd", "<cmd>SessionManager delete_session<CR>",       desc = "Session Delete" },
+        { "<leader>ss", "<cmd>SessionManager save_current_session<CR>", desc = "Session Save" },
     },
     config = function()
-        local config = require "session_manager.config"
+        -- local config = require "session_manager.config"
         require("session_manager").setup({
-            autoload_mode = config.AutoloadMode.Disabled,
+            -- autoload_mode = config.AutoloadMode.Disabled,
+            autosave_last_session = false,
         })
 
         -- Convert the cwd to a simple file name

@@ -18,7 +18,13 @@ return {
             -- autoload_mode = config.AutoloadMode.Disabled,
             autosave_last_session = false,
         })
-
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "SessionSavePost",
+            desc = "notify",
+            callback = function()
+                vim.notify("Session save success")
+            end
+        })
         -- Convert the cwd to a simple file name
         -- local function get_cwd_as_name()
         --     local dir = vim.fn.getcwd(0)

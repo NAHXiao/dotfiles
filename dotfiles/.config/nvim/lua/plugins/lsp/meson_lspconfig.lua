@@ -7,8 +7,17 @@ return {
         "williamboman/mason.nvim",
     },
     config = function()
+        local ensure_installed;
+        local arch = vim.loop.os_uname().machine
+        if arch == "x86_64" then
+            ensure_installed = { "lua_ls", "rust_analyzer", "clangd", "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
+        elseif arch == "aarch64" then
+            ensure_installed = { "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
+        else
+            -- ensure_installed = { "lua_ls", "rust_analyzer", "clangd", "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
+        end
         require("mason-lspconfig").setup({
-            ensure_installed = { "lua_ls", "rust_analyzer", "clangd", "bashls", "lua_ls", "jdtls", "cmake", "pyright" },
+            ensure_installed = ensure_installed,
         })
         require("mason-lspconfig").setup_handlers {
             -- The first entry (without a key) will be the default handler

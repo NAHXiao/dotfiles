@@ -12,7 +12,7 @@ return {
         if arch == "x86_64" then
             ensure_installed = { "lua_ls", "rust_analyzer", "clangd", "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
         elseif arch == "aarch64" then
-            ensure_installed = { "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
+            ensure_installed = { "bashls", "jdtls", "cmake", "pyright" };
         else
             -- ensure_installed = { "lua_ls", "rust_analyzer", "clangd", "bashls", "lua_ls", "jdtls", "cmake", "pyright" };
         end

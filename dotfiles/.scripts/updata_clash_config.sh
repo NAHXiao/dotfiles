@@ -18,6 +18,7 @@ sed -i "/rules/a\    - \'DOMAIN-SUFFIX,anthropic.com,ChatGPT\'" "$FOLDER"/"$FILE
 sed -i "/rules/a\    - \'DOMAIN-KEYWORD,anthropic,ChatGPT\'" "$FOLDER"/"$FILE"
 
 sed -i "/rules/a\    - \'DOMAIN-SUFFIX,chat.openai.com,ChatGPT\'" "$FOLDER"/"$FILE"
+sed -i "/rules/a\    - \'DOMAIN-SUFFIX,ke.newschool.com,节点选择\'" "$FOLDER"/"$FILE"
 rm "$FOLDER"/config.yaml
 ln -s "$FOLDER"/"$FILE" "$FOLDER"/config.yaml
 cat "$FOLDER"/"$FILE" > "$WIN_FILE"

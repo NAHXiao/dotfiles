@@ -1,7 +1,6 @@
 --[[ init.lua ]]
 -- LEADER
 vim.g.mapleader = " "
--- TODO
 vim.g.localleader = " "
 vim.o.timeoutlen = 800
 

@@ -1,4 +1,3 @@
---TODO
 return {
     "puremourning/vimspector",
     version = "*",

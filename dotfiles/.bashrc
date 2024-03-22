@@ -118,8 +118,8 @@ fi
 [[ -f $HOME/.cargo/env ]] && . "$HOME/.cargo/env"
 
 # pnpm
-[[ -d "/home/wangsf/.local/share/pnpm" ]] && {
-export PNPM_HOME="/home/wangsf/.local/share/pnpm"
+[[ -d "$HOME/.local/share/pnpm" ]] && {
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -128,7 +128,7 @@ esac
 # pnpm end
 
 # fnm
-[[ -d "/home/wangsf/.local/share/fnm" ]] && export PATH="/home/wangsf/.local/share/fnm:$PATH"
+[[ -d "$HOME/.local/share/fnm" ]] && export PATH="$HOME/.local/share/fnm:$PATH"
 command -v fnm &>/dev/null && eval "`fnm env`"
-export NEMU_HOME=/home/wangsf/workspace/pa/ics2023_new/nemu
-export AM_HOME=/home/wangsf/workspace/pa/ics2023_new/abstract-machine
+export NEMU_HOME=$HOME/workspace/pa/ics2023_new/nemu
+export AM_HOME=$HOME/workspace/pa/ics2023_new/abstract-machine

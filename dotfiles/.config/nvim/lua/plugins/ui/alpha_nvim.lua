@@ -20,7 +20,13 @@ return {
             [[ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝  ]],
             [[                                                     ]],
         }
-        local Obsidian = "$HOME/.local/Obsidian/main";
+        local Obsidian = os.getenv("HOME") .. "/.local/Obsidian/main";
+        local obsidianbotton;
+        if vim.loop.fs_stat(Obsidian) then
+            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>");
+        else
+            obsidianbotton = nil
+        end
         theta.buttons.val = {
             { type = "text",    val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
             { type = "padding", val = 1 },
@@ -28,12 +34,11 @@ return {
             dashboard.button("SPC s l", "  Recently sessions"),
             dashboard.button("SPC f f", "󰈞  Find file"),
             dashboard.button("SPC f w", "󰊄  Live grep"),
-            dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>"),
-            dashboard.button("c", "  Configuration","<cmd>cd " .. vim.fn.stdpath("config") .. " <CR><cmd>edit .<cr>"),
+            obsidianbotton,
+            dashboard.button("c", "  Configuration", "<cmd>cd " .. vim.fn.stdpath("config") .. " <CR><cmd>edit .<cr>"),
             dashboard.button("p", "  Plugins", "<Cmd>Lazy<CR>"),
             dashboard.button("q", "󰅚  Quit", "<Cmd>qa<CR>"),
         }
         alpha.setup(theta.config)
     end,
 }
-

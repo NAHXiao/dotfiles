@@ -20,10 +20,13 @@ return {
             [[ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝  ]],
             [[                                                     ]],
         }
-        local Obsidian = os.getenv("HOME") .. "/.local/Obsidian/main";
+        local ObsidianLinux = os.getenv("HOME") .. "/.local/Obsidian/main";
+        local ObsidianWin = "E:/Obsidian/main";
         local obsidianbotton;
-        if vim.loop.fs_stat(Obsidian) then
-            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>");
+        if vim.loop.fs_stat(ObsidianLinux) then
+            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. ObsidianLinux .. " <CR><cmd>edit .<cr>");
+        elseif vim.loop.fs_stat(ObsidianWin) then
+            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. ObsidianWin .. " <CR><cmd>edit .<cr>");
         else
             obsidianbotton = nil
         end

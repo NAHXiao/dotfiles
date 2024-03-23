@@ -126,6 +126,7 @@ opt2="Install zsh config"
 opt3="Install all config" 
 opt4="Uninstall all config" 
 opt5="Restore old config" 
+mkdir "$HOME/.config" &>/dev/null || { echo "create $HOME/.config error" ; exit 1 ; }
 select i in "$opt1" "$opt2" "$opt3" "$opt4" "$opt5";do
     case "$i" in
         "$opt1")

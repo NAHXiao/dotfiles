@@ -23,13 +23,13 @@ return {
         local Obsidian;
         local obsidianbotton;
 
-        local os = vim.loop.os_uname().sysname;
-        if os == 'Windows_NT' then
+        local osname = vim.loop.os_uname().sysname;
+        if osname == 'Windows_NT' then
             Obsidian = "E:/Obsidian/main";
-        elseif os == "Linux" then
+        elseif osname == "Linux" then
             Obsidian = os.getenv("HOME") .. "/.local/Obsidian/main";
         end
-        if vim.loop.fs_stat(ObsidianLinux) then
+        if vim.loop.fs_stat(Obsidian) then
             obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>");
         else
             obsidianbotton = nil

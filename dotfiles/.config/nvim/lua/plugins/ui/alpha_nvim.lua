@@ -20,16 +20,21 @@ return {
             [[ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝  ]],
             [[                                                     ]],
         }
-        local ObsidianLinux = os.getenv("HOME") .. "/.local/Obsidian/main";
-        local ObsidianWin = "E:/Obsidian/main";
+        local Obsidian;
         local obsidianbotton;
+
+        local os = vim.loop.os_uname().sysname;
+        if os == 'Windows_NT' then
+            Obsidian = "E:/Obsidian/main";
+        elseif os == "Linux" then
+            Obsidian = os.getenv("HOME") .. "/.local/Obsidian/main";
+        end
         if vim.loop.fs_stat(ObsidianLinux) then
-            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. ObsidianLinux .. " <CR><cmd>edit .<cr>");
-        elseif vim.loop.fs_stat(ObsidianWin) then
-            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. ObsidianWin .. " <CR><cmd>edit .<cr>");
+            obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>");
         else
             obsidianbotton = nil
         end
+
         theta.buttons.val = {
             { type = "text",    val = "Quick links", opts = { hl = "SpecialComment", position = "center" } },
             { type = "padding", val = 1 },

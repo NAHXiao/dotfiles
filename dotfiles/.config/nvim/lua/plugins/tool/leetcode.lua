@@ -23,9 +23,14 @@ return {
             ["cpp"] = {
                 before = { "#include <bits/stdc++.h>", "using namespace std;" },
             },
+            ["rust"] = {
+            }
         },
         description = {
-            position = "top",
+            -- position = "top",
+            position = "left",
+            width = "35%",
+            show_stats = true,
         },
         console = {
             dir = "col",

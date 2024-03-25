@@ -77,7 +77,8 @@ function CompileAndRunningRelease()
         require('FTerm').run({ 'python', current_file })
     end
 end
-
+vim.cmd([[ command! CompileAndRunning lua CompileAndRunning() ]])
+vim.cmd([[ command! CompileAndRunningRelease lua CompileAndRunningRelease() ]])
 vim.cmd([[
 function! CloseSystemClipboard()
 set clipboard=

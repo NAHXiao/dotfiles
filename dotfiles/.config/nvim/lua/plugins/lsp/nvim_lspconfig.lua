@@ -3,65 +3,37 @@ return {
     version = "*",
     lazy = false,
     event = 'UIEnter',
-    --     vim.keymap.set('n', '<leader>q', vim.diagnostic.open_float)
-    -- vim.keymap.set('n', '[d', vim.diagnostic.goto_prev)
-    -- vim.keymap.set('n', ']d', vim.diagnostic.goto_next)
-    --[[
-vim.keymap.set('n', '<leader>i', function()
-    -- If we find a floating window, close it.
-    local found_float = false
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-        if vim.api.nvim_win_get_config(win).relative ~= '' then
-            vim.api.nvim_win_close(win, true)
-            found_float = true
-        end
-    end
-
-    if found_float then
-        return
-    end
-
-    vim.diagnostic.open_float(nil, { focus = false, scope = 'cursor' })
-end, { desc = 'Toggle Diagnostics' }) ]]
-
-    --
-    -- Code Actions
-    -- map('n', "ca", ":lua vim.lsp.buf.code_action()<CR>")
-    -- vim.cmd([[
-    -- nnoremap <silent> gc        <cmd>lua vim.lsp.buf.incoming_calls()<CR>
-    -- nnoremap <silent> gs        <cmd>lua vim.lsp.buf.document_symbol()<CR>
-    -- nnoremap <silent> gw        <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
-    -- nnoremap <silent> g[ <cmd>lua vim.diagnostic.goto_prev()<CR>
-    -- nnoremap <silent> g] <cmd>lua vim.diagnostic.goto_next()<CR>
-    -- ]])
-    --
     keys = {
-        { "<leader>q", vim.diagnostic.open_float,    mode = "n" },
-        { "[d",        vim.diagnostic.goto_prev,     mode = "n" },
-        { "]d",        vim.diagnostic.goto_next,     mode = "n" },
-        { "ca",        vim.lsp.buf.code_action,      mode = "n" },
-        { "gc",        vim.lsp.buf.incoming_calls,   mode = "n" },
-        { "gs",        vim.lsp.buf.document_symbol,  mode = "n" },
-        { "gw",        vim.lsp.buf.workspace_symbol, mode = "n" },
-        { "g[",        vim.diagnostic.goto_prev,     mode = "n" },
-        { "g]",        vim.diagnostic.goto_next,     mode = "n" },
+        { "<leader>lsa", "<cmd>LspStart<cr>" },
+        { "<leader>lst", "<cmd>LspStart<cr>" },
+        { "<leader>lrs", "<cmd>LspRestart<cr>" },
+        { "<leader>q",   vim.diagnostic.open_float,    mode = "n" },
+        { "[d",          vim.diagnostic.goto_prev,     mode = "n" },
+        { "]d",          vim.diagnostic.goto_next,     mode = "n" },
+        { "ca",          vim.lsp.buf.code_action,      mode = "n" },
+        { "gc",          vim.lsp.buf.incoming_calls,   mode = "n" },
+        { "gs",          vim.lsp.buf.document_symbol,  mode = "n" },
+        { "gw",          vim.lsp.buf.workspace_symbol, mode = "n" },
+        { "g[",          vim.diagnostic.goto_prev,     mode = "n" },
+        { "g]",          vim.diagnostic.goto_next,     mode = "n" },
+        -- { '<leader>i', function() vim.diagnostic.open_float(nil, { focus = true, scope = "cursor" }) end, mode = 'n' },
         {
-            "<leader>i",
+            "<leader>i", -- 关闭浮动窗口(用于关闭vim.diagnostic_float)
             function()
-                -- If we find a floating window, close it.
-                local found_float = false
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    if vim.api.nvim_win_get_config(win).relative ~= '' then
-                        vim.api.nvim_win_close(win, true)
-                        found_float = true
+                local if_hasfloat_then_close = function()
+                    local found_float = false
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        if vim.api.nvim_win_get_config(win).relative ~= '' then
+                            vim.api.nvim_win_close(win, true)
+                            found_float = true
+                        end
                     end
+                    return found_float
                 end
-
-                if found_float then
+                if not if_hasfloat_then_close() then
+                    vim.diagnostic.open_float(nil, { focusable = false })
                     return
                 end
-
-                vim.diagnostic.open_float(nil, { focus = false, scope = 'cursor' })
             end,
             mode = "n"
         },
@@ -99,14 +71,76 @@ end, { desc = 'Toggle Diagnostics' }) ]]
             end,
         })
         vim.cmd('vnoremap K <Nop>')
+        ----------------------------------------
+        --        为hover文档添加边框       -----
+        ----------------------------------------
+        -- local curved = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+        local border = {
+            { "╭", "FloatBorder" }, --1 🭽
+            { "─", "FloatBorder" }, --2 ▔
+            { "╮", "FloatBorder" }, --3 🭾
+            { "│", "FloatBorder" }, --4 ▕
+            { "╯", "FloatBorder" }, --5 🭿
+            { "─", "FloatBorder" }, --6 ▁
+            { "╰", "FloatBorder" }, --7 🭼
+            { "│", "FloatBorder" }, --8 ▏
+        }
+        vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
+        vim.lsp.buf.hover({
+            border = border,
+        })
 
-        --     require("lspconfig").clangd.setup {
-        --         -- on_attach = on_attach,
-        --         --capabilities = cmp_nvim_lsp.default_capabilities(),
-        --         cmd = {
-        --             "clangd",
-        --             "--offset-encoding=utf-8",
-        --         },
-        --     }
+        -- LSP Diagnostics Options Setup
+        local sign = function(opts)
+            vim.fn.sign_define(opts.name, {
+                texthl = opts.name,
+                text = opts.text,
+                numhl = ''
+            })
+        end
+        sign({ name = 'DiagnosticSignError', text = '' }) --''
+        sign({ name = 'DiagnosticSignWarn', text = '' })
+        sign({ name = 'DiagnosticSignHint', text = 'H' }) --
+        sign({ name = 'DiagnosticSignInfo', text = '' })
+        vim.diagnostic.config({
+            virtual_text = true,
+            -- virtual_text = {
+            --     format = function(diagnostic)
+            --         if diagnostic.severity == vim.diagnostic.severity.ERROR then
+            --             return "" .. diagnostic.message
+            --         elseif diagnostic.severity == vim.diagnostic.severity.WARN then
+            --             return "" .. diagnostic.message
+            --         elseif diagnostic.severity == vim.diagnostic.severity.INFO then
+            --             return "" .. diagnostic.message
+            --         else
+            --             return "H" .. diagnostic.message
+            --         end
+            --     end
+            -- },
+            signs = true,
+            update_in_insert = true,
+            underline = true,
+            severity_sort = true,
+            float = {
+                border = 'single',
+                source = 'always',
+                header = '',
+                prefix = '- ',
+            },
+        })
+
+
+        ----------------------------------------
+        --        LSP Diagnostics Float    -----
+        ----------------------------------------
+        -- vim.cmd([[
+        -- autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
+        -- ]])
+
+
+        ----------------------------------------
+        --      Format on Save 自动格式化  -----
+        ----------------------------------------
+        -- vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
     end,
 }

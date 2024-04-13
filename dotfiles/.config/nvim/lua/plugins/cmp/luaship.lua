@@ -4,7 +4,7 @@ return {
     lazy = true,
     event = "InsertEnter",
     -- tag = "v2.*",
-    make = "make install_jsregexp",
+    build= "make install_jsregexp",
     dependencies = {
         "rafamadriz/friendly-snippets"
     },

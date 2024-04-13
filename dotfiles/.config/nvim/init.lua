@@ -17,23 +17,6 @@ hi Pmenu ctermfg=15 ctermbg=9 guifg=Red guibg=NONE
 ]])
 --禁用保存后的提示
 vim.cmd("autocmd BufWritePost * silent! !clear")
-----------------------------------------
---        为透明文档添加边框       -----
-----------------------------------------
-local border = {
-    { "🭽", "FloatBorder" },
-    { "▔", "FloatBorder" },
-    { "🭾", "FloatBorder" },
-    { "▕", "FloatBorder" },
-    { "🭿", "FloatBorder" },
-    { "▁", "FloatBorder" },
-    { "🭼", "FloatBorder" },
-    { "▏", "FloatBorder" },
-}
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
-vim.lsp.buf.hover({
-    border = border,
-})
 -- IMPORTS
 require('func')
 require("vars")      -- Variables

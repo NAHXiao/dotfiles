@@ -33,6 +33,7 @@ return {
                 "clangd",
                 "--offset-encoding=utf-16",
                 --解决warning: multiple different client offset_encodings detected for buffer, this is not supported yet
+                "--fallback-style=webkit"
             },
         }
     end,

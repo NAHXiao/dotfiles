@@ -1,6 +1,9 @@
 ##
 ## PATH & ENV Var
 ##
+
+# powershell.exe -Command '$env:UserProfile'
+export WINHOME="/mnt/d/Users/Administrator/"
 export WAYDROIR_SDCARD="$HOME/.local/share/waydroid/data/media/0"
 
 export PNPM_HOME="$HOME/.local/share/pnpm"

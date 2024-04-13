@@ -46,14 +46,14 @@ return {
             example_debug_configuration = {
                 -- This is a single-line comment  explaining the purpose
                 adapter = "example-adapter-name",
-                filetypes = {}, -- optional
+                filetypes = {},     -- optional
                 variables = {
-                    SecretToken = {     -- Variables should start with upper-case letters
+                    SecretToken = { -- Variables should start with upper-case letters
                         shell = { "cat", "${HOME}/.secret_token" }
                     }
                 },
                 configuration = {
-                    request = "launch",     -- or it could be "attach"
+                    request = "launch", -- or it could be "attach"
                     program = {
                         "${fileBasenameNoExtension}",
                         "-c", "configuration_file.cfg",
@@ -72,14 +72,14 @@ return {
             Test = {
                 -- This is a single-line comment  explaining the purpose
                 adapter = "LLVM",
-                filetypes = {}, -- optional
+                filetypes = {},     -- optional
                 variables = {
-                    SecretToken = {     -- Variables should start with upper-case letters
+                    SecretToken = { -- Variables should start with upper-case letters
                         shell = { "cat", "${HOME}/.secret_token" }
                     }
                 },
                 configuration = {
-                    request = "launch",     -- /* or it could be "attach" */,
+                    request = "launch", -- /* or it could be "attach" */,
                     program = {
                         "${fileBasenameNoExtension}",
                         "-c", "configuration_file.cfg",
@@ -148,7 +148,7 @@ return {
             LaunchWithArgs = {
                 adapter = "vscode-cpptools",
                 filetypes = { "cpp", "c", "objc", "rust" }, -- optional
-                default=true,
+                default = true,
                 configuration = {
                     request = "launch",
                     cwd = "${workspaceFolder}",
@@ -158,7 +158,7 @@ return {
                     MIMode = "gdb",
                     externalConsole = true,
                     stopAtEntry = true,
-                    args = {"*${CommandLineArgs}"},
+                    args = { "*${CommandLineArgs}" },
                     environment = {}
                 }
             },
@@ -181,15 +181,15 @@ return {
             },
             Python = {
                 adapter = 'debugpy',
-                filetypes = {"python"}, -- optional
+                filetypes = { "python" }, -- optional
                 configuration = {
                     name = 'Python: Current File',
                     type = 'python',
                     request = 'launch',
                     program = '${file}',
-                    args = { "*${CommandLineArgs}"},
+                    args = { "*${CommandLineArgs}" },
                     cwd = '${workspaceFolder}',
-                    env = {_=""},
+                    env = { _ = "" },
                     envFile = '',
                     stopOnEntry = 0,
                     debugOptions = {},
@@ -198,5 +198,14 @@ return {
                 }
             }
         }
+
+        -- Vimspector
+        vim.cmd([[
+let g:vimspector_sidebar_width = 45
+let g:vimspector_bottombar_height = 15
+let g:vimspector_terminal_maxwidth = 70
+let g:vimspector_terminal_mixwidth = 50
+let g:vimspector_code_mixwidth =50
+]])
     end,
 }

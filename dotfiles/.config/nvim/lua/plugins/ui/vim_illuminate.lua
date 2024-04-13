@@ -3,7 +3,8 @@ return {
     "RRethy/vim-illuminate",
     version = "*",
     lazy = true,
-    event='VeryLazy',
+    -- cond=
+    event = 'VeryLazy',
     config = function()
         require('illuminate').configure({
             providers = {
@@ -11,7 +12,8 @@ return {
                 -- 'treesitter',
                 'regex',
             },
-
+            max_file_lines=3000
+            -- should_enable = function(bufnr) return true end
         })
     end,
 }

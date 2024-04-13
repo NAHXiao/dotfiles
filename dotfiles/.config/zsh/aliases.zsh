@@ -17,6 +17,10 @@ alias vil='nvim leetcode'
 alias viml='nvim leetcode'
 alias nviml='nvim leetcode'
 
+alias viz='nvim $HOME/.config/zsh'
+alias vimz='nvim $HOME/.config/zsh'
+alias nvimz='nvim $HOME/.config/zsh'
+
 alias wine='env LC_ALL=zh_CN.UTF-8 wine'
 alias ks='kdeconnect-cli --share'
 

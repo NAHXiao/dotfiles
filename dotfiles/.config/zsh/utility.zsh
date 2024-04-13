@@ -167,3 +167,6 @@ function set_title(){
 function ran(){
     ranger "." $* "$HOME" "$HOME/tmp" "$HOME/workspace" "$HOME/git" /mnt /
 }
+function get_winHome(){
+    echo "/mnt/$(powershell.exe -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
+}

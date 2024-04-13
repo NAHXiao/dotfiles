@@ -1,6 +1,6 @@
 -- [[ keys.lua ]]
 local function map(mode, lhs, rhs, opts)
-    local options = { noremap = true }
+    local options = { silent = true, noremap = true }
     if opts then
         options = vim.tbl_extend("force", options, opts)
     end
@@ -8,51 +8,40 @@ local function map(mode, lhs, rhs, opts)
 end
 
 -- format encoding? (\r\n -> \n)
-map('n','<leader>fe',':%s#\\r##g<CR>',{ silent = true })
---重启lsp
-map('n', '<leader>lr', ':LspRestart<CR>')
-map('n', '<leader>ls', ':LspStop<CR>')
+map('n', '<leader>fe', ':%s#\\r##g<CR>', { silent = true })
 -- 翻页
 map('n', '<C-f>', '<PageDown>')
 map('n', '<C-b>', '<PageUp>')
+map('i', '<C-f>', '<PageDown>')
+map('i', '<C-b>', '<PageUp>')
+
 map('n', '<leader>P', "ggVGp")
---@模板
-vim.cmd([[
-nnoremap <silent> L :call LoadTemplate()<CR>
-function! LoadTemplate()
-let userInput = input("请输入要插入的模板: ")
-execute "r " "$HOME/template/". userInput
-endfunction
-]])
 
-vim.cmd([[
-tnoremap <A-q> <C-\><C-n>
-"禁用F1
-noremap <F1> <Nop>
-inoremap <F1> <Nop>
-"禁用H
-noremap <silent> H h
-tnoremap <C-w><C-h> <C-\><C-n><C-w><C-h><CR>
-tnoremap <C-w><C-j> <C-\><C-n><C-w><C-j><CR>
-tnoremap <C-w><C-k> <C-\><C-n><C-w><C-k><CR>
-tnoremap <C-w><C-l> <C-\><C-n><C-w><C-l><CR>
+--normal窗口 A-hjkl
+map('n', '<A-h>', '<C-w>h')
+map('n', '<A-j>', '<C-w>j')
+map('n', '<A-k>', '<C-w>k')
+map('n', '<A-l>', '<C-w>l')
+-- 终端A-hjkl
+map('t', '<A-h>', '<C-\\><C-n><C-w>h')
+map('t', '<A-j>', '<C-\\><C-n><C-w>j')
+map('t', '<A-k>', '<C-\\><C-n><C-w>k')
+map('t', '<A-l>', '<C-\\><C-n><C-w>l')
+map('t', '<A-q>', '<C-\\><C-n>')
+--系统剪贴板切换
+map('n', '<A-y>', ':ToggleClipboard<CR>')
+--禁用H
+map('n', 'H', 'h')
+--禁用F1
+map('n', '<F1>', '<Nop>')
+map('i', '<F1>', '<Nop>')
 
-noremap <A-h> <C-[><C-w><C-h><CR>
-noremap <A-j> <C-[><C-w><C-j><CR>
-noremap <A-k> <C-[><C-w><C-k><CR>
-noremap <A-l> <C-[><C-w><C-l><CR>
-"切换系统剪贴板
-noremap <A-y> :ToggleClipboard<CR>
-
-tnoremap <A-h> <C-\><C-n><C-w><C-h><CR>
-tnoremap <A-j> <C-\><C-n><C-w><C-j><CR>
-tnoremap <A-k> <C-\><C-n><C-w><C-k><CR>
-tnoremap <A-l> <C-\><C-n><C-w><C-l><CR>
-]])
 map('i', "<C-,>", "<C-[>I")
 map('i', "<C-.>", "<C-[>A")
 map('i', "<C-h>", "<C-[>I")
 map('i', "<C-l>", "<C-[>A")
+-- map('i', "<C-h>", "<home>")
+-- map('i', "<C-l>", "<end>")
 map('t', "<leader><c-[>", "<C-\\><C-n>")
 
 
@@ -65,8 +54,6 @@ vim.api.nvim_command([[
     endif
       call cursor(lnum + 1, col([lnum + 1, '$']))
   endfunction
-]])
-vim.api.nvim_command([[
   function! GotoNextBegin()
     let lnum = line('.')
     let nlines = line('$')

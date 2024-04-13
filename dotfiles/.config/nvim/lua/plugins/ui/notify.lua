@@ -9,7 +9,7 @@ return {
         notify.setup {
             render = "minimal",
             stages = "static",
-            top_down = true,
+            -- top_down = true,
         }
         vim.notify = notify
     end,

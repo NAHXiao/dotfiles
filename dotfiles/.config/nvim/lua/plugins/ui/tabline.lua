@@ -4,7 +4,7 @@ return {
         vim.o.showtabline = 2
     end,
     lazy = true,
-    event = "BufReadPre",
+    event = "BufEnter",
     opts = {},
     config = function(_, opts)
         local tabline = require "tabline.setup"

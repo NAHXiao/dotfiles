@@ -2,11 +2,11 @@ return {
     "nvim-telescope/telescope.nvim",
     version = "*",
     lazy = true,
-    event="VeryLazy",
+    event = "VeryLazy",
     dependencies = {
         { "nvim-lua/popup.nvim" },
         { "nvim-lua/plenary.nvim" },
-        { 'nvim-telescope/telescope-fzf-native.nvim' },
+        { 'nvim-telescope/telescope-fzf-native.nvim', build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' },
         { 'nvim-telescope/telescope-ui-select.nvim' },
     },
     cmd = "Telescope",
@@ -21,9 +21,9 @@ return {
         { "<leader>fh",  "<cmd>lua require('telescope.builtin').help_tags()<cr>" },
         { "<leader>fd",  "<cmd>lua require('telescope.builtin').diagnostics()<cr>" },
         -- { "<leader>fs",  "<cmd>lua require('telescope.builtin').lsp_workspace_symbols()<cr>" },
+        { "<leader>fs",  "<cmd>lua require('telescope.builtin').treesitter()<cr>" },
         { "<leader>fr",  "<cmd>lua require('telescope.builtin').lsp_references()<cr>" },
         { "<leader>fi",  "<cmd>lua require('telescope.builtin').lsp_implementations()<cr>" },
-        { "<leader>fl",  "<cmd>lua require('telescope.builtin').treesitter()<cr>" },
         { "<leader>fk",  "<cmd>lua require('telescope.builtin').keymaps()<cr>" },
 
         { "<leader>fc",  "<cmd>lua require('telescope.builtin').commands()<cr>" },
@@ -70,9 +70,16 @@ return {
                     --      do the following
                     --   codeactions = false,
                     -- }
-                }
+                }, fzf = {
+                fuzzy = true,                   -- false will only do exact matching
+                override_generic_sorter = true, -- override the generic sorter
+                override_file_sorter = true,    -- override the file sorter
+                case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
+                -- the default case_mode is "smart_case"
+            }
             }
         }
         require("telescope").load_extension("ui-select")
+        require('telescope').load_extension('fzf')
     end,
 }

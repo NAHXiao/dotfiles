@@ -36,5 +36,12 @@ return {
                 "--fallback-style=webkit"
             },
         }
+        require('lspconfig').sqlls.setup {
+            -- capabilities = capabilities,
+            filetypes = { 'sql' },
+            root_dir = function(_)
+                return vim.loop.cwd()
+            end,
+        }
     end,
 }

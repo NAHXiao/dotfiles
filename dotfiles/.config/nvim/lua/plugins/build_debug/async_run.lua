@@ -38,7 +38,9 @@ return {
     lazy = true,
     config = function()
         vim.g.asynctasks_term_rows = 10
-        vim.g.asyncrun_open = 6--告诉 asyncrun 运行时自动打开高度为 6 的 quickfix 窗口
+        vim.g.asyncrun_open = 6 --告诉 asyncrun 运行时自动打开高度为 6 的 quickfix 窗口
+        -- vim.g.asynctasks_term_pos = 'bottom'
+        -- let g:asynctasks_term_pos = 'bottom'
         -- let g:asyncrun_open = 6
     end,
 }

@@ -13,7 +13,7 @@ return {
         return {
             cmd = { "g++" },
             args = { file
-            , "--std=c++23"
+            , "--std=c++23" --?
             , "-o", outfile,
                 "-O3"
             },

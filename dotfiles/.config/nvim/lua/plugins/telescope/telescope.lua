@@ -27,7 +27,7 @@ return {
         { "<leader>fk",  "<cmd>lua require('telescope.builtin').keymaps()<cr>" },
 
         { "<leader>fc",  "<cmd>lua require('telescope.builtin').commands()<cr>" },
-        { "<leader>fp",  "<cmd>lua require('telescope.builtin').commands()<cr>" },
+        -- { "<leader>fp",  "<cmd>lua require('telescope.builtin').commands()<cr>" },
 
         { "<leader>fmp", "<cmd>lua require('telescope.builtin').man_pages()<cr>" },
         { "<leader>fgc", "<cmd>lua require('telescope.builtin').git_commits()<cr>" },

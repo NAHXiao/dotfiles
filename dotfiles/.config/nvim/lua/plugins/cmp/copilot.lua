@@ -38,6 +38,7 @@ return {
                 },
             },
             filetypes = {
+                java = true,
                 yaml = false,
                 markdown = false,
                 help = false,

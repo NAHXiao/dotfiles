@@ -58,6 +58,7 @@ deleted = "${count}"
 [cmd_duration]
 min_time = 1
 # duration & style 
-format = "[]($style)[[神](bg:#312C2E fg:#eba0ac bold)$duration](bg:#312C2E fg:#BBC3DF)[ ]($style)"
+# format = "[]($style)[[神](bg:#312C2E fg:#eba0ac bold)$duration](bg:#312C2E fg:#BBC3DF)[ ]($style)"
+format = "[]($style)[$duration](bg:#312C2E fg:#BBC3DF)[ ]($style)"
 disabled = false
 style = "bg:none fg:#312C2E"

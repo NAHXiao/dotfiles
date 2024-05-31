@@ -2,19 +2,21 @@
 ## ░▄▀░░▀▀█░█▀█░█▀▄░█░░
 ## ░▀▀▀░▀▀▀░▀░▀░▀░▀░▀▀▀
 
+mkdir -p "$HOME/.cache/zsh" &>/dev/null
+mkdir -p /tmp/$(whoami) &>/dev/null
+#
 while read file
 do 
   source "$ZDOTDIR/$file.zsh"
 done <<-EOF
-theme
 env
 utility
-options
+wsl1
+theme
 plugins
+options
 keybinds
+aliases
 prompt
+wsl2
 EOF
-# vim:ft=zsh:nowrap
-[[ $(uname -r) =~ ".*WSL.*" ]] && auto_proxy >/dev/null
-mkdir -p "$HOME/.cache/zsh" &>/dev/null
-source "$ZDOTDIR/aliases.zsh"

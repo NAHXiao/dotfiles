@@ -1,7 +1,20 @@
 ##
 ## Utility Functions
 ##
-
+function unset_proxy(){
+unset http_proxy
+unset https_proxy
+unset HTTP_PROXY
+unset HTTPS_PROXY
+unset socks_proxy
+}
+function set_proxy(){
+export http_proxy=$1
+export https_proxy=$1
+export HTTP_PROXY=$1
+export HTTPS_PROXY=$1
+export socks_proxy=$1
+}
 function _smooth_fzf() {
   local fname
   local current_dir="$PWD"
@@ -10,10 +23,8 @@ function _smooth_fzf() {
   $EDITOR "$fname"
   cd "$current_dir"
 }
-
 function _sudo_replace_buffer() {
   local old=$1 new=$2 space=${2:+ }
-
   # if the cursor is positioned in the $old part of the text, make
   # the substitution and leave the cursor after the $new text
   if [[ $CURSOR -le ${#old} ]]; then
@@ -24,18 +35,15 @@ function _sudo_replace_buffer() {
     LBUFFER="${new}${space}${LBUFFER#$old }"
   fi
 }
-
 function _sudo_command_line() {
   # If line is empty, get the last run command from history
   [[ -z $BUFFER ]] && LBUFFER="$(fc -ln -1)"
-
   # Save beginning space
   local WHITESPACE=""
   if [[ ${LBUFFER:0:1} = " " ]]; then
     WHITESPACE=" "
     LBUFFER="${LBUFFER:1}"
   fi
-
   {
     # If $SUDO_EDITOR or $VISUAL are defined, then use that as $EDITOR
     # Else use the default $EDITOR
@@ -52,7 +60,6 @@ function _sudo_command_line() {
     fi
 
     # Check if the typed command is really an alias to $EDITOR
-
     # Get the first part of the typed command
     local cmd="${${(Az)BUFFER}[1]}"
     # Get the first part of the alias of the same name as $cmd, or $cmd if no alias matches
@@ -95,20 +102,16 @@ function _sudo_command_line() {
     zle redisplay
   }
 }
-
 function _vi_search_fix() {
   zle vi-cmd-mode
   zle .vi-history-search-backward
 }
-
 function toppy() {
     history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n 21
 }
-
 function cd() {
 	builtin cd "$@" && command ls --group-directories-first --color=auto -F
 }
-
 function git-svn(){
   if [[ ! -z "$1" && ! -z "$2" ]]; then
           echo "Starting clone/copy ..."
@@ -118,42 +121,9 @@ function git-svn(){
           echo "Use: git-svn <repository> <subdirectory>"
   fi  
 }
-
-# vim:ft=sh
-#
-#
-#
-#
 function prompt(){
 zinit ice as'command' from'gh-r' atload'export STARSHIP_CONFIG=$XDG_CONFIG_HOME/starship/starship.toml; eval $(starship init zsh)' atclone'./starship init zsh > init.zsh; ./starship completions zsh > _starship' atpull'%atclone' src'init.zsh'
 zinit light starship/starship
-}
-
-function unset_proxy(){
-unset http_proxy
-unset https_proxy
-unset HTTP_PROXY
-unset HTTPS_PROXY
-unset socks_proxy
-}
-function set_proxy(){
-export http_proxy=$1
-export https_proxy=$1
-export HTTP_PROXY=$1
-export HTTPS_PROXY=$1
-export socks_proxy=$1
-}
-function auto_proxy(){
-    command -v grep.exe &>/dev/null || return
-    command -v ipconfig.exe &>/dev/null || return
-    for ip in "127.0.0.1" $(ipconfig.exe | grep.exe -i 'IPv4' | cut -d ':' -f 2 );do
-       # if ping -q -c 1 -w 1 $ip >/dev/null 2>&1;then
-       if curl --connect-timeout 1 -s -x http://$ip:7890 http://baidu.com -o/dev/null;then
-           set_proxy $ip:7890
-           echo "set proxy to $ip:7890"
-           break
-       fi
-    done
 }
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
@@ -162,11 +132,4 @@ function set_title(){
 function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
 	[[ -n $WEZTERM_EXECUTABLE ]] && command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
-}
-
-function ran(){
-    ranger "." $* "$HOME" "$HOME/tmp" "$HOME/workspace" "$HOME/git" /mnt /
-}
-function get_winHome(){
-    echo "/mnt/$(powershell.exe -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
 }

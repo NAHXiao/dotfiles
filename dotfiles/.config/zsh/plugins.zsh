@@ -3,8 +3,23 @@
 ##
 
 # Configure and load plugins using Zinit's
-ZINIT_HOME="${ZINIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zinit}"
+export C=1
 
+arch=$(uname -m)
+if command uname -r &>/dev/null|command grep 'WSL' &>/dev/null ; then 
+    isWSL=true
+else
+    isWSL=false
+fi
+
+if command cat /etc/*release &>/dev/null |grep NAME|grep Arch &>/dev/null ;then
+    isArch=true
+else
+    isArch=false
+fi
+
+export B=1
+ZINIT_HOME="${ZINIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zinit}"
 # Added by Zinit's installer
 if [[ ! -f ${ZINIT_HOME}/zinit.git/zinit.zsh ]]; then
     print -P "%F{14}▓▒░ Installing Flexible and fast ZSH plugin manager %F{13}(zinit)%f"
@@ -26,7 +41,7 @@ zinit light-mode for \
   Aloxaf/fzf-tab
 
 #WSL的垃圾性能会导致卡顿(好像arch不怎么卡)
-if [[ ! $(uname -r) =~ ".*WSL.*"  ||  $(cat /etc/*release|grep NAME) =~ ".*Arch.*" ]];then
+if [[ ! $isWSL || $isArch ]];then
 zinit light-mode for \
   hlissner/zsh-autopair \
   zdharma-continuum/fast-syntax-highlighting \
@@ -38,15 +53,16 @@ zinit light zsh-users/zsh-history-substring-search
 zinit ice wait'2' lucid
 zinit light zdharma-continuum/history-search-multi-word
 
+#auto-suggestions 灰色字体补全
+zinit ice wait'2' lucid
+zinit light zsh-users/zsh-autosuggestions
+
 # FZF
-if  command -v fzf &>/dev/null ;then
-if [[ $(uname -a ) =~ '.*x86_64.*' ]];then
-zinit ice from"gh-r" as"command" 
-elif [[ $(uname -a ) =~ '.*aarch64.*' ]];then
-zinit ice from"gh-r" as"command" bpick"*arm8*"
+if  ! command -v fzf &>/dev/null ;then
+    if [[ $arch == 'x86_64' ]];then
+        zinit ice from"gh-r" as"command" 
+    elif [[ $arch == 'aarch64' ]];then
+        zinit ice from"gh-r" as"command" bpick"*arm8*"
+    fi
+    zinit light junegunn/fzf-bin 
 fi
-zinit light junegunn/fzf-bin 
-fi
-
-
-# vim:ft=zsh

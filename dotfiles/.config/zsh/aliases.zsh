@@ -12,6 +12,7 @@ alias exitconda='conda deactivate'
 alias ra='ranger'
 alias vim='nvim'
 alias vi='nvim'
+alias py='python'
 
 alias vil='nvim leetcode'
 alias viml='nvim leetcode'

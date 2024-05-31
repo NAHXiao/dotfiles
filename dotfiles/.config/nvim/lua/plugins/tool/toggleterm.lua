@@ -62,6 +62,7 @@ return {
             close_on_exit = true, -- close the terminal window when the process exits
             -- Change the default shell. Can be a string or a function returning a string
             shell = vim.o.shell,
+            -- shell = "bash",
             auto_scroll = true, -- automatically scroll to the bottom on terminal output
             -- This field is only relevant if direction is set to 'float'
             float_opts = {

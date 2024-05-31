@@ -25,26 +25,90 @@ return {
 
         --自定义pos(runner) wt=WindowsTerminal
         local function run_wt(opts)
+            local process = function(str)
+                str = str:gsub('&', '"&"')
+                while str:find('&""&') do
+                    str = str:gsub('&""&', '&&')
+                end
+                str = str:gsub('|', '"|"')
+                while str:find('|""|') do
+                    str = str:gsub('|""|', '||')
+                end
+                return str
+            end
+            local cmd = process(opts.cmd)
             local cwd = vim.fn.getcwd()
             local osname = vim.loop.os_uname().sysname;
             if osname == 'Windows_NT' then
                 vim.fn.system(
                     'wt.exe -d ' .. cwd ..
-                    ' cmd.exe /K \'' ..
+                    ' cmd.exe /K \' ' ..
                     opts.cmd .. '&echo. & pause & exit \''
                 )
             elseif osname == "Linux" then
-                -- 'wt.exe -d $(' .. 'wslpath -w ' .. cwd .. ')' ..
-                local cmd =
-                    'wt.exe ' .. 'cmd.exe /K \'' ..
-                    'wsl.exe --cd ' .. cwd .. ' ' ..
-                    opts.cmd .. '& echo. & pause & exit \''
-                vim.fn.system(cmd)
+                -- local commandline = opts.cmd;
+                -- commandline = commandline:gsub([[%\]], [[%\%\%\%\]]);
+                -- commandline = commandline:gsub([[%;]], [[%\%;]]);
+                -- commandline = commandline:gsub([[&]], [[%\&]]);
+                -- commandline = commandline:gsub([[%|]], [[%\%|]]);
+                -- commandline = commandline:gsub([[%"]], [[%\"]]);
+                -- commandline = commandline:gsub([[%$]], [[%\%$]]);
+                -- commandline = commandline:gsub([[\\]], [[aaa]]);
+                -- commandline = commandline:gsub([[&]], [[bbb]]);
+                -- commandline = commandline:gsub([[\|]], [[ccc]]);
+                -- commandline = commandline:gsub([["]], [[ddd]]);
+                -- commandline = commandline:gsub([[%$]], [[%\$]]);
+                -- commandline = "bash.exe -l -c \"wsl " .. commandline .. "\"";
+                -- commandline="bash.exe -l -c \"wsl cat\""
+                --
+
+                local cachedir = vim.fn.stdpath('cache') .. '/asynctask'
+                if vim.fn.isdirectory(cachedir) == 0 then
+                    if 0 == vim.fn.mkdir(cachedir, 'p') then
+                        -- DebugToFile("mkdir" .. cachedir .. " failed")
+                        return
+                    end
+                end
+                local f = io.popen("mktemp -p " .. cachedir .. " asynctask-XXXXXX")
+                if f == nil then
+                    -- DebugToFile("mktemp failed")
+                    return
+                end
+                local file = f:read("*a")
+                file = file:gsub("\n", "")
+                f:close()
+                -- DebugToFile("tmp file: " .. file)
+                local tmp = io.open(file, 'w')
+                if tmp == nil then
+                    -- DebugToFile("open " .. file .. "failed")
+                    return
+                end
+                tmp:write("cd " .. cwd .. "||exit 1;" .. "\n"
+                    .. opts.cmd .. "\n"
+                    -- .. [[printf %s%s%s $([ $? == 0 ] && echo -n '\033[32m' || echo -n '\033[31m') "[progess return $?]" $'\033[0m']].."\n"
+                    .. "CODE=$?\n"
+                    .. [[echo -ne "$([ $CODE == 0 ] && echo -n '\033[32m' || echo -n '\033[31m')[progess return $CODE]\033[0m"]]
+                    .. "\n"
+                    .. "sleep 0.05\n" --避免颜色未恢复就退出
+                    .. "exit 255\n"   --保证wt出现[已退出进程，代码为 255 (0x000000ff)] 现在可以使用Ctrl+D关闭此终端，或按 Enter 重新启动。
+                )
+                tmp:close()
+                local commandline =
+                    'PATH=$PATH:$WINPATH wt.exe wsl bash ' .. file
+                DebugToFile(commandline)
+                vim.fn.system(commandline)
             end
         end
         vim.g.asyncrun_runner = vim.g.asyncrun_runner or {}
         vim.g.asyncrun_runner = vim.tbl_extend('force', vim.g.asyncrun_runner or {}, { wt = run_wt })
 
+        --自定义pos(runner) togterm=toggleterm.nvim NOTE:效果不咋地
+        local function run_togterm(opts)
+            local cwd = vim.fn.getcwd()
+            vim.cmd('1TermExec cmd=\'' .. opts.cmd .. '\' dir=\'' .. cwd .. '\'\n')
+        end
+        vim.g.asyncrun_runner = vim.g.asyncrun_runner or {}
+        vim.g.asyncrun_runner = vim.tbl_extend('force', vim.g.asyncrun_runner or {}, { togterm = run_togterm })
         -- Finder
         do
             local actions = require('telescope.actions')

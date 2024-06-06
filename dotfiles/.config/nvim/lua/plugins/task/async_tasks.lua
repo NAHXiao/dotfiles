@@ -18,7 +18,7 @@ return {
     },
     config = function()
         vim.g.asynctasks_extra_config = {
-            vim.fn.stdpath("config") .. "/lua/plugins/build_debug/asynctasks.ini",
+            vim.fn.stdpath("config") .. "/lua/plugins/task/asynctasks.ini",
         }
         vim.g.asynctasks_term_rows = 10
         vim.g.asynctasks_confirm = 0
@@ -95,7 +95,7 @@ return {
                 tmp:close()
                 local commandline =
                     'PATH=$PATH:$WINPATH wt.exe wsl bash ' .. file
-                DebugToFile(commandline)
+                -- DebugToFile(commandline)
                 vim.fn.system(commandline)
             end
         end

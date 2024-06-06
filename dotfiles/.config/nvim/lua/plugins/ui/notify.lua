@@ -8,8 +8,8 @@ return {
         local notify = require "notify"
         notify.setup {
             render = "minimal",
-            stages = "static",
-            -- top_down = true,
+            stages = "static", --"fade",
+            top_down = false,
         }
         vim.notify = notify
     end,

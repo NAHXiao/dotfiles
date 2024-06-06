@@ -14,7 +14,17 @@ hi GitSignsDelete guibg=#193549 guifg=#ff2600
 hi ColorColumn guifg=NONE guibg=#204563 gui=NONE
 "报错背景透明
 hi Pmenu ctermfg=15 ctermbg=9 guifg=Red guibg=NONE
+
+"                          config for nvim-qt                          "
+if exists('g:GuiLoaded')
+  " call GuiWindowMaximized(1)
+  GuiTabline 0
+  GuiPopupmenu 0
+  GuiLinespace 2
+  GuiFont! Hack\ NF:h10:l
+endif
 ]])
+
 --禁用保存后的提示
 vim.cmd("autocmd BufWritePost * silent! !clear")
 -- IMPORTS

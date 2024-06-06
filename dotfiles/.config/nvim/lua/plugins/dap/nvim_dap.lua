@@ -88,57 +88,45 @@ return {
             ensure_installed = { "python", "cppdbg", "bash", "codelldb" },
             automatic_installation = true,
             -- automatic_installation = { exclude = { "python", "delve" } },
-            -- handles = {
-            --     function(config)
-            --         require('mason-nvim-dap').default_setup(config)
-            --     end,
-            --     python = function(config)
-            --         config.adapters = {
-            --             type = "executable",
-            --             command = "/usr/bin/python3",
-            --             args = {
-            --                 "-m",
-            --                 "debugpy.adapter",
-            --             },
-            --         }
-            --         require('mason-nvim-dap').default_setup(config) -- don't forget this!
-            --     end,
-            --     c = function(config)
-            --         config.adapters = {
-            --             type = "executable",
-            --             command = "codelldb",
-            --             name = "lldb"
-            --         }
-            --         require('mason-nvim-dap').default_setup(config)
-            --     end
-            -- },
+            handlers = {
+                codelldb = function(config)
+                    config.adapters = {
+                        type = "server",
+                        port = "${port}",
+                        executable = {
+                            command = vim.fn.exepath "codelldb",
+                            args = {
+                                "--port",
+                                "${port}",
+                                "--settings",
+                                vim.json.encode {
+                                    showDisassembly = "never", -- 不显示反汇编
+                                },
+                            },
+                            deteched = vim.fn.has "win32" ~= 1,
+                        },
+                    }
+                    require("mason-nvim-dap").default_setup(config)
+                end,
+                python = function() end,--python用别的
+                -- delve = function() end,
+            },
         })
         require('nvim-dap-repl-highlights').setup()
-        local dap = require("dap")
-        local masonbin = vim.fn.stdpath("data") .. '/mason/bin'
-        dap.adapters.codelldb = {
-            type = 'server',
-            port = "${port}",
-            executable = {
-                command = masonbin .. '/codelldb',
-                args = { "--port", "${port}" },
-                -- On windows you may have to uncomment this:
-                -- detached = false,
-            }
-        }
-        dap.configurations.cpp = {
-            {
-                name = "Launch file",
-                type = "codelldb",
-                request = "launch",
-                program = function()
-                    return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-                end,
-                cwd = '${workspaceFolder}',
-                stopOnEntry = false,
-            },
-        }
-        dap.configurations.c = dap.configurations.cpp
-        dap.configurations.rust = dap.configurations.cpp
+        -- local dap = require("dap")
+        -- dap.configurations.cpp = {
+        --     {
+        --         name = "Launch file",
+        --         type = "codelldb",
+        --         request = "launch",
+        --         program = function()
+        --             return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+        --         end,
+        --         cwd = '${workspaceFolder}',
+        --         stopOnEntry = false,
+        --     },
+        -- }
+        -- dap.configurations.c = dap.configurations.cpp
+        -- dap.configurations.rust = dap.configurations.cpp
     end
 }

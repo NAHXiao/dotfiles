@@ -3,8 +3,6 @@
 ##
 
 # Configure and load plugins using Zinit's
-export C=1
-
 arch=$(uname -m)
 if command uname -r &>/dev/null|command grep 'WSL' &>/dev/null ; then 
     isWSL=true
@@ -12,13 +10,6 @@ else
     isWSL=false
 fi
 
-if command cat /etc/*release &>/dev/null |grep NAME|grep Arch &>/dev/null ;then
-    isArch=true
-else
-    isArch=false
-fi
-
-export B=1
 ZINIT_HOME="${ZINIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zinit}"
 # Added by Zinit's installer
 if [[ ! -f ${ZINIT_HOME}/zinit.git/zinit.zsh ]]; then
@@ -40,13 +31,11 @@ compinit
 zinit light-mode for \
   Aloxaf/fzf-tab
 
-#WSL的垃圾性能会导致卡顿(好像arch不怎么卡)
-if [[ ! $isWSL || $isArch ]];then
 zinit light-mode for \
   hlissner/zsh-autopair \
   zdharma-continuum/fast-syntax-highlighting \
   MichaelAquilina/zsh-you-should-use
-fi
+
 zinit ice wait'3' lucid
 zinit light zsh-users/zsh-history-substring-search
 

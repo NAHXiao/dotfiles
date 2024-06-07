@@ -103,12 +103,12 @@ return {
                                     showDisassembly = "never", -- 不显示反汇编
                                 },
                             },
-                            deteched = vim.fn.has "win32" ~= 1,
+                            deteched = vim.g.is_win == false,
                         },
                     }
                     require("mason-nvim-dap").default_setup(config)
                 end,
-                python = function() end,--python用别的
+                python = function() end, --python用别的
                 -- delve = function() end,
             },
         })

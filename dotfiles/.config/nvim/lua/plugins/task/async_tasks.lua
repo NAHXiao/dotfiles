@@ -36,32 +36,14 @@ return {
                 end
                 return str
             end
-            local cmd = process(opts.cmd)
             local cwd = vim.fn.getcwd()
-            local osname = vim.loop.os_uname().sysname;
-            if osname == 'Windows_NT' then
+            if vim.g.is_win then
                 vim.fn.system(
                     'wt.exe -d ' .. cwd ..
                     ' cmd.exe /K \' ' ..
                     opts.cmd .. '&echo. & pause & exit \''
                 )
-            elseif osname == "Linux" then
-                -- local commandline = opts.cmd;
-                -- commandline = commandline:gsub([[%\]], [[%\%\%\%\]]);
-                -- commandline = commandline:gsub([[%;]], [[%\%;]]);
-                -- commandline = commandline:gsub([[&]], [[%\&]]);
-                -- commandline = commandline:gsub([[%|]], [[%\%|]]);
-                -- commandline = commandline:gsub([[%"]], [[%\"]]);
-                -- commandline = commandline:gsub([[%$]], [[%\%$]]);
-                -- commandline = commandline:gsub([[\\]], [[aaa]]);
-                -- commandline = commandline:gsub([[&]], [[bbb]]);
-                -- commandline = commandline:gsub([[\|]], [[ccc]]);
-                -- commandline = commandline:gsub([["]], [[ddd]]);
-                -- commandline = commandline:gsub([[%$]], [[%\$]]);
-                -- commandline = "bash.exe -l -c \"wsl " .. commandline .. "\"";
-                -- commandline="bash.exe -l -c \"wsl cat\""
-                --
-
+            elseif vim.g.is_wsl then
                 local cachedir = vim.fn.stdpath('cache') .. '/asynctask'
                 if vim.fn.isdirectory(cachedir) == 0 then
                     if 0 == vim.fn.mkdir(cachedir, 'p') then
@@ -97,6 +79,11 @@ return {
                     'PATH=$PATH:$WINPATH wt.exe wsl bash ' .. file
                 -- DebugToFile(commandline)
                 vim.fn.system(commandline)
+            elseif vim.g.is_nix then
+                vim.notify('fallback to asyncrun', 'warn')
+                vim.cmd('AsyncRun -mode=term -save=2 -pos=bottom' ..
+                    ' -rows=' .. tostring(vim.g.asynctasks_term_rows) ..
+                    ' ' .. opts.cmd)
             end
         end
         vim.g.asyncrun_runner = vim.g.asyncrun_runner or {}
@@ -109,6 +96,9 @@ return {
         end
         vim.g.asyncrun_runner = vim.g.asyncrun_runner or {}
         vim.g.asyncrun_runner = vim.tbl_extend('force', vim.g.asyncrun_runner or {}, { togterm = run_togterm })
+
+
+
         -- Finder
         do
             local actions = require('telescope.actions')

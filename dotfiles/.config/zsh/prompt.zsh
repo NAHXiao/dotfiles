@@ -3,7 +3,6 @@
 ##
 
 # Load starship
-export A=1
 zinit ice as'command' from'gh-r' \
   atload'export STARSHIP_CONFIG=$XDG_CONFIG_HOME/starship/starship.toml; eval $(starship init zsh)' \
   atclone'./starship init zsh > init.zsh; ./starship completions zsh > _starship' \

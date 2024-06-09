@@ -120,3 +120,39 @@ vim.cmd([[
 --vnoremap <leader>p "+p
 --vnoremap <leader>P "+P
 --]])
+
+if vim.g.is_wsl or vim.g.is_win then
+    local function execute_cmd(cmd)
+        local handle = io.popen(cmd)
+        if handle == nil then return end
+        local result = handle:read("*a")
+        handle:close()
+        return result
+    end
+    local imeselect = vim.fn.stdpath('config') .. '/bin/im-select.exe'
+    -- local var = tostring(execute_cmd(imeselect))
+    vim.api.nvim_create_augroup('IME', { clear = true })
+    vim.api.nvim_create_autocmd('InsertLeavePre', {
+        group = 'IME',
+        pattern = '*',
+        callback = function()
+            -- var = tostring(execute_cmd(imeselect))
+            execute_cmd(imeselect .. ' 1033')
+        end,
+    })
+    vim.api.nvim_create_autocmd('InsertEnter', {
+        group = 'IME',
+        pattern = '*',
+        callback = function()
+            -- execute_cmd(imeselect .. ' ' .. var)
+            execute_cmd(imeselect .. ' ' .. '2052')
+        end,
+    })
+    vim.api.nvim_create_autocmd('ExitPre', {
+        group = 'IME',
+        pattern = '*',
+        callback = function()
+            execute_cmd(imeselect .. ' ' .. '2052')
+        end,
+    })
+end

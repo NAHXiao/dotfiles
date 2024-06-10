@@ -129,30 +129,39 @@ if vim.g.is_wsl or vim.g.is_win then
         handle:close()
         return result
     end
+    local function is_job_done(job_id)
+        local status = vim.fn.jobwait({ job_id }, 0) -- 0 表示立即返回，不等待
+        return status[1] == -1
+    end
     local imeselect = vim.fn.stdpath('config') .. '/bin/im-select.exe'
-    -- local var = tostring(execute_cmd(imeselect))
+    local InsertLeavePre_JobId = nil
+    local InsertEnter_JobId = nil
+    Async_run(execute_cmd(imeselect .. ' 1033'), nil)
     vim.api.nvim_create_augroup('IME', { clear = true })
     vim.api.nvim_create_autocmd('InsertLeavePre', {
         group = 'IME',
         pattern = '*',
         callback = function()
-            -- var = tostring(execute_cmd(imeselect))
-            execute_cmd(imeselect .. ' 1033')
+            if InsertEnter_JobId and not is_job_done(InsertEnter_JobId) then vim.fn.jobstop(InsertEnter_JobId) end
+            InsertLeavePre_JobId = vim.fn.jobstart(imeselect .. ' ' .. '1033')
         end,
     })
     vim.api.nvim_create_autocmd('InsertEnter', {
         group = 'IME',
         pattern = '*',
         callback = function()
-            -- execute_cmd(imeselect .. ' ' .. var)
-            execute_cmd(imeselect .. ' ' .. '2052')
+            if InsertLeavePre_JobId and not is_job_done(InsertLeavePre_JobId) then vim.fn.jobstop(InsertLeavePre_JobId) end
+            InsertEnter_JobId = vim.fn.jobstart(imeselect .. ' ' .. '2052')
         end,
     })
-    vim.api.nvim_create_autocmd('ExitPre', {
+
+    vim.api.nvim_create_autocmd('VimLeavePre', {
         group = 'IME',
         pattern = '*',
         callback = function()
-            execute_cmd(imeselect .. ' ' .. '2052')
+            if InsertEnter_JobId and not is_job_done(InsertEnter_JobId) then vim.fn.jobstop(InsertEnter_JobId) end
+            if InsertLeavePre_JobId and not is_job_done(InsertLeavePre_JobId) then vim.fn.jobstop(InsertLeavePre_JobId) end
+            Async_run(execute_cmd(imeselect .. ' 2052'), nil)
         end,
     })
 end

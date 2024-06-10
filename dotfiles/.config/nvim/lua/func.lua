@@ -66,9 +66,9 @@ function Async_run(cmd, callback)
             stderr_data = stderr_data .. data
         end
     end)
-
     return stdout_data, stderr_data
 end
+
 
 -- local function find_program_path(program)
 --     local command

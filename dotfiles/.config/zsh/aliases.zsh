@@ -82,6 +82,7 @@ alias pacupd="pacman -Qu"
 alias parucheck="paru -Gp"
 alias cleanpac='sudo pacman -Rns $(pacman -Qtdq); paru -c'
 alias installed="grep -i installed /var/log/pacman.log"
+command -v eza >/dev/null 2>&1 &&
 alias ls="eza --color=auto --icons"
 alias l="ls -l"
 alias la="ls -a"

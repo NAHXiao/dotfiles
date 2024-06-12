@@ -26,7 +26,13 @@ return {
         {
             "<F9>",
             function()
-                require("dap").continue()
+                local continue = function()
+                    if vim.fn.filereadable(vim.fs.joinpath(vim.g.ProjectRoot, ".vscode/launch.json")) then
+                        require('dap.ext.vscode').load_launchjs(nil, { cppdbg = { "c", "cpp" } })
+                    end
+                    require('dap').continue()
+                end
+                continue()
             end,
             desc = "Debug: Continue",
         },

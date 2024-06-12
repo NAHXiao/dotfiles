@@ -5,7 +5,7 @@ return {
         "LiadOz/nvim-dap-repl-highlights",
         "nvim-neotest/nvim-nio",
     },
-    lazy=true,
+    lazy = true,
     keys = {
         {
             "<leader>du",
@@ -97,5 +97,7 @@ return {
         dap.listeners.before.event_exited.dapui_config = function()
             dapui.close()
         end
+        --注册命令DapuiClose,DapuiOpen
+        vim.cmd("command! DapUiToggle lua require('dapui').toggle()")
     end,
 }

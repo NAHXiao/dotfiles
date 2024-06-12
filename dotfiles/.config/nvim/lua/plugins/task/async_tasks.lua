@@ -11,6 +11,12 @@ return {
             desc = "find project tasks",
             noremap = true
         },
+        {
+            "<C-p>",
+            ":lua Findtasks()<cr>",
+            desc = "find project tasks",
+            noremap = true
+        },
     },
     lazy = true,
     dependencies = {

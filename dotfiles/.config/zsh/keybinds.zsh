@@ -1,7 +1,10 @@
 ##
 ## Keybindings
 ##
+#其实end-of-line就可以accept autosuggest(C-E,C-F)
 bindkey '^[l' autosuggest-accept
+bindkey "^[\'" autosuggest-accept
+
 
 bindkey '^[[1;5D' emacs-backward-word
 bindkey '^[[1;5C' emacs-forward-word
@@ -24,5 +27,4 @@ bindkey "^H" backward-delete-char
 bindkey "^U" backward-kill-line
 bindkey "^J" forward-char
 # vim:ft=zsh:nowrap
-#
 

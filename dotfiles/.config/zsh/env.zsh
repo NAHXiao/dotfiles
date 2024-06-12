@@ -115,5 +115,5 @@ export_chkexist PATH "/snap/bin"                                "/snap/bin:$PATH
 export_chkexist PATH "/usr/local/go/bin"                        "/usr/local/go/bin:$PATH"
 export_chkexist PATH "$HOME/.nix-profile/bin"                   "$HOME/.nix-profile/bin:$PATH"
 # PA 实验
-export_chkexist NEMU_HOME "$HOME/workspace/pa/ics2023/nemu"
-export_chkexist AM_HOME "$HOME/workspace/pa/ics2023/abstract-machine"
+export_chkexist NEMU_HOME "$HOME/workspace/2.lab/pa/ics2023/nemu"
+export_chkexist AM_HOME "$HOME/workspace/2.lab/pa/ics2023/abstract-machine"

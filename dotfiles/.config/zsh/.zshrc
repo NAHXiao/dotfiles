@@ -20,3 +20,4 @@ aliases
 prompt
 wsl2
 EOF
+[[ -z $HTTP_PROXY ]] && auto_proxy &>/dev/null

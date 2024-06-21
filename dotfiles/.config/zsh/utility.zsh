@@ -15,6 +15,26 @@ export HTTP_PROXY=$1
 export HTTPS_PROXY=$1
 export socks_proxy=$1
 }
+function auto_proxy(){
+    local ip="localhost"
+    if command -v curl &>/dev/null;then
+        cmd='curl --connect-timeout 0.5 -s -x $ip:$port http://baidu.com -o/dev/null'
+    elif command -v nc &>/dev/null ;then 
+        cmd='nc -vz $ip $port' 
+    else
+        return
+    fi
+    echo "cmd=$cmd"
+    local arr=(7890 )
+    for port in ${arr[@]};do
+       echo $cmd
+       if eval $cmd &>/dev/null ; then
+           set_proxy $ip:$port
+           echo "set proxy to $ip:$port"
+           break
+       fi
+    done
+}
 function _smooth_fzf() {
   local fname
   local current_dir="$PWD"
@@ -133,3 +153,5 @@ function set_title(){
 		echo -n $'\e'"]0;$1"$'\a'
 	[[ -n $WEZTERM_EXECUTABLE ]] && command -v wezterm 2>/dev/null >/dev/null && wezterm cli set-tab-title "$1"
 }
+
+

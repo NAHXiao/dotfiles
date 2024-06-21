@@ -6,6 +6,7 @@
 #
 #
 [[ -f "$HOME/alist/alist" ]] && alias alist='cd $HOME/alist && ./alist server'
+alias Man='tldr'
 alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
@@ -32,33 +33,11 @@ alias ll='l -a'
 alias cw='cd $HOME/workspace'
 alias cs='cd $HOME/.scripts'
 
-alias cwl='cd $HOME/workspace/learn'
-
-alias cwlc='cd $HOME/workspace/learn/c++'
-alias cwlr='cd $HOME/workspace/learn/rust'
-alias cwlp='cd $HOME/workspace/learn/python'
-alias cwls='cd $HOME/workspace/learn/shell'
-alias cwlj='cd $HOME/workspace/learn/java'
-
-
-alias cwll='cd $HOME/workspace/learn/leetcode'
-alias cwllc='cd $HOME/workspace/learn/leetcode/c++'
-alias cwllr='cd $HOME/workspace/learn/leetcode/rust'
-alias cwllp='cd $HOME/workspace/learn/leetcode/python'
-alias cwlls='cd $HOME/workspace/learn/leetcode/rust'
-alias cwllj='cd $HOME/workspace/learn/leetcode/java'
-
-alias cwc='cd $HOME/workspace/c++'
-alias cwcl='cd $HOME/workspace/c++/learn'
-
-alias cwr='cd $HOME/workspace/rust'
-alias cwrl='cd $HOME/workspace/rust/learn'
-
-alias cwp='cd $HOME/workspace/python'
-alias cwpl='cd $HOME/workspace/python/learn'
-
-alias cwj='cd $HOME/workspace/java'
-alias cwjl='cd $HOME/workspace/java/learn'
+alias cwlc='cd $HOME/workspace/*language/c++'
+alias cwlr='cd $HOME/workspace/*language/rust'
+alias cwlp='cd $HOME/workspace/*language/python'
+alias cwls='cd $HOME/workspace/*language/shell'
+alias cwlj='cd $HOME/workspace/*language/java'
 
 alias q="exit"
 alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"

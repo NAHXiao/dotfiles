@@ -342,7 +342,7 @@ handle_fallback() {
 MIMETYPE="$( file --dereference --brief --mime-type -- "${FILE_PATH}" )"
 if [[ "${PV_IMAGE_ENABLED}" == 'True' ]]; then
     #cancel the comment to enable image preview
-    # handle_image "${MIMETYPE}"
+    handle_image "${MIMETYPE}"
 fi
 handle_extension
 handle_mime "${MIMETYPE}"

@@ -4,7 +4,7 @@ select pkgmanager in "apt-get" "pkg" "pacman" "paru" "scoop";do
     case $pkgmanager in
         apt-get ) 
             sudo apt-get update
-            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" 'g++' "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" ; do 
+            for i in "rsync" "openssh" "clang" "clangd" "clang" "gcc" "gdb" 'g++' "git" "python" "python-pip" "nodejs" "pnpm" "fnm" "tree-sitter" "fd" "ripgrep" "node"; do 
                 echo "sudo apt-get install -y $i"
                 sudo apt-get install -y $i || FAILED=$i,$FAILED
             done

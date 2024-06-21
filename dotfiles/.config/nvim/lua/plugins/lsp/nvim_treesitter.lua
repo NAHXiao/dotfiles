@@ -7,15 +7,43 @@ return {
     },
     config = function()
         require('nvim-treesitter.configs').setup {
-            ensure_installed = { "bash", "c", "cpp", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "hcl", "html",
-                "http", "java","javascript", "json", "lua", "make", "markdown", "python", "r", "regex", "ruby", "rust", "toml", "vim", "yaml",
-                "zig" },
+            ensure_installed = {
+                "bash",
+                "c",
+                "cpp",
+                "cmake",
+                "css",
+                "dockerfile",
+                "go",
+                "gomod",
+                "gowork",
+                "hcl",
+                "html",
+                "http",
+                "java",
+                "javascript",
+                "json",
+                "lua",
+                "make",
+                "markdown",
+                "markdown_inline",
+                "python",
+                "r",
+                "regex",
+                "ruby",
+                "rust",
+                "toml",
+                "vim",
+                "yaml",
+                "zig"
+            },
             -- TODO if true  some .d will open failed
-            auto_install = false,
-            -- highlight = {
-            -- -- 打开会导致python缩进异常
-            --     enable = true,
-            -- },
+            auto_install = true,
+            highlight = {
+                -- 打开会导致python缩进异常
+                enable = true,
+                -- enable = false,
+            },
             incremental_selection = {
                 enable = true,
                 keymaps = {

@@ -31,6 +31,7 @@ function auto_proxy(){
     else
         return
     fi
+    echo "cmd=$cmd"
     local arr=("127.0.0.1" $($ipconfig_exe | $grep_exe -i 'IPv4' | cut -d ':' -f 2 |tr '\r\n' ' '))
     for ip in ${arr[@]};do
        if eval $cmd &>/dev/null ; then

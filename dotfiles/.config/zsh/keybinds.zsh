@@ -2,8 +2,8 @@
 ## Keybindings
 ##
 #其实end-of-line就可以accept autosuggest(C-E,C-F)
-bindkey '^[l' autosuggest-accept
-bindkey "^[\'" autosuggest-accept
+# bindkey '^[l' autosuggest-accept
+# bindkey "^[\'" autosuggest-accept
 
 
 bindkey '^[[1;5D' emacs-backward-word

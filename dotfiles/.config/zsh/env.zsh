@@ -120,3 +120,5 @@ export_chkexist NEMU_HOME "$HOME/workspace/2.lab/pa/ics2023/nemu"
 # export_chkexist AM_HOME "$HOME/workspace/2.lab/pa/ics2023/abstract-machine"
 export_chkexist AM_HOME "$HOME/workspace/2.lab/oslab_xv6/os-workbench/abstract-machine"
 export_chkexist XV6_HOME "$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
+
+command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"

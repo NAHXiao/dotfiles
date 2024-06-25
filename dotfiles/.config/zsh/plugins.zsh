@@ -48,12 +48,29 @@ zinit light zsh-users/zsh-autosuggestions
 
 # FZF
 if  ! command -v fzf &>/dev/null ;then
+    # if [[ $arch == 'x86_64' ]];then
+    #     zinit ice from"gh-r" as"command" 
+    # elif [[ $arch == 'aarch64' ]];then
+    #     zinit ice from"gh-r" as"command" bpick"*arm8*"
+    # fi
+    # zinit light junegunn/fzf-bin 
+    zinit pack for fzf
+fi
+#EZA
+if  ! command -v eza &>/dev/null ;then
+    zinit ice from"gh-r" as"completion" \
+        bpick"*completions*" \
+        id-as"eza-community--eza--completion" \
+        atclone"zinit creinstall -q ." \
+        atpull"%atclone" \
+        extract
+    zinit load eza-community/eza
     if [[ $arch == 'x86_64' ]];then
-        zinit ice from"gh-r" as"command" 
+        zinit ice from"gh-r" as"command" bpick"*x86_64*gnu*zip"
     elif [[ $arch == 'aarch64' ]];then
-        zinit ice from"gh-r" as"command" bpick"*arm8*"
+        zinit ice from"gh-r" as"command" bpick"*aarch64*gnu*zip"
     fi
-    zinit light junegunn/fzf-bin 
+    zinit light eza-community/eza
 fi
 
 # zsh_vim

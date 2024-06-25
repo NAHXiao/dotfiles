@@ -34,3 +34,19 @@ require("opts")      -- Options
 require("keys")      -- Keymaps
 require("lazyinit")
 
+-- 退出buffer自动关闭quickfix...类窗口
+vim.cmd([[
+function! s:CloseIfOnlyControlWinLeft()
+  if winnr("$") != 1
+    return
+  endif
+  if (exists("t:NERDTreeBufName") && bufwinnr(t:NERDTreeBufName) != -1)
+        \ || &buftype == 'quickfix'
+    q
+  endif
+endfunction
+augroup CloseIfOnlyControlWinLeft
+  au!
+  au BufEnter * call s:CloseIfOnlyControlWinLeft()
+augroup END
+]])

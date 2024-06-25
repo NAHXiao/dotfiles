@@ -114,6 +114,9 @@ export_chkexist PATH "$HOME/.local/share/npm/bin"               "$HOME/.local/sh
 export_chkexist PATH "/snap/bin"                                "/snap/bin:$PATH"
 export_chkexist PATH "/usr/local/go/bin"                        "/usr/local/go/bin:$PATH"
 export_chkexist PATH "$HOME/.nix-profile/bin"                   "$HOME/.nix-profile/bin:$PATH"
-# PA 实验
+#实验
+
 export_chkexist NEMU_HOME "$HOME/workspace/2.lab/pa/ics2023/nemu"
-export_chkexist AM_HOME "$HOME/workspace/2.lab/pa/ics2023/abstract-machine"
+# export_chkexist AM_HOME "$HOME/workspace/2.lab/pa/ics2023/abstract-machine"
+export_chkexist AM_HOME "$HOME/workspace/2.lab/oslab_xv6/os-workbench/abstract-machine"
+export_chkexist XV6_HOME "$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"

@@ -6,6 +6,11 @@
 #
 #
 [[ -f "$HOME/alist/alist" ]] && alias alist='cd $HOME/alist && ./alist server'
+
+
+#为什么bear要走代理
+alias bear='http_proxy=;https_proxy=;HTTP_PROXY=;HTTPS_PROXY=;socks_proxy=; bear'
+
 alias Man='tldr'
 alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'

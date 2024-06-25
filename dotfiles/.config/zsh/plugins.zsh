@@ -48,7 +48,7 @@ zinit light zsh-users/zsh-autosuggestions
 
 # FZF
 if  ! command -v fzf &>/dev/null ;then
-    if [[ ! command -v go &>/dev/null && ! command -v jq &>/dev/null ]]; then
+    if command -v go  &>/dev/null && command -v jq  &>/dev/null; then
         zinit pack for fzf
     else
         if [[ $arch == 'x86_64' ]];then

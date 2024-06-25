@@ -66,8 +66,14 @@ alias pacupd="pacman -Qu"
 alias parucheck="paru -Gp"
 alias cleanpac='sudo pacman -Rns $(pacman -Qtdq); paru -c'
 alias installed="grep -i installed /var/log/pacman.log"
-command -v eza >/dev/null 2>&1 &&
-alias ls="eza --color=auto --icons"
+if command -v eza >/dev/null 2>&1 ;then
+    #eza补全机制有问题...只能退而求其次
+    #alias ls="eza --color=auto --icons"
+    function ls(){
+       eza --color=auto --icons
+    }
+    compdef ls=eza
+fi
 alias l="ls -l"
 alias la="ls -a"
 alias lla="ls -la"

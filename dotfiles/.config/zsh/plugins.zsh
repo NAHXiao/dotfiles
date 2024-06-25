@@ -48,13 +48,16 @@ zinit light zsh-users/zsh-autosuggestions
 
 # FZF
 if  ! command -v fzf &>/dev/null ;then
-    # if [[ $arch == 'x86_64' ]];then
-    #     zinit ice from"gh-r" as"command" 
-    # elif [[ $arch == 'aarch64' ]];then
-    #     zinit ice from"gh-r" as"command" bpick"*arm8*"
-    # fi
-    # zinit light junegunn/fzf-bin 
-    zinit pack for fzf
+    if ! command -v go && ! command -v node ; then
+        zinit pack for fzf
+    else
+        if [[ $arch == 'x86_64' ]];then
+            zinit ice from"gh-r" as"command" 
+        elif [[ $arch == 'aarch64' ]];then
+            zinit ice from"gh-r" as"command" bpick"*arm8*"
+        fi
+        zinit light junegunn/fzf-bin 
+    fi
 fi
 #EZA
 if  ! command -v eza &>/dev/null ;then

@@ -70,7 +70,7 @@ if command -v eza >/dev/null 2>&1 ;then
     #eza补全机制有问题...只能退而求其次
     #alias ls="eza --color=auto --icons"
     function ls(){
-       eza --color=auto --icons
+       eza --color=auto --icons "$@"
     }
     compdef ls=eza
 fi

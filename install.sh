@@ -1,5 +1,7 @@
 #!/bin/bash
 BACKDIR="$HOME/configbak"
+# INSTALLCMD='cp -r'
+INSTALLCMD='ln -s'
 function bakupAll(){
     for ObjInConfig in $(ls -A1 dotfiles/.config) ;do
         if [[ -e "$HOME/.config/${ObjInConfig}" ]];then
@@ -32,41 +34,41 @@ function bakupZsh(){
 }
 function installAll(){
     for ObjInConfig in $(ls -A1 dotfiles/.config) ;do
-        echo link ./dotfiles/.config/${ObjInConfig} to $HOME/.config/${ObjInConfig}
+        echo install ./dotfiles/.config/${ObjInConfig} to $HOME/.config/${ObjInConfig}
         if [[ ! -e "$HOME/.config/${ObjInConfig}" ]];then
-            ln -s "$(pwd)/dotfiles/.config/${ObjInConfig}" "$HOME/.config/${ObjInConfig}"
+            $INSTALLCMD "$(pwd)/dotfiles/.config/${ObjInConfig}" "$HOME/.config/${ObjInConfig}"
         else
             echo "Install $HOME/.config/${ObjInConfig} failed : File exists"
         fi
     done
     for ObjInHome in $(ls -A1 dotfiles|grep -v '^\.config$') ;do
-        echo link ./dotfiles/${ObjInHome} to $HOME/${ObjInHome}
+        echo install ./dotfiles/${ObjInHome} to $HOME/${ObjInHome}
         if [[ ! -e "$HOME/.config/${ObjInHome}" ]];then
-            ln -s "$(pwd)/dotfiles/${ObjInHome}" "$HOME/${ObjInHome}"
+            $INSTALLCMD "$(pwd)/dotfiles/${ObjInHome}" "$HOME/${ObjInHome}"
         else
             echo "Install $HOME/.config/${ObjInHome} failed : File exists"
         fi
     done
 }
 function installNvim(){
-    echo link ./dotfiles/.config/nvim to $HOME/.config/nvim
+    echo install ./dotfiles/.config/nvim to $HOME/.config/nvim
     if [[ ! -e "$HOME/.config/nvim" ]];then
-       ln -s "$(pwd)/dotfiles/.config/nvim" "$HOME/.config/nvim"
+       $INSTALLCMD "$(pwd)/dotfiles/.config/nvim" "$HOME/.config/nvim"
     else
        echo "Install $HOME/.config/nvim failed : File exists"
     fi
 }
 function installZsh(){
-    echo link ./dotfiles/.zshenv to $HOME/.zshenv
+    echo install ./dotfiles/.zshenv to $HOME/.zshenv
 
     if [[ ! -e "$HOME/.zshenv" ]];then
-        ln -s "$(pwd)/dotfiles/.zshenv" "$HOME/.zshenv"
+        $INSTALLCMD "$(pwd)/dotfiles/.zshenv" "$HOME/.zshenv"
     else
        echo "Install $HOME/.zshenv failed : File exists"
     fi
-    echo link ./dotfiles/.config/zsh to $HOME/.config/zsh
+    echo install ./dotfiles/.config/zsh to $HOME/.config/zsh
     if [[ ! -e "$HOME/.config/zsh" ]];then
-        ln -s "$(pwd)/dotfiles/.config/zsh" "$HOME/.config/zsh"
+        $INSTALLCMD "$(pwd)/dotfiles/.config/zsh" "$HOME/.config/zsh"
     else
        echo "Install $HOME/.config/zsh failed : File exists"
     fi

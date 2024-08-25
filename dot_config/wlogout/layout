@@ -1,0 +1,30 @@
+{
+    "label" : "lock",
+    "action" : "hyprctl dispatch dpms && $HOME/.scripts/idle.sh",
+    "text" : "Lock",
+    "keybind" : "1"
+}
+{
+    "label" : "reboot",
+    "action" : "systemctl reboot",
+    "text" : "Reboot",
+    "keybind" : "2"
+}
+{
+    "label" : "shutdown",
+    "action" : "systemctl poweroff",
+    "text" : "Shutdown",
+    "keybind" : "3"
+}
+{
+    "label" : "logout",
+    "action" : "rm /tmp/$(whoami)/$(echo $WAYLAND_DISPLAY)_env ;rm -rf /tmp/$(whoami)/${WAYLAND_DISPLAY}; hyprctl dispatch exit 0",
+    "text" : "Logout",
+    "keybind" : "4"
+}
+{
+    "label" : "hibernate",
+    "action" : "systemctl hibernate",
+    "text" : "hibernate",
+    "keybind" : "5"
+}

@@ -1,0 +1,27 @@
+#!/bin/bash
+{
+sleep 1
+killall xdg-desktop-portal-hyprland
+killall xdg-desktop-portal-wlr
+killall xdg-desktop-portal
+/usr/lib/xdg-desktop-portal-hyprland&
+/usr/lib/xdg-desktop-portal&
+sleep 2
+dbus-launch waybar& 
+wayvnc&
+}&
+/usr/lib/kdeconnectd &
+kdeconnect-indicator &
+wallpaper.sh HuTao.png &
+fcitx5&
+swayidle -w&
+udiskie-mount&
+swaync&
+avizo-service&
+mpd&
+playerctld&
+wl-paste --watch cliphist store&
+# hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
+# hyprdim -n -p -i &
+# "$HOME"/.scripts/env.sh
+nm-applet&

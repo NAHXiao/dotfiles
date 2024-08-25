@@ -1,0 +1,57 @@
+*{
+	border: none;
+	border-radius: 10;
+    font-family: 'FiraCode Nerd Font','mononoki Nerd Font ' ;
+	font-size: 16px;
+	min-height: 0px;
+}
+window#waybar {
+	background: transparent;
+}
+#custom-launcher,#custom-power,#custom-reboot,#custom-shutdown,#custom-hibernate,#custom-logout,#custom-lock,#custom-workspace,
+#battery,#memory,#disk,#cpu,#temperature,
+#workspaces button,#taskbar,#submap,#tray,
+#pulseaudio,#network,#clock,#window,#idle_inhibitor
+{
+/* 背景色 */
+/* background: #11111b;  */
+background: rgba(43, 48, 59, 0.7);
+/* 字体颜色 */
+color: #b4befe;
+/* 外部间隔 */
+margin-top: 5px;
+margin-bottom: 3px;
+margin-left: 2px;
+margin-right: 2px;
+/* 内部空白 */
+padding-left: 8px;
+padding-right:8px;
+padding-top: 2px;
+padding-bottom: 2px;
+/* 圆角 */
+border-radius: 20px;
+/* 切换状态的过渡效果 */
+transition: none;
+/* 边框 */
+border-color: #1f1f28;
+/* border-color: #303030; */
+/* border-color: #262626; */
+/* border-color: #a4b9ef; */
+border-color: #332e41;
+border-style: solid;
+border-radius:25px;
+border-width: 2px;
+}
+
+#custom-launcher{
+padding-right: 0px;
+padding-bottom: 5px;
+}
+#idle_inhibitor{
+padding-right: 15px;
+}
+#taskbar.empty{
+background:transparent;
+color: transparent;
+border-width: 0px;
+}

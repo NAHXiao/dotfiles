@@ -25,3 +25,4 @@ wl-paste --watch cliphist store&
 # hyprdim -n -p -i &
 # "$HOME"/.scripts/env.sh
 nm-applet&
+

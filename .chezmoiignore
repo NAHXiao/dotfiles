@@ -15,6 +15,7 @@
 {{/***********Single source multiple target**********/}}
 
 {{/**********only for linux**********/}}
+.scripts_encrypt
 .autostart
 .bashrc
 .ideavimrc

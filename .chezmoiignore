@@ -1,0 +1,25 @@
+**/__pycache__
+
+{{ if ne .chezmoi.os "windows" }}
+
+{{/***********Single source multiple target**********/}}
+
+{{/**********only for windows**********/}}
+
+{{ end }}
+
+
+
+{{ if ne .chezmoi.os "linux" }}
+
+{{/***********Single source multiple target**********/}}
+
+{{/**********only for linux**********/}}
+.autostart
+.bashrc
+.ideavimrc
+.npmrc
+.profile
+.tmux.conf
+.zshenv
+{{ end }}

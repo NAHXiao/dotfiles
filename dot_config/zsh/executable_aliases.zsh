@@ -84,7 +84,21 @@ alias ccat="bat --color always --plain"
 alias grep='grep --color=auto'
 alias mv='mv -v'
 alias cp='cp -vr'
-#alias rm='rm -vr'
+alias rm='echo rm is banned , please use rt'
+
+alias rt='trash'
+
+_trash() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+  _arguments -C \
+    '*:filename:_files'
+}
+compdef _trash trash
+
+
+# alias rm='rm -vr'
+
 #############################Git##########################################
 alias commit="git add . && git commit -m"
 alias push="git push"

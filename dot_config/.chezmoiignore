@@ -1,0 +1,37 @@
+{{ if ne .chezmoi.os "windows" }}
+
+{{/***********Single source multiple target**********/}}
+starship.toml
+
+{{/**********only for windows**********/}}
+scoop
+
+{{ end }}
+
+
+
+{{ if ne .chezmoi.os "linux" }}
+
+{{/***********Single source multiple target**********/}}
+starship/starship.toml
+{{/**********only for linux**********/}}
+
+chromium-flags.conf
+github-copilot
+htop
+hypr
+i3
+neofetch
+nvim
+ranger
+rofi
+starship
+swayidle
+swaylock
+swaync
+waybar
+wezterm
+wlogout
+wofi
+zsh
+{{ end }}

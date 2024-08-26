@@ -69,7 +69,7 @@ return {
                 lualine_z = {},
                 -- These will be filled later
                 -- lualine_c = { require('auto-session.lib').current_session_name }, -- Plua auto-session
-                lualine_c = {sessionname()}, -- Plua auto-session
+                lualine_c = { sessionname() }, -- Plua auto-session
                 lualine_x = {},
             },
             inactive_sections = {
@@ -81,6 +81,14 @@ return {
                 lualine_c = {},
                 lualine_x = {},
             },
+            tabline = {
+                lualine_a = {},
+                -- lualine_b = { 'branch' },
+                lualine_c = { 'filename' },
+                lualine_x = {},
+                lualine_y = { 'buffers' },
+                -- lualine_z = { 'tabs' }
+            }
 
         }
 

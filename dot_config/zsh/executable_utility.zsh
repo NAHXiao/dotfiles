@@ -9,11 +9,11 @@ unset HTTPS_PROXY
 unset socks_proxy
 }
 function set_proxy(){
-export http_proxy=$1
-export https_proxy=$1
-export HTTP_PROXY=$1
-export HTTPS_PROXY=$1
-export socks_proxy=$1
+export http_proxy=http://$1
+export https_proxy=http://$1
+export HTTP_PROXY=http://$1
+export HTTPS_PROXY=http://$1
+export socks_proxy=socks5://$1
 }
 function auto_proxy(){
     local ip="localhost"

@@ -4,6 +4,8 @@ return {
         vim.o.showtabline = 2
     end,
     lazy = true,
+    enable=false,
+    cond=false,
     event = "BufEnter",
     opts = {},
     config = function(_, opts)

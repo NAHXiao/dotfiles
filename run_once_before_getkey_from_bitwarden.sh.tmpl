@@ -1,0 +1,7 @@
+{{ if eq .chezmoi.os "linux" }}#!/bin/sh
+KEY="${HOME}/.config/chezmoi/key.txt"
+if [ ! -f $KEY ] ; then 
+    echo {{ (bitwardenFields "item" "chezmoi_agekey.pem").pem_body.value|quote }} > ${KEY}
+    chmod 600 ${KEY}
+fi
+{{ end }}

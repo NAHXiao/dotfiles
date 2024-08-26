@@ -104,6 +104,7 @@ export XDG_VIDEOS_DIR="$HOME/Videos"
 
 export_chkexist WAYDROIR_SDCARD "$HOME/.local/share/waydroid/data/media/0"
 export_chkexist PNPM_HOME "$HOME/.local/share/pnpm"
+
 export_chkexist PATH "$PNPM_HOME"                               "$PNPM_HOME:$PATH"
 export_chkexist PATH "$HOME/.local/share/fnm"                   "$HOME/.local/share/fnm:$PATH"
 export_chkexist PATH "$HOME/.scripts"                           "$HOME/.scripts:$PATH"

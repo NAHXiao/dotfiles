@@ -1,0 +1,8 @@
+encryption = "age"
+[age]
+    identity = "~/.config/chezmoi/key.txt"
+    recipient = {{ (bitwardenFields "item" "chezmoi_agekey.pem").pub.value|quote }}
+
+[git]
+    autoCommit = true
+    autoPush = true

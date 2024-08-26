@@ -1,0 +1,5 @@
+Host 10.66.*.*
+HostKeyAlgorithms +ssh-rsa
+PubkeyAcceptedKeyTypes +ssh-rsa
+Host github.com
+  IdentityFile ~/.ssh/git_sshkey_rsa.pem

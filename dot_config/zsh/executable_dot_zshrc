@@ -4,6 +4,9 @@
 
 mkdir -p "$HOME/.cache/zsh" &>/dev/null
 mkdir -p /tmp/$(whoami) &>/dev/null
+if [ ! -d "$HOME/tmp" ];then
+    ln -s /tmp/$(whoami) "$HOME/tmp"
+fi
 #
 while read file
 do 

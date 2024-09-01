@@ -18,10 +18,6 @@ function get_winHome(){
     echo "/mnt/$($(get_winbin powershell.exe) -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
 }
 function wsl_auto_proxy(){
-    local grep_exe=$(get_winbin grep.exe)
-    [[ -z ${grep_exe} ]] && return
-    local ipconfig_exe=$(get_winbin ipconfig.exe)
-    [[ -z ${ipconfig_exe} ]] && return
     local cmd=''
     local port=7890
     if command -v curl &>/dev/null;then
@@ -31,6 +27,10 @@ function wsl_auto_proxy(){
     else
         return
     fi
+    local grep_exe=$(get_winbin grep.exe)
+    [[ -z ${grep_exe} ]] && return
+    local ipconfig_exe=$(get_winbin ipconfig.exe)
+    [[ -z ${ipconfig_exe} ]] && return
     echo "cmd=$cmd"
     local arr=("127.0.0.1" $($ipconfig_exe | $grep_exe -i 'IPv4' | cut -d ':' -f 2 |tr '\r\n' ' '))
     for ip in ${arr[@]};do

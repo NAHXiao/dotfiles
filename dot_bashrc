@@ -130,5 +130,3 @@ esac
 # fnm
 [[ -d "$HOME/.local/share/fnm" ]] && export PATH="$HOME/.local/share/fnm:$PATH"
 command -v fnm &>/dev/null && eval "`fnm env`"
-export NEMU_HOME=$HOME/workspace/pa/ics2023_new/nemu
-export AM_HOME=$HOME/workspace/pa/ics2023_new/abstract-machine

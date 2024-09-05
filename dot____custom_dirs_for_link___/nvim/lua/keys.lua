@@ -28,7 +28,7 @@ map('t', '<A-j>', '<C-\\><C-n><C-w>j')
 map('t', '<A-k>', '<C-\\><C-n><C-w>k')
 map('t', '<A-l>', '<C-\\><C-n><C-w>l')
 map('t', '<A-q>', '<C-\\><C-n>')
-map('t', 'jk', '<C-\\><C-n>')
+-- map('t', 'jk', '<C-\\><C-n>')
 --系统剪贴板切换
 map('n', '<A-y>', ':ToggleClipboard<CR>')
 --禁用H

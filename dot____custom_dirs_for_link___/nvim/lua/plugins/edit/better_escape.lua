@@ -4,13 +4,41 @@ return {
     lazy = true,
     dependencies = {
     },
-    event="InsertEnter",
+    event = { "InsertEnter", "TermEnter" },
     config = function()
         require("better_escape").setup {
-            mapping = { "jk", "kj" }, -- a table with mappings to use
-            timeout = vim.o.timeoutlen, -- the time in which the keys must be hit in ms. Use option timeoutlen by default
-            clear_empty_lines = false, -- clear line after escaping if there is only whitespace
-            keys = "<Esc>",     -- keys used for escaping, if it is a function will use the result everytime
+            timeout = vim.o.timeoutlen,
+            default_mappings = true,
+            mappings = {
+                i = {
+                    j = {
+                        -- These can all also be functions
+                        k = "<Esc>",
+                        j = "<Esc>",
+                    },
+                },
+                c = {
+                    j = {
+                        k = "<Esc>",
+                        j = "<Esc>",
+                    },
+                },
+                t = {
+                    j = {
+                        k = "<C-\\><C-n>",
+                    },
+                },
+                v = {
+                    j = {
+                        k = "<Esc>",
+                    },
+                },
+                s = {
+                    j = {
+                        k = "<Esc>",
+                    },
+                },
+            },
         }
     end,
 }

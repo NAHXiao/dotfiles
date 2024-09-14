@@ -3,3 +3,10 @@ HostKeyAlgorithms +ssh-rsa
 PubkeyAcceptedKeyTypes +ssh-rsa
 Host github.com
   IdentityFile ~/.ssh/git_sshkey_rsa.pem
+Host git.weixin.qq.com
+  HostName git.weixin.qq.com
+  User wsf
+  IdentityFile ~/.ssh/git_sshkey_rsa.pem
+  IdentitiesOnly yes
+  HostKeyAlgorithms +ssh-rsa
+  PubkeyAcceptedKeyTypes +ssh-rsa

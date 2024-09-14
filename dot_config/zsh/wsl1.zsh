@@ -14,6 +14,9 @@ function get_allbin(){
 function winexec(){
     env PATH=$WINPATH "$1" "${@:2}"
 }
+function wslexec(){
+    env PATH=$WINPATH:$PATH "$1" "${@:2}"
+}
 function get_winHome(){
     echo "/mnt/$($(get_winbin powershell.exe) -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
 }

@@ -6,3 +6,12 @@
     
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
+[credential "helperselector"]
+	selected = <no helper>
+[core]
+	autocrlf = true
+[difftool "sourcetree"]
+	cmd = "'' "
+[mergetool "sourcetree"]
+	cmd = "'' "
+	trustExitCode = true

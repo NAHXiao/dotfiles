@@ -28,8 +28,12 @@ return {
             Obsidian = "E:/Obsidian/main";
         elseif osname == "Linux" then
             Obsidian = os.getenv("HOME") .. "/.local/Obsidian/main";
+        else
+            Obsidian = nil;
         end
-        if vim.loop.fs_stat(Obsidian) then
+        if Obsidian == nil then
+            obsidianbotton = nil
+        elseif vim.loop.fs_stat(Obsidian) then
             obsidianbotton = dashboard.button("o", "  Obsidian", "<cmd>cd " .. Obsidian .. " <CR><cmd>edit .<cr>");
         else
             obsidianbotton = nil

@@ -1,0 +1,7 @@
+[wsl2]
+#networkingMode=mirrored
+autoProxy=false
+[experimental]
+sparseVhd=true
+autoMemoryReclaim=gradual
+#hostAddressLoopback=true

@@ -6,12 +6,15 @@
     
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
+[core]
+	autocrlf = {{ if eq .chezmoi.os "windows" }} true {{ else }} false {{ end }}
+
+{{ if eq .chezmoi.os "windows" }} 
 [credential "helperselector"]
 	selected = <no helper>
-[core]
-	autocrlf = true
 [difftool "sourcetree"]
 	cmd = "'' "
 [mergetool "sourcetree"]
 	cmd = "'' "
 	trustExitCode = true
+{{ end }}

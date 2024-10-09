@@ -21,4 +21,5 @@ AppData
 .profile
 .tmux.conf
 .zshenv
+.local
 {{ end }}

@@ -155,3 +155,47 @@ function set_title(){
 }
 
 
+#usage:MAN <cmdname>
+function MAN(){
+    if [[ $# -eq 0 ]];then 
+        echo 'usage:MAN <cmdname>'
+        return;
+    fi
+    local cmdname=$1
+    local prevtool;
+    if command -v bat &>/dev/null;then
+        prevtool="bat"
+    elif command -v less &>/dev/null;then
+        prevtool="less"
+    else
+        prevtool="more"
+    fi
+    local Mandocpath;
+    if [[ -n $mandocpath ]];then
+        Mandocpath=$mandocpath
+    else
+        Mandocpath="$HOME/.config/zsh/man"
+    fi
+    if [[ ! -d $Mandocpath ]];then
+        echo 'mandocpath:'$Mandocpath' not found'
+        echo 'instead,you can export mandocpath to use custom mandoc'
+        return
+    fi
+    local docpath="$Mandocpath/$cmdname.md"
+    eval $prevtool "$docpath"
+}
+
+function _MAN_completion() {
+    local Mandocpath;
+    if [[ -n $mandocpath ]];then
+        Mandocpath=$mandocpath
+    else
+        Mandocpath="$HOME/.config/zsh/man"
+    fi
+    
+    local -a completions
+    completions=( ${(f)"$( for i in $(command ls -A1 $Mandocpath); do echo ${i%.md}; done )"} )
+    
+    _describe 'command' completions
+}
+compdef _MAN_completion MAN

@@ -156,20 +156,10 @@ function set_title(){
 
 
 #usage:MAN <cmdname>
-function MAN(){
-    if [[ $# -eq 0 ]];then 
-        echo 'usage:MAN <cmdname>'
-        return;
-    fi
-    local cmdname=$1
-    local prevtool;
-    if command -v bat &>/dev/null;then
-        prevtool="bat"
-    elif command -v less &>/dev/null;then
-        prevtool="less"
-    else
-        prevtool="more"
-    fi
+
+# stdout:Mdndocpath
+# stderr:
+function __getmanpath__(){
     local Mandocpath;
     if [[ -n $mandocpath ]];then
         Mandocpath=$mandocpath
@@ -177,25 +167,48 @@ function MAN(){
         Mandocpath="$HOME/.config/zsh/man"
     fi
     if [[ ! -d $Mandocpath ]];then
-        echo 'mandocpath:'$Mandocpath' not found'
-        echo 'instead,you can export mandocpath to use custom mandoc'
-        return
+        echo 'mandocpath:'$Mandocpath' not found' >&2
+        echo 'instead,you can export mandocpath to use custom mandoc' >&2
+        return 1
+    fi
+    echo $Mandocpath
+    return 0
+}
+function MAN(){
+    local Mandocpath;
+    Mandocpath=$(__getmanpath__) || return 1
+    
+    if [[ $# -eq 0 ]];then 
+        ${EDITOR:-vim} $Mandocpath
+        return 0;
+    fi
+    if [[ $# -eq 1 && ($1 == '-h'||$1 == '--help') ]];then
+        echo 'usage:'
+        echo "\t$0                      编辑文档"
+        echo "\t$0 <cmdname>            查阅文档"
+        return 0;
+    fi
+    local cmdname=$1
+    local prevtool;
+    if command -v mdcat &>/dev/null;then
+        prevtool="mdcat"
+    elif command -v bat &>/dev/null;then
+        prevtool="bat"
+    elif command -v less &>/dev/null;then
+        prevtool="less"
+    else
+        prevtool="more"
     fi
     local docpath="$Mandocpath/$cmdname.md"
     eval $prevtool "$docpath"
+    return 0
 }
 
-function _MAN_completion() {
+function __MAN_completion__() {
     local Mandocpath;
-    if [[ -n $mandocpath ]];then
-        Mandocpath=$mandocpath
-    else
-        Mandocpath="$HOME/.config/zsh/man"
-    fi
-    
+    Mandocpath=$(__getmanpath__) || return 1
     local -a completions
     completions=( ${(f)"$( for i in $(command ls -A1 $Mandocpath); do echo ${i%.md}; done )"} )
-    
     _describe 'command' completions
 }
-compdef _MAN_completion MAN
+compdef __MAN_completion__ MAN

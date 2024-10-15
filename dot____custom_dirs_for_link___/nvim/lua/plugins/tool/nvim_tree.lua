@@ -1,7 +1,7 @@
 return {
     'kyazdani42/nvim-tree.lua',
     version = "*",
-    lazy = true,
+    lazy = false,
     dependencies = {
         'kyazdani42/nvim-web-devicons'
     },
@@ -11,6 +11,9 @@ return {
     },
     cmd = "NvimTreeToggle",
     config = function()
+        --禁用默认的netrw
+        vim.g.loaded_netrw             = 1
+        vim.g.loaded_netrwPlugin       = 1
         -- o open/close dir
         -- a add
         -- r rename
@@ -20,9 +23,9 @@ return {
         -- d delete
         -- <C-]> cd
         -- g? help
-        vim.g.loaded_netrw = 1
-        vim.g.loaded_netrwPlugin = 1
-        vim.g.loaded_netrwSettings = 1
+        vim.g.loaded_netrw             = 1
+        vim.g.loaded_netrwPlugin       = 1
+        vim.g.loaded_netrwSettings     = 1
         vim.g.loaded_netrwFileHandlers = 1
 
         require("nvim-tree").setup({

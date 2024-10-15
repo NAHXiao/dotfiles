@@ -4,6 +4,8 @@ vim.g.mapleader = " "
 vim.g.localleader = " "
 vim.o.timeoutlen = 800
 
+
+ 
 -- Highlight colors
 vim.cmd([[
 hi CursorLineNr guifg=#7e9cd8

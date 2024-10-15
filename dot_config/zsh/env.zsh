@@ -124,3 +124,5 @@ export_chkexist XV6_HOME "$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
 
 
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
+
+export_chkexist MANDOCPATH "$HOME/.local/Obsidian/main/CLIMAN"

@@ -161,14 +161,14 @@ function set_title(){
 # stderr:
 function __getmanpath__(){
     local Mandocpath;
-    if [[ -n $mandocpath ]];then
-        Mandocpath=$mandocpath
+    if [[ -n $MANDOCPATH ]];then
+        Mandocpath=$MANDOCPATH
     else
         Mandocpath="$HOME/.config/zsh/man"
     fi
     if [[ ! -d $Mandocpath ]];then
         echo 'mandocpath:'$Mandocpath' not found' >&2
-        echo 'instead,you can export mandocpath to use custom mandoc' >&2
+        echo 'instead,you can export MANDOCPATH to use custom mandoc' >&2
         return 1
     fi
     echo $Mandocpath

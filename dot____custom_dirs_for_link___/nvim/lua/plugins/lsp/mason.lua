@@ -2,7 +2,7 @@ return {
     "williamboman/mason.nvim",
     version = "*",
     lazy = false,
-    event='UIEnter',
+    event = 'UIEnter',
     dependencies = {
     },
     config = function()

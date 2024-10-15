@@ -3,7 +3,7 @@ return {
     opts = {
         modes = {
             search = {
-                enabled=true,
+                enabled = true,
                 highlight = {
                     backdrop = true,
                 },

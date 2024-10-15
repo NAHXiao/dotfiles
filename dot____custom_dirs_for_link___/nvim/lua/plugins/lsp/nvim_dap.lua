@@ -1,11 +1,10 @@
-
 return {
-  "mfussenegger/nvim-dap",
-  version = "*",
-  lazy = true,
+    "mfussenegger/nvim-dap",
+    version = "*",
+    lazy = true,
     dependencies = {
-    "neovim/nvim-lspconfig",
+        "neovim/nvim-lspconfig",
     },
-  config = function()
-  end,
+    config = function()
+    end,
 }

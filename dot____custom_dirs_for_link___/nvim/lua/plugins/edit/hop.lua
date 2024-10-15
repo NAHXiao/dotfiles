@@ -4,7 +4,7 @@ return {
     lazy = true,
     dependencies = {
     },
-    keys={
+    keys = {
         { "HH", "<cmd>HopWordMW<cr>" },
         { "HF", "<cmd>HopPattern<cr>" },
         { "HL", "<cmd>HopLineStart<cr>" },

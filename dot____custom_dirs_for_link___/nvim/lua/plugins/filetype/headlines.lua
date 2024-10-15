@@ -12,10 +12,10 @@ return {
             rmd = {
                 fat_headline_lower_string = "▔",
             },
-            norg={
+            norg = {
                 fat_headline_lower_string = "▔",
             },
-            org={
+            org = {
                 fat_headline_lower_string = "▔",
             }
         })

@@ -2,8 +2,8 @@ return {
     "puremourning/vimspector",
     version = "*",
     lazy = true,
-    cond=false,
-    enable=false,
+    cond = false,
+    enable = false,
     keys = {
         --1 run
         --S-1 run-release

@@ -1,7 +1,7 @@
 return {
-  "BurntSushi/ripgrep",
-  version = "*",
-  lazy = false,
-  config = function()
-  end,
+    "BurntSushi/ripgrep",
+    version = "*",
+    lazy = false,
+    config = function()
+    end,
 }

@@ -66,7 +66,7 @@ return {
                 Object = { icon = "", hl = "@type" },
                 Key = { icon = "", hl = "@type" },
                 Null = { icon = "", hl = "@type" },
-                EnumMember = { icon = "", hl = "@field" },--
+                EnumMember = { icon = "", hl = "@field" }, --
                 Struct = { icon = "", hl = "@type" },
                 Event = { icon = "", hl = "@type" },
                 Operator = { icon = "", hl = "@operator" },

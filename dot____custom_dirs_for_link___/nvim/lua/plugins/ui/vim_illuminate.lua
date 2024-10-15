@@ -12,7 +12,7 @@ return {
                 -- 'treesitter',
                 'regex',
             },
-            max_file_lines=3000
+            max_file_lines = 3000
             -- should_enable = function(bufnr) return true end
         })
     end,

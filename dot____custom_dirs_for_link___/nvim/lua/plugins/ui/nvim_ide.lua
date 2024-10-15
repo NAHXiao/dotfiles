@@ -2,9 +2,9 @@ return {
     "ldelossa/nvim-ide",
     version = "*",
     lazy = false,
-    event="BufReadPre",
-    cond=false,
-    enable=false,
+    event = "BufReadPre",
+    cond = false,
+    enable = false,
     keys = {
     },
     config = function()

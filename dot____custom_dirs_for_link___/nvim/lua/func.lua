@@ -69,7 +69,6 @@ function Async_run(cmd, callback)
     return stdout_data, stderr_data
 end
 
-
 -- local function find_program_path(program)
 --     local command
 --     if package.config:sub(1, 1) == '\\' then

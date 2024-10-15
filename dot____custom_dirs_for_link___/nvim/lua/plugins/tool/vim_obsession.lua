@@ -1,8 +1,8 @@
 return {
     "tpope/vim-obsession",
     version = "*",
-    enable=false,
-    cond=false,
+    enable = false,
+    cond = false,
     -- lazy = true,
     -- event = "VeryLazy",
     dependencies = {

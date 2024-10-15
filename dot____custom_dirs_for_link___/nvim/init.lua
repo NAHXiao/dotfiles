@@ -29,9 +29,9 @@ endif
 vim.cmd("autocmd BufWritePost * silent! !clear")
 -- IMPORTS
 require('func')
-require("vars")      -- Variables
-require("opts")      -- Options
-require("keys")      -- Keymaps
+require("vars") -- Variables
+require("opts") -- Options
+require("keys") -- Keymaps
 require("lazyinit")
 
 -- 退出buffer自动关闭quickfix...类窗口

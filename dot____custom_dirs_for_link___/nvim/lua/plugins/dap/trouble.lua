@@ -2,7 +2,7 @@ return {
     "folke/trouble.nvim",
     version = "*",
     --map("n", "<leader>e", ":TroubleToggle<cr>")
-    keys={
+    keys = {
         { "<leader>e", ":TroubleToggle<cr>" },
     },
     lazy = true,

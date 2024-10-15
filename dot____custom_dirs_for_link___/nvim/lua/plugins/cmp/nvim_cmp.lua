@@ -89,8 +89,8 @@ return {
             Folder = "",
             EnumMember = "",
             Constant = "",
-            Struct = "",--
-            Event = "",--
+            Struct = "", --
+            Event = "", --
             Operator = "",
             TypeParameter = "",
             Copilot = "",

@@ -2,11 +2,11 @@ return {
     "tpope/vim-dispatch",
     version = "*",
     --map("n", "<leader>e", ":TroubleToggle<cr>")
-    keys={
+    keys = {
     },
     lazy = false,
-    enable=false,
-    cond=false,
+    enable = false,
+    cond = false,
     config = function()
         vim.cmd([[
         autocmd FileType java let b:dispatch = 'javac %'

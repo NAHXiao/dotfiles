@@ -8,7 +8,7 @@ return {
     config = function()
         require("better_escape").setup {
             timeout = vim.o.timeoutlen,
-            default_mappings = true,
+            default_mappings = false,
             mappings = {
                 i = {
                     j = {
@@ -29,9 +29,9 @@ return {
                     },
                 },
                 v = {
-                    j = {
-                        k = "<Esc>",
-                    },
+                    -- j = {
+                    --     k = "<Esc>",
+                    -- },
                 },
                 s = {
                     j = {

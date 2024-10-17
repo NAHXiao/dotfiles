@@ -1,2 +1,2 @@
-{{ (bitwardenFields "item" "github_token").token.value }}
-{{- "\n" -}}
+{{ if lookPath "bw" }}{{ (bitwardenFields "item" "github_token").token.value }}
+{{- "\n" -}}{{ end }}

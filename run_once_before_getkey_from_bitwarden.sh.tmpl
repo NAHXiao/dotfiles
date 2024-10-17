@@ -1,4 +1,5 @@
-{{ if eq .chezmoi.os "linux" }}#!/bin/sh
+{{ if (and (eq .chezmoi.os "linux") (lookPath "bw")) }}#!/bin/sh
+#仅在Linux,且安装了bitwarden-cli时执行
 KEY="${HOME}/.config/chezmoi/key.txt"
 if [ ! -f $KEY ] ; then 
     echo {{ (bitwardenFields "item" "chezmoi_agekey.pem").pem_body.value|quote }} > ${KEY}

@@ -1,4 +1,5 @@
-{{ if eq .chezmoi.os "windows" }}
+{{ if (and (eq .chezmoi.os "windows") (lookPath "bw")) }}#!/bin/sh
+#仅在Windows,且安装了bitwarden-cli时执行
 $env:PSModulePath = $null
 #避免从pwsh(core)启动powershellv5.1时PSModulePath错乱造成的错误
 #https://stackoverflow.com/questions/74862849/powershell-convertto-securestring-not-recognised-if-run-script-inline-from-cmd

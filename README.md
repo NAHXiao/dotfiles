@@ -4,4 +4,4 @@
 
 ---
 TODO:
-better method to judge `bw + encrypted` to disable `bw` when excludings encrypted files
+A better way to disable files that require bw when encrypted files are excluded...

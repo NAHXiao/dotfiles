@@ -18,7 +18,12 @@ function wslexec(){
     env PATH=$WINPATH:$PATH "$1" "${@:2}"
 }
 function get_winHome(){
-    echo "/mnt/$($(get_winbin powershell.exe) -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
+    local pwsh_path=$(get_winbin powershell.exe)
+    if [[ -n $pwsh_path ]];then
+        echo "/mnt/$($pwsh_path -Command '$env:UserProfile' |sed 's#\\#/#g;s#[A-Z]:#\L&#;s#:##;s#\r##')"
+        return 0
+    fi
+    return 1
 }
 function wsl_auto_proxy(){
     local cmd=''

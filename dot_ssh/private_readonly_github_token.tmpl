@@ -1,2 +1,2 @@
-{{ if lookPath "bw" }}{{ (bitwardenFields "item" "github_token").token.value }}
+{{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}{{ (bitwardenFields "item" "github_token").token.value }}
 {{- "\n" -}}{{ end }}

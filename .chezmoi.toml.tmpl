@@ -1,9 +1,11 @@
 mode = "symlink"
 
+{{ if (lookPath "bw") }}
 encryption = "age"
 [age]
     identity = "~/.config/chezmoi/key.txt"
     recipient = {{ (bitwardenFields "item" "chezmoi_agekey.pem").pub.value|quote }}
+{{end}}
 
 [interpreters.ps1]
 command = "pwsh"

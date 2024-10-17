@@ -1,0 +1,3 @@
+- backup your dotfiles
+- make sure `git unzip file` commands exist and useable
+- `chezmoi init --apply NAHxiao --exclude encrypted`

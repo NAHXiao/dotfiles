@@ -1,4 +1,4 @@
-{{ if (and (eq .chezmoi.os "linux") (lookPath "bw")) }}#!/bin/sh
+{{ if (and (and (eq .chezmoi.os "linux") (lookPath "bw")) (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}#!/bin/sh
 #仅在Linux,且安装了bitwarden-cli时执行
 KEY="${HOME}/.config/chezmoi/key.txt"
 if [ ! -f $KEY ] ; then 

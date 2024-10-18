@@ -1,6 +1,6 @@
 mode = "symlink"
 
-{{ if (lookPath "bw") }}
+{{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}
 encryption = "age"
 [age]
     identity = "~/.config/chezmoi/key.txt"

@@ -1,2 +1,2 @@
-{{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}{{ (bitwardenFields "item" "git_sshkey_rsa.pem").pub.value }}{{ end }}
+{{ (bitwardenFields "item" "git_sshkey_rsa.pem").pub.value }}
 {{- "\n" -}}

@@ -24,7 +24,6 @@ AppData
 {{/**********only for linux**********/}}
 .autostart
 .bashrc
-.npmrc
 .profile
 .tmux.conf
 .zshenv

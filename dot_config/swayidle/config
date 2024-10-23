@@ -1,2 +1,0 @@
-
-timeout 900 'sleep 1 ; hyprctl dispatch dpms off'

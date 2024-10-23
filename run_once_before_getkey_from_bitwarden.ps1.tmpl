@@ -1,4 +1,4 @@
-{{ if (and (and (eq .chezmoi.os "windows") (lookPath "bw")) (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}#!/bin/sh
+{{ if (and (and (eq .chezmoi.os "windows") (lookPath "bw")) (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}
 #仅在Windows,且安装了bitwarden-cli时执行
 $env:PSModulePath = $null
 #避免从pwsh(core)启动powershellv5.1时PSModulePath错乱造成的错误

@@ -3,6 +3,20 @@
 ##
 
 # Configure and load plugins using Zinit's
+# Nix
+#
+cat &>/dev/null <<-EOF
+.
+├── unix(root)
+│   ├── linux
+│   │   ├── Android
+│   │   ├── WSL
+│   │   └── ...
+│   ├── macos
+│   └── msys
+└── windows
+EOF
+
 arch=$(uname -m)
 if command uname -r &>/dev/null|command grep 'WSL' &>/dev/null ; then 
     isWSL=true

@@ -1,27 +1,27 @@
 **/__pycache__
 README.md
 
-{{/*********Ignore When Exclude Encrypted************/}}
+{{/*********带加密参数时忽略************/}}
 {{ if (not (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) ))) }}
 .ssh
 .scripts_encrypt
 {{ end }}
 
+
+
+
+
+{{/**********非Win排除项**********/}}
+{{/**********Win独有**********/}}
 {{ if ne .chezmoi.os "windows" }}
-
-{{/***********Single source multiple target**********/}}
 AppData
-{{/**********only for windows**********/}}
-
 {{ end }}
 
 
 
-{{ if ne .chezmoi.os "linux" }}
-
-{{/***********Single source multiple target**********/}}
-
-{{/**********only for linux**********/}}
+{{/**********非Linux含(Android)排除项**********/}}
+{{/**********Linux含(Android)独有**********/}}
+{{ if (and (ne .chezmoi.os "linux") (ne .chezmoi.os "android")) }}
 .autostart
 .bashrc
 .profile

@@ -84,3 +84,6 @@ augroup FileTypeIndent
   autocmd FileType r setlocal shiftwidth=2 | setlocal tabstop=2
 augroup END
 ]])
+
+
+vim.opt.conceallevel = 1 -- Hide *concealed* text

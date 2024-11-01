@@ -54,3 +54,22 @@ local function find_root(path)
     return find_root(parent)
 end
 g.ProjectRoot = find_root(g.ProjectRoot) or g.ProjectRoot
+
+do
+    local obsidianpath;
+
+    local osname = vim.loop.os_uname().sysname;
+    if osname == 'Windows_NT' then
+        obsidianpath = "E:/Obsidian/main";
+    elseif osname == "Linux" then
+        if g.is_wsl then
+            obsidianpath = "/mnt/e/Obsidian/main";
+        else
+            obsidianpath = os.getenv("HOME") .. "/.local/Obsidian/main";
+        end
+    else
+        obsidianpath = nil;
+    end
+    obsidianpath = vim.loop.fs_stat(obsidianpath) and obsidianpath or nil;
+    g.obsidianPath = obsidianpath;
+end

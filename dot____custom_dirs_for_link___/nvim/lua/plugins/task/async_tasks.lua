@@ -7,7 +7,7 @@ return {
         { "<F8>", "<cmd>AsyncTask run_input<cr>", desc = "run_input" },
         {
             "<leader>fp",
-            ":lua Findtasks()<cr>",
+            "<cmd>TaskListAsync<cr>",
             desc = "find project tasks",
             noremap = true
         }
@@ -22,7 +22,9 @@ return {
         "AsyncTaskList",
         "AsyncTaskMacro",
         "AsyncTaskEnviron",
-        "AsyncTaskProfile"
+        "AsyncTaskProfile",
+
+        "TaskListAsync"
     },
     lazy = true,
     dependencies = {
@@ -163,8 +165,10 @@ return {
                     end
                 }):find()
             end
-            --     }
-            -- }
+            --注册TaskListAsync
+            vim.api.nvim_create_user_command('TaskListAsync', Findtasks, {
+                desc = 'Find project tasks',
+            })
         end
     end,
 }

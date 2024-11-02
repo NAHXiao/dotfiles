@@ -10,13 +10,19 @@ return {
             ":lua Findtasks()<cr>",
             desc = "find project tasks",
             noremap = true
-        },
-        {
-            "<C-p>",
-            ":lua Findtasks()<cr>",
-            desc = "find project tasks",
-            noremap = true
-        },
+        }
+    },
+    cmd = {
+        "AsyncRun",
+        "AsyncStop",
+        "AsyncTask",
+        "AsyncReset",
+        "AsyncTaskEdit",
+        "AsyncTaskLast",
+        "AsyncTaskList",
+        "AsyncTaskMacro",
+        "AsyncTaskEnviron",
+        "AsyncTaskProfile"
     },
     lazy = true,
     dependencies = {

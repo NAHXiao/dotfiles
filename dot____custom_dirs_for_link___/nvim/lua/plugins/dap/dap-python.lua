@@ -1,5 +1,6 @@
 return {
     "mfussenegger/nvim-dap-python",
+    lazy = true,
     ft = { "python" },
     config = function()
         if require("mason-registry").is_installed("debugpy") then
@@ -17,6 +18,7 @@ return {
                 require("dap-python").test_method()
             end,
             desc = "Test method",
+            ft = { "python" },
         },
         {
             "<leader>df",
@@ -24,6 +26,7 @@ return {
                 require("dap-python").test_class()
             end,
             desc = "Test class",
+            ft = { "python" },
         },
         {
             "<leader>ds",
@@ -32,6 +35,7 @@ return {
             end,
             mode = "v",
             desc = "Debug selection",
+            ft = { "python" },
         },
     },
 }

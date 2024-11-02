@@ -35,6 +35,11 @@ return {
         -- <cfile> - 光标下的文件名
         -- <root>  - 当前 buffer 的项目根目录
     },
+    cmd = {
+        "AsyncRun",
+        "AsyncStop",
+        "AsyncReset",
+    },
     lazy = true,
     config = function()
         vim.g.asynctasks_term_rows = 10

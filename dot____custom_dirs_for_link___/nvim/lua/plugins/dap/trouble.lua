@@ -5,6 +5,7 @@ return {
     keys = {
         { "<leader>e", ":TroubleToggle<cr>" },
     },
+    cmd="TroubleToggle",
     lazy = true,
     config = function()
     end,

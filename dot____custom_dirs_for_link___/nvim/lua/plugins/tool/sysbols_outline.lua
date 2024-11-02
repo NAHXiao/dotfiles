@@ -8,6 +8,7 @@ return {
     keys = {
         { "<leader>t", ":SymbolsOutline<CR>", mode = "n" },
     },
+    cmd = "SymbolsOutline",
     config = function()
         require("symbols-outline").setup {
             show_guides = false,

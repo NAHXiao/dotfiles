@@ -28,13 +28,13 @@ return {
 
         daily_notes = {
             -- Optional, if you keep daily notes in a separate directory.
-            folder = "日记",
+            folder = "Diary",
             -- Optional, if you want to change the date format for the ID of daily notes.
-            -- date_format = "%Y-%m-%d",
+            -- date_format = "%Y-%m-%d %H:%M:%S",
             -- Optional, if you want to change the date format of the default alias of daily notes.
-            -- alias_format = "%B %-d, %Y",
+            -- alias_format = "%Y-%m-%d %H:%M:%S",
             -- Optional, default tags to add to each new daily note created.
-            -- default_tags = { "日记" },
+            default_tags = { "日记" },
             -- Optional, if you want to automatically insert a template from your template directory like 'daily.md'
             template = "diary.md"
         },
@@ -69,9 +69,22 @@ return {
                 action = function()
                     if require("obsidian").util.cursor_on_markdown_link(nil, nil, true) then
                         return "<cmd>ObsidianFollowLink<CR>"
-                    elseif vim.fn.getline('.'):match('^%s*%-%s*(%[[ x!>~]%])') then
+                    elseif vim.fn.getline('.'):match('^%s*%-%s*%[!%]') then
+                        local spaces, rest = vim.fn.getline('.'):match('^(%s*)%-%s*%[!%](.*)')
+                        spaces = spaces or ""
+                        vim.schedule(function()
+                            local cur_line = vim.fn.line('.')
+                            vim.api.nvim_buf_set_lines(0, cur_line - 1, cur_line, false, { spaces .. rest:sub(2) })
+                        end)
+                    else
                         return require("obsidian").util.smart_action()
                     end
+                end,
+                opts = { buffer = true, expr = true },
+            },
+            ["<S-CR>"] = {
+                action = function()
+                    return require("obsidian").util.smart_action()
                 end,
                 opts = { buffer = true, expr = true },
             }
@@ -136,21 +149,19 @@ return {
         -- Optional, alternatively you can customize the frontmatter data.
         ---@return table
         note_frontmatter_func = function(note)
-            -- Add the title of the note as an alias.
             if note.title then
                 note:add_alias(note.title)
             end
-
+            -- 初始
             local out = { id = note.id, aliases = note.aliases, tags = note.tags }
-
-            -- `note.metadata` contains any manually added fields in the frontmatter.
-            -- So here we just make sure those fields are kept in the frontmatter.
+            -- 覆盖
             if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
                 for k, v in pairs(note.metadata) do
                     out[k] = v
                 end
             end
-
+            -- 始终更新
+            out["date"] = os.date("%Y-%m-%d %H:%M:%S")
             return out
         end,
 
@@ -158,7 +169,7 @@ return {
         templates = {
             folder = "Templates",
             date_format = "%Y-%m-%d",
-            time_format = "%H:%M",
+            time_format = "%H:%M:%S",
             -- A map for custom variables, the key should be the variable and the value a function
             substitutions = {},
         },
@@ -207,7 +218,7 @@ return {
 
         -- Optional, set to true if you use the Obsidian Advanced URI plugin.
         -- https://github.com/Vinzent03/obsidian-advanced-uri
-        use_advanced_uri = false,
+        use_advanced_uri = true,
 
         -- Optional, set to true to force ':ObsidianOpen' to bring the app to the foreground.
         open_app_foreground = true,
@@ -245,41 +256,10 @@ return {
         -- 2. "vsplit" - to open in a vertical split if there's not already a vertical split
         -- 3. "hsplit" - to open in a horizontal split if there's not already a horizontal split
         open_notes_in = "current",
-
-        -- Optional, define your own callbacks to further customize behavior.
-        callbacks = {
-            -- Runs at the end of `require("obsidian").setup()`.
-            ---@param client obsidian.Client
-            post_setup = function(client) end,
-
-            -- Runs anytime you enter the buffer for a note.
-            ---@param client obsidian.Client
-            ---@param note obsidian.Note
-            enter_note = function(client, note) end,
-
-            -- Runs anytime you leave the buffer for a note.
-            ---@param client obsidian.Client
-            ---@param note obsidian.Note
-            leave_note = function(client, note) end,
-
-            -- Runs right before writing the buffer for a note.
-            ---@param client obsidian.Client
-            ---@param note obsidian.Note
-            pre_write_note = function(client, note) end,
-
-            -- Runs anytime the workspace is set/changed.
-            ---@param client obsidian.Client
-            ---@param workspace obsidian.Workspace
-            post_set_workspace = function(client, workspace) end,
-        },
-
-        -- Optional, configure additional syntax highlighting / extmarks.
-        -- This requires you have `conceallevel` set to 1 or 2. See `:help conceallevel` for more details.
         ui = {
-            enable = true,          -- set to false to disable all additional syntax features
-            update_debounce = 200,  -- update delay after a text change (in milliseconds)
-            max_file_length = 5000, -- disable UI features for files with more than this many lines
-            -- Define how various check-boxes are displayed
+            enable = true,
+            update_debounce = 200,
+            max_file_length = 5000,
             checkboxes = {
                 -- NOTE: the 'char' value has to be a single character, and the highlight groups are defined below.
                 [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
@@ -287,23 +267,14 @@ return {
                 [">"] = { char = "", hl_group = "ObsidianRightArrow" },
                 ["~"] = { char = "󰰱", hl_group = "ObsidianTilde" },
                 ["!"] = { char = "", hl_group = "ObsidianImportant" },
-                -- Replace the above with this if you don't have a patched font:
-                -- [" "] = { char = "☐", hl_group = "ObsidianTodo" },
-                -- ["x"] = { char = "✔", hl_group = "ObsidianDone" },
-
-                -- You can also add more custom ones...
             },
-            -- Use bullet marks for non-checkbox lists.
             bullets = { char = "•", hl_group = "ObsidianBullet" },
             external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
-            -- Replace the above with this if you don't have a patched font:
-            -- external_link_icon = { char = "", hl_group = "ObsidianExtLinkIcon" },
             reference_text = { hl_group = "ObsidianRefText" },
             highlight_text = { hl_group = "ObsidianHighlightText" },
             tags = { hl_group = "ObsidianTag" },
             block_ids = { hl_group = "ObsidianBlockID" },
             hl_groups = {
-                -- The options are passed directly to `vim.api.nvim_set_hl()`. See `:help nvim_set_hl`.
                 ObsidianTodo = { bold = true, fg = "#f78c6c" },
                 ObsidianDone = { bold = true, fg = "#89ddff" },
                 ObsidianRightArrow = { bold = true, fg = "#f78c6c" },
@@ -318,30 +289,8 @@ return {
             },
         },
 
-        -- Specify how to handle attachments.
         attachments = {
-            -- The default folder to place images in via `:ObsidianPasteImg`.
-            -- If this is a relative path it will be interpreted as relative to the vault root.
-            -- You can always override this per image by passing a full path to the command instead of just a filename.
-            img_folder = "assets/imgs", -- This is the default
-
-            -- Optional, customize the default name or prefix when pasting images via `:ObsidianPasteImg`.
-            ---@return string
-            img_name_func = function()
-                -- Prefix image names with timestamp.
-                return string.format("%s-", os.time())
-            end,
-
-            -- A function that determines the text to insert in the note when pasting an image.
-            -- It takes two arguments, the `obsidian.Client` and an `obsidian.Path` to the image file.
-            -- This is the default implementation.
-            ---@param client obsidian.Client
-            ---@param path obsidian.Path the absolute path to the image file
-            ---@return string
-            img_text_func = function(client, path)
-                path = client:vault_relative_path(path) or path
-                return string.format("![%s](%s)", path.name, path)
-            end,
+            img_folder = "assets",
         },
     },
 }

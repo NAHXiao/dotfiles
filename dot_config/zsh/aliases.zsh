@@ -35,14 +35,25 @@ alias se='sudoedit'
 alias zh='env LC_ALL=zh_CN.UTF-8 '
 
 alias ll='l -a'
-alias cw='cd $HOME/workspace'
-alias cs='cd $HOME/.scripts'
 
-alias cwlc='cd $HOME/workspace/*language/c++'
-alias cwlr='cd $HOME/workspace/*language/rust'
-alias cwlp='cd $HOME/workspace/*language/python'
-alias cwls='cd $HOME/workspace/*language/shell'
-alias cwlj='cd $HOME/workspace/*language/java'
+
+_workspaceRoot="$HOME/workspace"
+cw(){
+    cd "$_workspaceRoot""/$1"
+}
+_cw() {
+    local -a workspace
+    while IFS= read -r line;do
+        workspace+=("$line")
+    done<  <(IFS=$'\n'; for i in $(command ls "$_workspaceRoot");do for j in $(command ls "$_workspaceRoot/$i");do echo "$i/$j"; done; done)
+    _describe 'workspace subdir' workspace
+}
+compdef _cw cw
+alias cwlc=cd "$_workspaceRoot"'/*language/c++'
+alias cwlr=cd "$_workspaceRoot"'/*language/rust'
+alias cwlp=cd "$_workspaceRoot"'/*language/python'
+alias cwls=cd "$_workspaceRoot"'/*language/shell'
+alias cwlj=cd "$_workspaceRoot"'/*language/java'
 
 alias q="exit"
 alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"

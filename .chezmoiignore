@@ -1,5 +1,8 @@
 **/__pycache__
 README.md
+test_linux.sh
+test_mac.sh
+test_win.ps1
 
 {{/*********带加密参数时忽略************/}}
 {{ if (not (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) ))) }}

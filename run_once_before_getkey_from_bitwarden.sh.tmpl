@@ -1,6 +1,8 @@
-{{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}#!/bin/sh
+{{ if (and ( not (eq .chezmoi.os "windows")  ) (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )))  }}#!/bin/sh
 #安装了bitwarden-cli时求值
-KEY="${HOME}/.config/chezmoi/key.txt"
+KEY="{{ .chezmoi.config.destDir }}/.config/chezmoi"
+mkdir -p $KEY
+KEY="$KEY""/key.txt"
 if [ ! -f $KEY ] ; then 
     echo {{ (bitwardenFields "item" "chezmoi_agekey.pem").pem_body.value|quote }} > ${KEY}
     chmod 600 ${KEY}

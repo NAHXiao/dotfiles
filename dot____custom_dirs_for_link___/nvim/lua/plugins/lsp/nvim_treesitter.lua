@@ -5,6 +5,7 @@ return {
     dependencies = {
         "neovim/nvim-lspconfig",
     },
+    build = ":TSUpdate",
     config = function()
         require('nvim-treesitter.configs').setup {
             ensure_installed = {
@@ -42,7 +43,7 @@ return {
             highlight = {
                 enable = true,
                 -- 打开会导致python缩进异常/markdown <span>标签键入title时闪退
-                disable = { "markdown", "python"},
+                disable = { "markdown", "python" },
             },
             incremental_selection = {
                 enable = true,

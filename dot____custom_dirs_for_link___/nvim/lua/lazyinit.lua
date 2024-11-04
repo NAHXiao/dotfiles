@@ -22,5 +22,11 @@ require("lazy").setup(
         { import = "plugins.telescope" },
         { import = "plugins.task" },
         { import = "plugins.dap" },
+    },
+    {
+        checker = {
+            enable = true,
+            frequency = 240,-- 10days
+        }
     }
 )

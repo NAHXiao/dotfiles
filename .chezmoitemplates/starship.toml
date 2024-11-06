@@ -4,7 +4,7 @@
 ## ░▀▀█░░█░░█▀█░█▀▄░▀▀█░█▀█░░█░░█▀▀
 ## ░▀▀▀░░▀░░▀░▀░▀░▀░▀▀▀░▀░▀░▀▀▀░▀░░
 # Setups
-format="$os$directory$git_branch$character"
+format="$os$directory$git_branch$conda$character"
 # right_format = """$git_status$cmd_duration"""
 right_format = """$git_status"""
 add_newline = false
@@ -24,7 +24,7 @@ java.disabled = true
 golang.disabled = true
 
 [conda]
-format = ' [$symbol$environment](dimmed green) '
+format = '[$symbol$environment](dimmed green) '
 
 # Prompt symbols 
 [character]

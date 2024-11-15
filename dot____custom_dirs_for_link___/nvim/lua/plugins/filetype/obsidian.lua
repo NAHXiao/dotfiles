@@ -71,14 +71,17 @@ return {
                     if require("obsidian").util.cursor_on_markdown_link(nil, nil, true) then
                         return "<cmd>ObsidianFollowLink<CR>"
                     elseif vim.fn.getline('.'):match('^%s*%-%s*%[' .. last .. '%]') then
-                        local spaces, rest = vim.fn.getline('.'):match('^(%s*)%-%s*%[' .. last .. '>%](.*)')
+                        -- ^(%s*)%-%s*%[%!%](.*)%$
+                        local spaces, rest = vim.fn.getline('.'):match('^(%s*)%-%s*%[' .. last .. '%](.*)')
                         spaces = spaces or ""
+                        rest = rest or ""
                         vim.schedule(function()
                             local cur_line = vim.fn.line('.')
                             vim.api.nvim_buf_set_lines(0, cur_line - 1, cur_line, false,
-                                { spaces .. (rest and (rest.len() ~= -1 and rest:sub(2) or "") or "") })
+                                { spaces .. (rest and (rest:len() > 0 and rest:sub(2) or "") or "") })
                         end)
                     else
+                        DebugToFile("smart")
                         return require("obsidian").util.smart_action()
                     end
                 end,

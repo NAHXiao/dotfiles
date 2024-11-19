@@ -12,6 +12,7 @@ while read file
 do 
   source "$ZDOTDIR/$file.zsh"
 done <<-EOF
+sysenv
 wsl1
 env
 theme

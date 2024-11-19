@@ -1,10 +1,6 @@
 ##
 ## Aliases
 ##
-#
-#
-#
-#
 [[ -f "$HOME/alist/alist" ]] && alias alist='cd $HOME/alist && ./alist server'
 
 

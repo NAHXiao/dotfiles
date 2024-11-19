@@ -1,28 +1,7 @@
 ##TODO UPDATE
 ## Plugins
 ##
-
-# Configure and load plugins using Zinit's
-# Nix
-#
-cat &>/dev/null <<-EOF
-.
-├── unix(root)
-│   ├── linux
-│   │   ├── Android
-│   │   ├── WSL
-│   │   └── ...
-│   ├── macos
-│   └── msys
-└── windows
-EOF
-
-arch=$(uname -m)
-if command uname -r &>/dev/null|command grep 'WSL' &>/dev/null ; then 
-    isWSL=true
-else
-    isWSL=false
-fi
+# Configure and load plugins using Zinit
 
 ZINIT_HOME="${ZINIT_HOME:-${XDG_DATA_HOME:-${HOME}/.local/share}/zinit}"
 # Added by Zinit's installer
@@ -43,34 +22,48 @@ autoload compinit
 compinit
 
 zinit light-mode for \
-  Aloxaf/fzf-tab
-
-zinit light-mode for \
   hlissner/zsh-autopair \
   zdharma-continuum/fast-syntax-highlighting \
   MichaelAquilina/zsh-you-should-use
 
-zinit ice wait'3' lucid
+# zinit ice wait'3' lucid
 zinit light zsh-users/zsh-history-substring-search
 
-zinit ice wait'2' lucid
+# zinit ice wait'2' lucid
 zinit light zdharma-continuum/history-search-multi-word
 
 #auto-suggestions 灰色字体补全
-zinit ice wait'1' lucid
+# zinit ice wait'1' lucid
 zinit light zsh-users/zsh-autosuggestions
+
+
 
 # FZF
 if  ! command -v fzf &>/dev/null ;then
     if command -v go  &>/dev/null && command -v jq  &>/dev/null; then
         zinit pack for fzf
     else
-        if [[ $arch == 'x86_64' ]];then
-            zinit ice from"gh-r" as"command" 
-        elif [[ $arch == 'aarch64' ]];then
-            zinit ice from"gh-r" as"command" bpick"*arm8*"
+        bpickkey=;
+        if [[  $ISLINUX && $IS_AMD64 ]];then
+            bpickkey='*linux*amd64*'
+        elif [[  $ISLINUX && $IS_ARM64 ]];then
+            bpickkey='*linux*arm64*'
+        elif [[  $ISMAC && $IS_AMD64 ]];then
+            bpickey='*darwin*amd64*'
+        elif [[  $ISMAC && $IS_ARM64 ]];then
+            bpickkey='*darwin*arm64*'
+        elif [[ $ISCYGWIN || $ISMSYS  ]];then
+            if [[ $IS_AMD64 ]];then
+                bpickkey='*windows*amd64*'
+            elif [[ $IS_ARM64 ]];then
+                bpickkey='*windows*arm64*'
+            fi
         fi
-        zinit light junegunn/fzf-bin 
+        if test $bpickkey ;then
+            zinit ice from"gh-r" as"command" bpick$bpickkey
+            zinit light junegunn/fzf 
+            unset bpickkey
+        fi
     fi
 fi
 #EZA
@@ -82,15 +75,28 @@ if  ! command -v eza &>/dev/null ;then
         atpull"%atclone" \
         extract
     zinit load eza-community/eza
-    if [[ $arch == 'x86_64' ]];then
-        zinit ice from"gh-r" as"command" bpick"*x86_64*gnu*zip"
-    elif [[ $arch == 'aarch64' ]];then
-        zinit ice from"gh-r" as"command" bpick"*aarch64*gnu*zip"
+
+    bpickkey=;
+    if [[  $ISLINUX && $IS_AMD64 ]];then
+        bpickkey='*x86_64*linux*gnu*zip'
+    elif [[  $ISLINUX && $IS_ARM64 ]];then
+        bpickkey='*aarch64*linux*gnu*zip'
+    elif [[ $ISCYGWIN || $ISMSYS  ]];then
+        if [[ $IS_AMD64 ]];then
+            bpickkey='*x86_64*windows*gnu*zip'
+        fi
     fi
-    zinit light eza-community/eza
+    if test $bpickkey ;then
+        zinit ice from"gh-r" as"command" bpick$bpickkey
+        zinit light eza-community/eza
+        unset bpickkey
+    fi
 fi
 
-# zsh_vim
+zinit light-mode for \
+  Aloxaf/fzf-tab
+
 # zinit ice depth=1
 # zinit light jeffreytse/zsh-vi-mode
 # ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
+# zsh_vim

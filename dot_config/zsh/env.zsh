@@ -1,7 +1,7 @@
 ##
-## PATH & ENV Var
+## PATH && ENV Var
 ##
-
+#####################################################################################################
 # arg1: varname arg2: path(willBechk) arg3(optional): value 
 # e.g. export_chkexist WAYDROIR_SDCARD "$HOME/.local/share/waydroid/data/media/0"
 function export_chkexist()
@@ -46,7 +46,7 @@ export XDG_MUSIC_DIR="$HOME/Music"
 export XDG_PICTURES_DIR="$HOME/Pictures"
 export XDG_VIDEOS_DIR="$HOME/Videos"
 
-uname -a | grep -q microsoft ||  {
+test $ISWSL || {
     export LC_ALL=en_US.UTF-8  
     export LANG=zh.CN.UTF-8
     export LANGUAGE=zh.CN.UTF-8
@@ -88,9 +88,7 @@ export FZF_DEFAULT_OPTS="
   --layout=reverse
   --border horizontal
   --height 40"
-
-
-# vim:ft=zsh:nowrap
+zstyle ':fzf-tab:*' use-fzf-default-opts yes
 #
 #
 export XDG_DESKTOP_DIR="$HOME/Desktop"
@@ -115,14 +113,19 @@ export_chkexist PATH "$HOME/.local/share/npm/bin"               "$HOME/.local/sh
 export_chkexist PATH "/snap/bin"                                "/snap/bin:$PATH"
 export_chkexist PATH "/usr/local/go/bin"                        "/usr/local/go/bin:$PATH"
 export_chkexist PATH "$HOME/.nix-profile/bin"                   "$HOME/.nix-profile/bin:$PATH"
-#实验
+command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
 
+export_chkexist MANDOCPATH "$HOME/.local/Obsidian/main/CLIMAN"
+
+
+#临时性
+#BUG FIX
 export_chkexist NEMU_HOME "$HOME/workspace/2.lab/pa/ics2023/nemu"
 # export_chkexist AM_HOME "$HOME/workspace/2.lab/pa/ics2023/abstract-machine"
 export_chkexist AM_HOME "$HOME/workspace/3.project/jyy_os/os-workbench/abstract-machine"
 export_chkexist XV6_HOME "$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
+export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 
 
-command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
 
-export_chkexist MANDOCPATH "$HOME/.local/Obsidian/main/CLIMAN"
+# vim:ft=zsh:nowrap

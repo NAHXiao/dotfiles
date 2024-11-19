@@ -1,9 +1,8 @@
 ################WSL适配#################
-if uname -a | grep -qi Microsoft ;then
-
+if test $ISWSL ;then
 function split_winpath(){
-    export WINPATH=$(/usr/bin/printenv PATH | /usr/bin/perl -ne 'print join(":", grep { /\/mnt\/[a-z]/ } split(/:/));')
-    export PATH=$(/usr/bin/printenv PATH | /usr/bin/perl -ne 'print join(":", grep { !/\/mnt\/[a-z]/ } split(/:/));')
+    export WINPATH=$(command printenv PATH | command perl -ne 'print join(":", grep { /\/mnt\/[a-z]/ } split(/:/));')
+    export PATH=$(command printenv PATH | command perl -ne 'print join(":", grep { !/\/mnt\/[a-z]/ } split(/:/));')
 }
 function get_winbin(){
     env PATH=$WINPATH /bin/which "$*"

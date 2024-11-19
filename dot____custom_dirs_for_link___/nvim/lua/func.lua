@@ -2,7 +2,7 @@ DebugToFile = function(log)
     if log == nil then
         return
     end
-    local file = io.open('/home/wangsf/tmp/nvim.log', 'a')
+    local file = io.open(os.getenv('HOME') .. '/nvim.log', 'a')
     file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. ' ' .. tostring(log) .. '\n')
     file:close()
 end

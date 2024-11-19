@@ -2,10 +2,11 @@
 [ -d "$HOME/.config/chezmoi.tmp" ] && rm -rf "$HOME/.config/chezmoi.tmp"
 [ -d "$HOME/.config/chezmoi" ] && mv "$HOME/.config/chezmoi" "$HOME/.config/chezmoi.old"
 trapfunc(){
+    echo "Restoring chezmoi config"
     [ -d "$HOME/.config/chezmoi" ] && rm -rf "$HOME/.config/chezmoi"
     [ -d "$HOME/.config/chezmoi.old" ] && mv "$HOME/.config/chezmoi.old" "$HOME/.config/chezmoi"
 }
-trap trapfunc EXIT INT
+trap trapfunc EXIT
 
 test_envchg(){
     #chezmoi使用XDG_CONFIG_HOME
@@ -16,7 +17,7 @@ test_envchg(){
         trapfunc(){
             rm -rf "$CHEZMOI_TEST_TMPDIR"
         }
-        trap trapfunc EXIT INT
+        trap trapfunc EXIT
     
         cmd=$1
     
@@ -34,7 +35,7 @@ echo $1
     trapfunc(){
         rm -rf "$CHEZMOI_TEST_TMPDIR"
     }
-    trap trapfunc EXIT INT
+    trap trapfunc EXIT
 
     cmd=$1
 

@@ -49,7 +49,7 @@ if  ! command -v fzf &>/dev/null ;then
         elif [[  $ISLINUX && $IS_ARM64 ]];then
             bpickkey='*linux*arm64*'
         elif [[  $ISMAC && $IS_AMD64 ]];then
-            bpickey='*darwin*amd64*'
+            bpickkey='*darwin*amd64*'
         elif [[  $ISMAC && $IS_ARM64 ]];then
             bpickkey='*darwin*arm64*'
         elif [[ $ISCYGWIN || $ISMSYS  ]];then

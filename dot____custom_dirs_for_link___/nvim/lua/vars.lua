@@ -70,6 +70,7 @@ do
     else
         obsidianpath = nil;
     end
-    obsidianpath = vim.loop.fs_stat(obsidianpath) and obsidianpath or nil;
-    g.obsidianPath = obsidianpath;
+    if obsidianpath ~= nil and vim.loop.fs_stat(obsidianpath) then
+        g.obsidianPath = obsidianpath;
+    end
 end

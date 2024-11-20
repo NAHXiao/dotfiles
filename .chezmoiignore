@@ -24,8 +24,8 @@ AppData
 
 
 {{/**********非Linux含(Android)排除项**********/}}
-{{/**********Linux含(Android)独有**********/}}
-{{ if (and (ne .chezmoi.os "linux") (ne .chezmoi.os "android")) }}
+{{/********** *nix含(Android)独有**********/}}
+{{ if (and (ne .chezmoi.os "linux") (ne .chezmoi.os "android") (ne .chezmoi.os "darwin") ) }}
 .autostart
 .bashrc
 .profile

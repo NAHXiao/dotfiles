@@ -1,4 +1,6 @@
+{{ if (not (has "--mode=file" .chezmoi.args ) ) }}
 mode = "symlink"
+{{ end }}
 
 {{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}
 encryption = "age"

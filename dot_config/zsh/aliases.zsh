@@ -1,20 +1,62 @@
 ##
 ## Aliases
 ##
-[[ -f "$HOME/alist/alist" ]] && alias alist='cd $HOME/alist && ./alist server'
+############################# COMMON #########################################
+alias ..="cd .."
+alias q="exit"
+if command -v eza >/dev/null 2>&1 ;then
+    export EZA_ICONS_AUTO=true
+    alias ls='eza'
+fi
+alias l="ls -l"
+alias ll='l -a'
+alias la="ls -a"
+alias lla="ls -la"
+alias lt="ls --tree"
 
+alias mkdir="mkdir -p"
+alias ccat="bat --color always --plain"
+alias grep='grep --color=auto'
+alias mv='mv -v'
+alias cp='cp -vr'
+alias se='sudoedit'
 
-#为什么bear要走代理
-alias bear='http_proxy=;https_proxy=;HTTP_PROXY=;HTTPS_PROXY=;socks_proxy=; bear'
+# alias rm='rm -vr'
+# command -v gio &>/dev/null && {
+command -v trash&>/dev/null && {
+    alias rm='echo rm is banned , please use rt'
+    # alias rt='gio trash'
+    alias rt='trash'
+    _trash() {
+      local curcontext="$curcontext" state line
+      typeset -A opt_args
+      _arguments -C \
+        '*:filename:_files'
+    }
+    compdef _trash trash
+}
 
+alias mtar='tar -zcvf' # mtar <archive_compress>
+alias utar='tar -zxvf' # utar <archive_decompress> <file_list>
+alias z='zip -r' # z <archive_compress> <file_list>
+alias uz='unzip' # uz <archive_decompress> -d <dir>
+
+alias psg="ps aux | grep -v grep | grep -i -e VSZ -e" 
+alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
+alias trim_all="sudo fstrim -va"
+alias mkgrub='sudo grub-mkconfig -o /boot/grub/grub.cfg'
+
+################################ APPS ########################################
+#为什么bear不能走代理
+alias bear='http_proxy=;https_proxy=;HTTP_PROXY=;HTTPS_PROXY=;socks_proxy=;bear'
 alias Man='tldr'
-alias rma='trush.sh'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
 alias ra='ranger'
-alias vim='nvim'
-alias vi='nvim'
 alias py='python'
+
+alias vi='nvim'
+alias vim='nvim'
 
 alias vil='nvim leetcode'
 alias viml='nvim leetcode'
@@ -23,15 +65,6 @@ alias nviml='nvim leetcode'
 alias viz='nvim $HOME/.config/zsh'
 alias vimz='nvim $HOME/.config/zsh'
 alias nvimz='nvim $HOME/.config/zsh'
-
-alias wine='env LC_ALL=zh_CN.UTF-8 wine'
-alias ks='kdeconnect-cli --share'
-
-alias se='sudoedit'
-alias zh='env LC_ALL=zh_CN.UTF-8 '
-
-alias ll='l -a'
-
 
 _workspaceRoot="$HOME/workspace"
 cw(){
@@ -51,18 +84,8 @@ alias cwlp=cd "$_workspaceRoot"'/*language/python'
 alias cwls=cd "$_workspaceRoot"'/*language/shell'
 alias cwlj=cd "$_workspaceRoot"'/*language/java'
 
-alias q="exit"
-alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
-alias trim_all="sudo fstrim -va"
-alias mkgrub='sudo grub-mkconfig -o /boot/grub/grub.cfg'
-alias mtar='tar -zcvf' # mtar <archive_compress>
-alias utar='tar -zxvf' # utar <archive_decompress> <file_list>
-alias z='zip -r' # z <archive_compress> <file_list>
-alias uz='unzip' # uz <archive_decompress> -d <dir>
-alias sr='source ~/.config/zsh/env.zsh'
-alias ..="cd .."
-alias psg="ps aux | grep -v grep | grep -i -e VSZ -e" 
-alias mkdir="mkdir -p"
+############################# PKG MANAGER ########################################
+
 alias pacin="pacman -Slq | fzf -m --preview 'cat <(pacman -Si {1}) <(pacman -Fl {1} | awk \"{print \$2}\")' | xargs -ro sudo pacman -S"
 alias paruin="paru -Slq | fzf -m --preview 'cat <(paru -Si {1}) <(paru -Fl {1} | awk \"{print \$2}\")' | xargs -ro  paru -S"
 alias pacrem="pacman -Qq | fzf --multi --preview 'pacman -Qi {1}' | xargs -ro sudo pacman -Rns"
@@ -73,39 +96,6 @@ alias pacupd="pacman -Qu"
 alias parucheck="paru -Gp"
 alias cleanpac='sudo pacman -Rns $(pacman -Qtdq); paru -c'
 alias installed="grep -i installed /var/log/pacman.log"
-if command -v eza >/dev/null 2>&1 ;then
-    #eza补全机制有问题...只能退而求其次
-    #alias ls="eza --color=auto --icons"
-    # function ls(){
-    #    eza --color=auto --icons "$@"
-    # }
-    # compdef ls=eza
-    export EZA_ICONS_AUTO=true
-    alias ls='eza'
-fi
-alias l="ls -l"
-alias la="ls -a"
-alias lla="ls -la"
-alias lt="ls --tree"
-alias ccat="bat --color always --plain"
-alias grep='grep --color=auto'
-alias mv='mv -v'
-alias cp='cp -vr'
-
-# command -v gio &>/dev/null && {
-command -v trash&>/dev/null && {
-    alias rm='echo rm is banned , please use rt'
-    # alias rt='gio trash'
-    alias rt='trash'
-    _trash() {
-      local curcontext="$curcontext" state line
-      typeset -A opt_args
-      _arguments -C \
-        '*:filename:_files'
-    }
-    compdef _trash trash
-}
-# alias rm='rm -vr'
 
 #############################Git##########################################
 alias commit="git add . && git commit -m"
@@ -287,4 +277,5 @@ alias gupav='git pull --rebase --autostash -v'
 alias gupv='git pull --rebase -v'
 alias gwch='git whatchanged -p --abbrev-commit --pretty=medium'
 alias gwip='git add -A; git rm $(git ls-files --deleted) 2> /dev/null; git commit --no-verify --no-gpg-sign -m "--wip-- [skip ci]"'
+
 # vim:ft=zsh

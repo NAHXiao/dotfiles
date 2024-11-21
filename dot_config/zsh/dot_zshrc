@@ -1,13 +1,9 @@
-## ░▀▀█░█▀▀░█░█░█▀▄░█▀▀
-## ░▄▀░░▀▀█░█▀█░█▀▄░█░░
-## ░▀▀▀░▀▀▀░▀░▀░▀░▀░▀▀▀
-
 mkdir -p "$HOME/.cache/zsh" &>/dev/null
 
 if [ ! -e "$(readlink -f "$HOME/tmp")" ]; then
     ln -sf $(mktemp -d) "$HOME/tmp"
 fi
-#
+
 while read file
 do 
   source "$ZDOTDIR/$file.zsh"

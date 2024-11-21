@@ -13,7 +13,7 @@ do
   source "$ZDOTDIR/$file.zsh"
 done <<-EOF
 sysenv
-wsl1
+wslutils
 env
 theme
 plugins
@@ -22,6 +22,6 @@ options
 keybinds
 aliases
 prompt
-wsl2
+wslconf
 EOF
 [[ -z $HTTP_PROXY ]] && auto_proxy &>/dev/null

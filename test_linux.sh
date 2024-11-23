@@ -25,6 +25,8 @@ test_envchg(){
         export XDG_CONFIG_HOME="$HOME/.config" && echo "setting XDG_CONFIG_HOME to $XDG_CONFIG_HOME"
         eval "$cmd" && echo -n "[OK]: " || echo -n "[ERROR]: "
         echo "$cmd"
+        echo "Press Anything To Continue , You can check the result in $HOME"
+        read
     )
 }
 test_arg(){
@@ -42,6 +44,8 @@ echo $1
     eval $cmd && echo -n "[OK]: " || echo -n "[ERROR]: "
     echo "$cmd"
     echo 
+    echo "Press Anything To Continue , You can check the result in $CHEZMOI_TEST_TMPDIR"
+    read
 )
 }
 echo "-----EXCLUDE ENCRYPTED-----"

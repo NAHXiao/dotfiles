@@ -3,7 +3,7 @@ return {
     version = "*",
     lazy = true,
     keys = {
-        { "<c-space>", "<CMD>ToggleTerm<CR>", { noremap = true, silent = true } },
+        { "<c-space>", "<CMD>ToggleTerm<CR>", mode={"n","t"},{ noremap = true, silent = true }},
         -- {"<c-\\>", "<CMD>ToggleTerm<CR>", {noremap = true, silent = true}},
     },
     dependencies = {
@@ -22,7 +22,7 @@ return {
                 end
             end,
             -- open_mapping = [[<c-\>]],
-            open_mapping = [[<c-space>]],
+            -- open_mapping = [[<c-space>]],
             -- open_mapping = { [[<c-\>]], [[c-space]] },
             -- on_create = fun(t: Terminal), -- function to run when the terminal is first created
             -- on_open = fun(t: Terminal), -- function to run when the terminal opens

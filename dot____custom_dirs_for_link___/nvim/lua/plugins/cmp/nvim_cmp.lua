@@ -193,20 +193,14 @@ return {
                 }),
                 ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
                 ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
-                --['<C-e>'] = cmp.mapping(cmp.mapping.complete(), {'i', 'c'}),
-                --['<C-e>'] = cmp.mapping({ i = cmp.mapping.close(), c = cmp.mapping.close() }),
-                --mapping = cmp.mapping.preset.insert({
                 ['<CR>'] = cmp.mapping.confirm({ select = false }),
-                ["<C-e>"] = cmp.mapping.abort(),
-
-                --[[ ['<CR>'] = cmp.mapping({
-            i = cmp.mapping.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false }),
-            c = function()
-                if cmp.visible() then
-                    cmp.confirm({ behavior = cmp.ConfirmBehavior.Replace, select = false })
+                ["<C-space>"] = function() -- 切换补全菜单:Copilot<Tab>在cmp.visible()==false时补全
+                    if cmp.visible() then
+                        cmp.abort()
+                    else
+                        cmp.complete()
+                    end
                 end
-            end,
-        }), ]]
             },
 
             formatting = {

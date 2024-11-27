@@ -1,7 +1,7 @@
 --TODO
 return {
     'hrsh7th/nvim-cmp',
-    version = "*",
+    -- version = "*",
     lazy = true,
     event = "InsertEnter",
     dependencies = {

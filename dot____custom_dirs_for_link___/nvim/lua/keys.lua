@@ -17,6 +17,10 @@ map('i', '<C-b>', '<PageUp>')
 
 map('n', '<leader>P', "ggVGp")
 
+-- vnew
+map('n', '<C-w>N', ':vnew<CR>')
+map('n', '<A-n>', ':new<CR>')
+map('n', '<A-N>', ':vnew<CR>')
 --normal窗口 A-hjkl
 map('n', '<A-h>', '<C-w>h')
 map('n', '<A-j>', '<C-w>j')
@@ -44,7 +48,6 @@ map('i', "<C-l>", "<C-[>A")
 -- map('i', "<C-h>", "<home>")
 -- map('i', "<C-l>", "<end>")
 map('t', "<leader><c-[>", "<C-\\><C-n>")
-
 
 vim.api.nvim_command([[
   function! GotoNextEnd()

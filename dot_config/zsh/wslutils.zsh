@@ -48,6 +48,10 @@ function wsl_auto_proxy(){
        fi
     done
 }
+function wsl_notify(){
+    [[ $# -eq 0 ]] && set -- "'WSL Notification'"
+    winexec pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Import-Module BurntToast;New-BurntToastNotification -Sound Alarm2 -Text $*"
+}
 [[ -z $WINPATH ]] && split_winpath
 
 # fix MESA:ZINK(VK_ERROR_INCOMPATIBLE_DRIVER) error

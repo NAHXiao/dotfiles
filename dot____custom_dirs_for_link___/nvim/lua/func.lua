@@ -2,9 +2,14 @@ DebugToFile = function(log)
     if log == nil then
         return
     end
-    local file = io.open(os.getenv('HOME') .. '/nvim.log', 'a')
-    file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. ' ' .. tostring(log) .. '\n')
-    file:close()
+    local file = io.open((os.getenv('HOME') or os.getenv('USERPROFILE'):gsub([[\]], [[\\]])) .. '/nvim.log', 'a')
+    if file ~= nil then
+        file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. ' ' .. tostring(log) .. '\n')
+        file:close()
+    else
+        vim.notify('DebugToFile:' .. 'Failed to open log file (' .. file .. '),\nlog:[' .. log .. ']', vim.log.levels
+        .ERROR)
+    end
 end
 
 vim.cmd([[

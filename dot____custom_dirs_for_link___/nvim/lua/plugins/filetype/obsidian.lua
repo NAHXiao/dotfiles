@@ -1,3 +1,5 @@
+-- FIXME:https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
+-- NOTE: lazyinit.lua : Hook->FixedThis
 return {
     "epwalsh/obsidian.nvim",
     version = "*",
@@ -81,7 +83,6 @@ return {
                                 { spaces .. (rest and (rest:len() > 0 and rest:sub(2) or "") or "") })
                         end)
                     else
-                        DebugToFile("smart")
                         return require("obsidian").util.smart_action()
                     end
                 end,

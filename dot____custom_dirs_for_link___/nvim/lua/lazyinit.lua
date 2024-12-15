@@ -9,6 +9,22 @@ if not vim.loop.fs_stat(lazypath) then
         lazypath,
     })
 end
+-- Hook
+local old_require = require
+_G.require = setmetatable({}, {
+    __call = function(_, modname)
+        -- DebugToFile("require: " .. modname)
+        local ret = old_require(modname)
+        if modname == 'obsidian.util' then
+            -- DebugToFile("Inject obsidian.util")
+            ret.ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+        elseif modname == 'obsidian' then
+            -- DebugToFile("Inject obsidian")
+            ret.util.ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+        end
+        return ret
+    end
+})
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup(
     {
@@ -26,7 +42,7 @@ require("lazy").setup(
     {
         checker = {
             enable = true,
-            frequency = 240,-- 10days
+            frequency = 240, -- 10days
         }
     }
 )

@@ -47,5 +47,19 @@ return {
         -- vim.g.asynctasks_term_pos = 'bottom'
         -- let g:asynctasks_term_pos = 'bottom'
         -- let g:asyncrun_open = 6
+        vim.api.nvim_create_autocmd('TermClose', {
+            callback = function(ctx)
+                vim.cmd('stopinsert')
+                vim.api.nvim_create_autocmd('TermEnter',
+                    {
+                        callback = function()
+                            vim.cmd('stopinsert')
+                        end,
+                        buffer = ctx.buf,
+                    }
+                )
+            end,
+            nested = true,
+        })
     end,
 }

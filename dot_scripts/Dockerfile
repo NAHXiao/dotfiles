@@ -13,13 +13,16 @@ RUN set -e && apt-get install -y file zsh unzip git curl &&\
     chsh -s /bin/zsh
 
 #cpp
-RUN set -e && apt-get install -y gcc g++ gdb make cmake build-essential ninja-build pkg-config libtool autoconf automake clang-format cppcheck valgrind strace ltrace 
+RUN set -e && apt-get install -y gcc g++ gdb make cmake build-essential ninja-build pkg-config libtool autoconf automake clang-format clangd cppcheck valgrind strace ltrace 
 
 #py
 RUN set -e && apt-get install -y python3 python3-pip python3-venv
 
 #java
 RUN set -e && apt install -y openjdk-17-jdk
+
+#node
+RUN set -e && apt-get install -y nodejs npm
 
 #ssh
 RUN set -e && apt-get update && apt-get install -y openssh-server 

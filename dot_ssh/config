@@ -10,3 +10,6 @@ Host git.weixin.qq.com
   IdentitiesOnly yes
   HostKeyAlgorithms +ssh-rsa
   PubkeyAcceptedKeyTypes +ssh-rsa
+Host [localhost]:*
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null

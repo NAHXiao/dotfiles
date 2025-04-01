@@ -7,10 +7,10 @@ local function map(mode, lhs, rhs, opts)
     vim.api.nvim_set_keymap(mode, lhs, rhs, options)
 end
 
-map('i','<C-c>','<Esc>')
-map('n','<C-c>','<Esc>')
-map('v','<C-c>','<Esc>')
-map('c','<C-c>','<Esc>')
+-- map('i','<C-c>','<Esc>')
+-- map('n','<C-c>','<Esc>')
+-- map('v','<C-c>','<Esc>')
+-- map('c','<C-c>','<Esc>')
 
 -- format encoding? (\r\n -> \n)
 map('n', '<leader>fe', ':%s#\\r##g<CR>', { silent = true })

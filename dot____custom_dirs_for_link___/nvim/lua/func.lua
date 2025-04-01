@@ -92,21 +92,4 @@ end
 --     return result
 -- end
 
-function ParseVersion(version)
-    local vstr = tostring(version)
-    local a, b, c = vstr:match("(%d+)%.(%d+)%.(%d+)")
-    return { tonumber(a), tonumber(b), tonumber(c) }
-end
-
--- 比较两个版本 {a, b, c}
-function VersionIsGreaterEq(v1, v2)
-    for i = 1, 3 do
-        if v1[i] > v2[i] then
-            return true
-        elseif v1[i] < v2[i] then
-            return false
-        end
-    end
-    return true -- 版本相等
-end
--- VersionIsGreaterEq(ParseVersion(vim.version()),ParseVersion("0.9.5"))
+-- print(vim.version.gt(vim.version(),{0,9,0}))

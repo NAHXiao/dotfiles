@@ -4,7 +4,7 @@ return {
     keys = {
         -- { "<leader>fn", "<cmd>Telescope notify<cr>" },
     },
-    enable=VersionIsGreaterEq(ParseVersion(vim.version()),ParseVersion("0.10.0")),
+    enable = vim.version.cmp(vim.version(), "0.10.0") >= 0,
     config = function()
         local notify = require "notify"
         notify.setup {

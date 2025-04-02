@@ -11,7 +11,7 @@ fi
 IMAGE_NAME="base"
 CONTAINER_NAME="basec"
 MOUNT_FROM="$HOME/workspace"
-MOUNT_POINT="/root/workspace"
+MOUNT_POINT="/home/ubuntu/workspace"
 SSH_PORT=2222
 
 COMMAND="$1"
@@ -31,7 +31,7 @@ case "$COMMAND" in
         ;;
     start)
         # 处理容器名:镜像名
-        if [ -n "$1" ]; then
+        if  [[ -n "$1" && ! "$1" =~ -+ ]]; then
             TMP_CONTAINER_NAME=$(echo "$1" | cut -d: -f1)
             [ -n "$TMP_CONTAINER_NAME" ] && CONTAINER_NAME=$TMP_CONTAINER_NAME
             TMP_IMAGE_NAME=$(echo "$1" | cut -d: -f2-)
@@ -89,6 +89,7 @@ case "$COMMAND" in
                 docker exec "$CONTAINER_NAME" bash -c "grep -qF 'source /etc/profile' /etc/zsh/zprofile || echo 'source /etc/profile' >> /etc/zsh/zprofile"
             fi
             CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
+            docker exec "$CONTAINER_NAME" bash -c "mkdir -p /run/user/1000"
             echo "localhost:$SSH_PORT -> $CONTAINER_NAME:22"
         fi
         ;;

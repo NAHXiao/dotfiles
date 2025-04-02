@@ -53,9 +53,9 @@ case "$COMMAND" in
         ;;
 esac
 
-echo "IMAGE_NAME     : $IMAGE_NAME"
-echo "CONTAINER_NAME : $CONTAINER_NAME"
-echo "SSH_PORT       : $SSH_PORT"
+echo "ARG:IMAGE_NAME     : $IMAGE_NAME"
+echo "ARG:CONTAINER_NAME : $CONTAINER_NAME"
+echo "ARG:SSH_PORT       : $SSH_PORT"
 
 case "$COMMAND" in
     build)
@@ -70,7 +70,7 @@ case "$COMMAND" in
         if docker ps -a --filter "name=^/${CONTAINER_NAME}$" --format "{{.Names}}" | grep -qw "$CONTAINER_NAME"; then
             if docker ps --filter "name=^/${CONTAINER_NAME}$" --format "{{.Names}}" | grep -qw "$CONTAINER_NAME"; then
                 echo "$CONTAINER_NAME is already running"
-                exit 1
+                false
             else
                 docker start "$CONTAINER_NAME"
             fi
@@ -90,8 +90,8 @@ case "$COMMAND" in
             fi
             CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
             docker exec "$CONTAINER_NAME" bash -c "mkdir -p /run/user/1000"
-            echo "localhost:$SSH_PORT -> $CONTAINER_NAME:22"
         fi
+        docker port "$CONTAINER_NAME"
         ;;
     stop)
         if docker ps --filter "name=^/${CONTAINER_NAME}$" --format "{{.Names}}" | grep -qw "$CONTAINER_NAME"; then

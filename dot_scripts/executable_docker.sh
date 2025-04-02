@@ -30,14 +30,6 @@ case "$COMMAND" in
         fi
         ;;
     start)
-        # 处理start的选项
-        while getopts "p:" opt; do
-            case "$opt" in
-                p) SSH_PORT="$OPTARG" ;;
-                *) print_help; exit 1 ;;
-            esac
-        done
-        shift $((OPTIND - 1))
         # 处理容器名:镜像名
         if [ -n "$1" ]; then
             TMP_CONTAINER_NAME=$(echo "$1" | cut -d: -f1)
@@ -46,6 +38,14 @@ case "$COMMAND" in
             [ -n "$TMP_IMAGE_NAME" ] && IMAGE_NAME=$TMP_IMAGE_NAME
             shift
         fi
+        # 处理start的选项
+        while getopts "p:" opt; do
+            case "$opt" in
+                p) SSH_PORT="$OPTARG";;
+                *) print_help; exit 1 ;;
+            esac
+        done
+        shift $((OPTIND - 1))
         ;;
     *)
         print_help
@@ -59,7 +59,12 @@ echo "SSH_PORT       : $SSH_PORT"
 
 case "$COMMAND" in
     build)
-        docker build -t "$IMAGE_NAME" - < "$HOME/.scripts/Dockerfile"
+            args=()
+            [[ -n $HTTP_PROXY ]] && args+=(--build-arg "HTTP_PROXY=$HTTP_PROXY")
+            [[ -n $HTTPS_PROXY ]] && args+=(--build-arg "HTTPS_PROXY=$HTTPS_PROXY")
+            [[ -n $socks_proxy ]] && args+=(--build-arg "socks_proxy=$socks_proxy")
+            echo "${args[@]}"
+            docker build "${args[@]}" -t "$IMAGE_NAME" - < "$HOME/.scripts/Dockerfile"
         ;;
     start)
         if docker ps -a --filter "name=^/${CONTAINER_NAME}$" --format "{{.Names}}" | grep -qw "$CONTAINER_NAME"; then

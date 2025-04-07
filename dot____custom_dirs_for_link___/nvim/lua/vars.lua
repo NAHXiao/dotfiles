@@ -30,28 +30,34 @@ elseif osname == 'Windows_NT' then
 end
 g.ProjectRoot = vim.fn.getcwd()
 --递归向上寻找.git .svn .hg .project .root .vscode .idea
-g.ProjectRootTag = { -- File or Dir
-    ".git",
-    ".svn",
-    ".hg",
-    ".project",
-    ".root",
-    ".vscode",
-    ".idea"
+g.ProjectRootTag = {
+    -- 版本控制
+    ".git", ".svn", ".hg", ".bzr", "_darcs", ".fslckout",
+    -- 构建系统
+    "Makefile", "CMakeLists.txt", "Cargo.toml", "pyproject.toml",
+    "pom.xml", "build.gradle", "package.json", "go.mod",
+    -- IDE/编辑器
+    ".project", ".root", ".vscode", ".idea", ".projectile",
+    -- 工具配置
+    "compile_commands.json", ".clang-format", ".editorconfig",
+    -- 其他
+    ".repo", ".gitignore"
 }
 local function find_root(path)
-    local cwd = path
-    for _, tag in ipairs(g.ProjectRootTag) do
-        local path = cwd .. "/" .. tag
-        if vim.fn.isdirectory(path) == 1 or vim.fn.filereadable(path) == 1 then
-            return cwd
+    local current = path
+    while true do
+        for _, tag in ipairs(g.ProjectRootTag) do
+            local target = current .. "/" .. tag
+            if vim.fn.isdirectory(target) == 1 or vim.fn.filereadable(target) == 1 then
+                return current
+            end
         end
+        local parent = vim.fn.fnamemodify(current, ":h")
+        if parent == current then
+            return nil
+        end
+        current = parent
     end
-    local parent = vim.fn.fnamemodify(cwd, ":h")
-    if parent == cwd then
-        return nil
-    end
-    return find_root(parent)
 end
 g.ProjectRoot = find_root(g.ProjectRoot) or g.ProjectRoot
 

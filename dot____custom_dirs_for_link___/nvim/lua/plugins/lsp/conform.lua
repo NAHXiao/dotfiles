@@ -12,7 +12,6 @@ elseif vim.version.cmp(vim.version(), "0.8.0") >= 0 then
 end
 return {
     "stevearc/conform.nvim",
-    version = '*',
     branch = conform_branch,
     cond = conform_cond,
     event = 'UIEnter',

@@ -65,15 +65,17 @@ return {
                 vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
                 vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
                 vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-                -- vim.keymap.set('n', '<space>fo', function() -- f->fo
-                --     vim.lsp.buf.format { async = true }
-                -- end, opts)
-                -- vim.keymap.set('v', '<space>fo', function() -- f->fo
-                --     vim.lsp.buf.format { async = true }
-                --     -- -> to normal  mode
-                --     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-c>", true, false, true), "n", false)
-                -- end, opts)
-                -- NOTE: now use conform to format code
+                -- NOTE: for 0.8+: use conform to format code
+                if vim.version.cmp(vim.version(), "0.8.0") < 0 then
+                    vim.keymap.set('n', '<space>fo', function() -- f->fo
+                        vim.lsp.buf.format { async = true }
+                    end, opts)
+                    vim.keymap.set('v', '<space>fo', function() -- f->fo
+                        vim.lsp.buf.format { async = true }
+                        -- -> to normal  mode
+                        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-c>", true, false, true), "n", false)
+                    end, opts)
+                end
             end,
         })
         vim.cmd('vnoremap K <Nop>')

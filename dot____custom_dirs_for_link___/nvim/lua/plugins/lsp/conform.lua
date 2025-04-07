@@ -1,6 +1,20 @@
+local conform_cond = vim.version.cmp(vim.version(), "0.8.0") >= 0;
+local conform_branch;
+-- *
+-- nvim-0.9
+-- nvim-0.8
+if vim.version.cmp(vim.version(), "0.10.0") >= 0 then
+    conform_branch = "master"
+elseif vim.version.cmp(vim.version(), "0.9.0") >= 0 then
+    conform_branch = "nvim-0.9"
+elseif vim.version.cmp(vim.version(), "0.8.0") >= 0 then
+    conform_branch = "nvim-0.8"
+end
 return {
     "stevearc/conform.nvim",
-    version = "*",
+    version = '*',
+    branch = conform_branch,
+    cond = conform_cond,
     event = 'UIEnter',
     keys = {
         {

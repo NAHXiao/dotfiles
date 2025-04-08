@@ -19,39 +19,34 @@ return {
         require("mason-lspconfig").setup({
             ensure_installed = ensure_installed,
         })
+        local default_lsp_settings = {
+            root_dir = vim.g.ProjectRoot
+        }
         require("mason-lspconfig").setup_handlers {
-            -- The first entry (without a key) will be the default handler
-            -- and will be called for each installed server that doesn't have
-            -- a dedicated handler.
             function(server_name) -- default handler (optional)
-                require("lspconfig")[server_name].setup {}
+                require("lspconfig")[server_name].setup(default_lsp_settings)
             end,
-            -- Next, you can provide a dedicated handler for specific servers.
-        }
-        require("lspconfig").clangd.setup {
-            cmd = {
-                "clangd",
-                "--offset-encoding=utf-16", -- 解决warning: multiple different client offset_encodings detected for buffer, this is not supported yet
-                "--fallback-style=webkit",
-                "--enable-config",
-                "--print-options",
-                "--background-index",
-                "--clang-tidy",
-                "--pch-storage=memory",
-                -- "--header-insertion=never",
-                -- "--header-insertion-decorators",
-                "--all-scopes-completion",
-                "--completion-style=detailed",
-                "--log=verbose",
-                "-j=4",
-            },
-        }
-        require('lspconfig').sqlls.setup {
-            -- capabilities = capabilities,
-            filetypes = { 'sql' },
-            root_dir = function(_)
-                return vim.loop.cwd()
-            end,
+            ["clangd"] = function()
+                require("lspconfig").clangd.setup(vim.tbl_extend("force", default_lsp_settings, {
+                    cmd = {
+                        "clangd",
+                        "--offset-encoding=utf-16", -- 解决warning: multiple different client offset_encodings detected for buffer, this is not supported yet
+                        "--fallback-style=webkit",
+                        "--enable-config",
+                        "--print-options",
+                        "--background-index",
+                        "--clang-tidy",
+                        "--pch-storage=memory",
+                        -- "--header-insertion=never",
+                        -- "--header-insertion-decorators",
+                        "--all-scopes-completion",
+                        "--completion-style=detailed",
+                        "--log=verbose",
+                        "-j=4",
+                    }
+                }))
+            end
+
         }
     end,
 }

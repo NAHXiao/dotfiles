@@ -48,7 +48,7 @@ g.ProjectRoot = Findfile_any({
     startpath = g.ProjectRoot,
     use_first_found = false,
     return_dirname = true
-})
+}) or g.ProjectRoot
 
 do
     local obsidianpath;

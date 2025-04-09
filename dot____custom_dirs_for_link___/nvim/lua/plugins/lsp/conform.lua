@@ -115,7 +115,7 @@ return {
             default_format_opts = { -- NOTE:会对未定义使用?还是已定义也默认?
                 lsp_format = "fallback",
                 cwd = function()
-                    return vim.b.projroot
+                    return vim.b.projroot or vim.g.ProjectRoot
                 end
             },
             formatters = vim.tbl_extend("force", formatters_clang_format, {})

@@ -115,14 +115,14 @@ local envfunc_runtime = {
     VIM_VSC_relativeFileDirname = function()
         local filepath = vim.api.nvim_buf_get_name(0)
         if vim.version.cmp(vim.version(), { 0, 11, 0 }) >= 0 then
-            return vim.fn.fnamemodify(vim.fs.relpath(filepath, vim.b.projroot), ":h")
+            return vim.fn.fnamemodify(vim.fs.relpath(filepath, (vim.b.projroot or vim.g.ProjectRoot)), ":h")
         end
         return vim.fn.fnamemodify(filepath, ":h") -- FIXME:
     end,
     VIM_VSC_relativeFile = function()
         local filepath = vim.api.nvim_buf_get_name(0)
         if vim.version.cmp(vim.version(), { 0, 11, 0 }) >= 0 then
-            return vim.fs.relpath(filepath, vim.b.projroot)
+            return vim.fs.relpath(filepath, (vim.b.projroot or vim.g.ProjectRoot))
         end
         return filepath -- FIXME:
     end,
@@ -147,7 +147,7 @@ local update = function()
     vim.g.asynctasks_environ = default_asynctasks_environ
     vim.g.asynctasks_extra_config = default_asynctasks_extra_config
 
-    local filepath = vim.b.projroot .. "/.vscode/tasks.json"
+    local filepath = (vim.b.projroot or vim.g.ProjectRoot) .. "/.vscode/tasks.json"
     local valid = vim.fn.filereadable(filepath)
     if not valid then return end
     local buftype = vim.bo.buftype

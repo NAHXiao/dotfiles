@@ -21,7 +21,7 @@ return {
         })
         local default_lsp_settings = {
             root_dir = function()
-                return vim.b.projroot
+                return vim.b.projroot or vim.g.ProjectRoot
             end
         }
         require("mason-lspconfig").setup_handlers {

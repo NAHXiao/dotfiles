@@ -3,6 +3,7 @@ local default_asynctasks_extra_config = {
 }
 local default_asynctasks_environ = {}
 -- ret{{taskname:"",cmd:""}}
+------------------VSCODE TASK.JSON-------------------
 local function convert_taskjson2cmd(filepath)
     local map_notwin = {
         ["${cwd}"] = "$(VIM_CWD)",
@@ -143,7 +144,7 @@ local envfunc_runtime = {
         return vim.loop.os_homedir()
     end,
 }
-local update = function()
+local update_for_buf = function()
     vim.g.asynctasks_environ = default_asynctasks_environ
     vim.g.asynctasks_extra_config = default_asynctasks_extra_config
 
@@ -163,7 +164,7 @@ local update = function()
     vim.g.asynctasks_environ = vim.tbl_deep_extend("force", vim.g.asynctasks_environ, env_runtime)
 
     local vsc_tasks = convert_taskjson2cmd(filepath)
-    vim.notify(vim.inspect(vsc_tasks))
+    -- vim.notify(vim.inspect(vsc_tasks))
     if #vsc_tasks == 0 then
         return
     end
@@ -171,12 +172,13 @@ local update = function()
     if filename == nil then
         return
     end
-    vim.notify(vim.inspect(filename))
+    -- vim.notify(vim.inspect(filename))
     local new_config = vim.deepcopy(default_asynctasks_extra_config)
     table.insert(new_config, filename)
     vim.g.asynctasks_extra_config = new_config
-    vim.notify(vim.inspect(vim.g.asynctasks_extra_config))
+    -- vim.notify(vim.inspect(vim.g.asynctasks_extra_config))
 end
+------------------------END--------------------------
 
 return {
     "skywind3000/asynctasks.vim",
@@ -225,7 +227,7 @@ return {
             local sorters = require('telescope.sorters')
             local state = require('telescope.actions.state')
             Findtasks = function(opts)
-                update()
+                update_for_buf()
                 opts = opts or {}
 
                 local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })

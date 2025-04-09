@@ -27,15 +27,19 @@ return {
         { 'nvim-telescope/telescope-ui-select.nvim' },
     },
     keys = {
-        { "<leader>ff", function()
-            require('telescope.builtin').find_files {
-                find_command = find_command,
-                no_ignore = true,
-                hidden = true,
-            }
-        end },
+        {
+            "<leader>ff",
+            function()
+                require('telescope.builtin').find_files {
+                    find_command = find_command,
+                    no_ignore = true,
+                    hidden = true,
+                }
+            end
+        },
 
-        { "<leader>fw",  "<cmd>lua require('telescope.builtin').live_grep()<cr>" },
+        { "<leader>fw",  "<cmd>lua require('telescope.builtin').live_grep({additional_args={'--follow'}})<cr>" },
+        { "<leader>fow",  "<cmd>lua require('telescope.builtin').live_grep({additional_args={'--follow'},grep_open_files=true})<cr>" },
 
         { "<leader>fb",  "<cmd>lua require('telescope.builtin').buffers()<cr>" },
         { "<leader>fh",  "<cmd>lua require('telescope.builtin').help_tags()<cr>" },

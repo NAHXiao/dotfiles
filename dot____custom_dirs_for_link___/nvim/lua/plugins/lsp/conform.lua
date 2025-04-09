@@ -57,26 +57,28 @@ return {
             local c_standards = { "c89", "c99", "c11" }
             local cpp_standards = { "c++98", "c++03", "c++11", "c++14", "c++17", "c++20", "c++23" }
             local function make_clang_formatter(name, filename_hint, fallback_style)
-                local root = vim.g.ProjectRoot
-                local clang_file = root .. "/.clang-format"
-                local use_project_file = vim.fn.filereadable(clang_file) == 1
-                local style_arg
-                if use_project_file then
-                    style_arg = "--style=file"
-                elseif vim.fn.filereadable(fallback_style) == 1 then
-                    style_arg = "--style=file:" .. fallback_style
-                else
-                    style_arg = "--style=" .. fallback_style
-                end
-
                 return {
                     command = "clang-format",
-                    args = {
-                        "--assume-filename=" .. filename_hint,
-                        style_arg,
-                    },
+                    args = function()
+                        local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
+                        local confpath = Findfile_any({
+                            filelist = { ".clang-format", "_clang_format" },
+                            startpath = path,
+                            use_first_found = true,
+                            return_dirname = false
+                        })
+                        local args = {
+                            "--assume-filename=" .. filename_hint,
+                        }
+                        if confpath == nil then
+                            args[#args + 1] = "--style=" .. fallback_style
+                        end
+                        return args
+                    end,
                     stdin = true,
-                    cwd = function() return root end,
+                    -- cwd = function()
+                    --
+                    -- end,
                     require_cwd = false,
                     inherit = false,
                 }
@@ -86,13 +88,13 @@ return {
             for _, std in ipairs(c_standards) do
                 local key = "clang_" .. std:gsub("%+", "p"):gsub("%-", "")
                 formatters_clang_format[key] = make_clang_formatter(key, "example." .. std,
-                    local_clang_format_valid and local_clang_format_path or "Google"
+                    local_clang_format_valid and ("file:" .. local_clang_format_path) or "Google"
                 )
             end
             for _, std in ipairs(cpp_standards) do
                 local key = "clang_" .. std:gsub("%+", "p"):gsub("%-", "")
                 formatters_clang_format[key] = make_clang_formatter(key, "example." .. std,
-                    local_clang_format_valid and local_clang_format_path or "Google"
+                    local_clang_format_valid and ("file:" .. local_clang_format_path) or "Google"
                 )
             end
             -- e.g. clang_c89 clang_cpp23
@@ -110,8 +112,11 @@ return {
                 java = { "google-java-format" },
                 rust = { "rustfmt" },
             },
-            default_format_opts = {
+            default_format_opts = { -- NOTE:会对未定义使用?还是已定义也默认?
                 lsp_format = "fallback",
+                cwd = function()
+                    return vim.b.projroot
+                end
             },
             formatters = vim.tbl_extend("force", formatters_clang_format, {})
         })

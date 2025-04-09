@@ -20,7 +20,9 @@ return {
             ensure_installed = ensure_installed,
         })
         local default_lsp_settings = {
-            root_dir = vim.g.ProjectRoot
+            root_dir = function()
+                return vim.b.projroot
+            end
         }
         require("mason-lspconfig").setup_handlers {
             function(server_name) -- default handler (optional)

@@ -43,23 +43,12 @@ g.ProjectRootTag = {
     -- 其他
     ".repo", ".gitignore"
 }
-local function find_root(path)
-    local current = path
-    while true do
-        for _, tag in ipairs(g.ProjectRootTag) do
-            local target = current .. "/" .. tag
-            if vim.fn.isdirectory(target) == 1 or vim.fn.filereadable(target) == 1 then
-                return current
-            end
-        end
-        local parent = vim.fn.fnamemodify(current, ":h")
-        if parent == current then
-            return nil
-        end
-        current = parent
-    end
-end
-g.ProjectRoot = find_root(g.ProjectRoot) or g.ProjectRoot
+g.ProjectRoot = Findfile_any({
+    filelist = g.ProjectRootTag,
+    startpath = g.ProjectRoot,
+    use_first_found = false,
+    return_dirname = true
+})
 
 do
     local obsidianpath;
@@ -80,3 +69,21 @@ do
         g.obsidianPath = obsidianpath;
     end
 end
+vim.api.nvim_create_autocmd({ "BufEnter", "BufFilePost" }, {
+    callback = function()
+        -- vim.notify("start setting projroot")
+        local buftype = vim.bo.buftype
+        local name = vim.api.nvim_buf_get_name(0)
+        if buftype == "" and name ~= "" then
+            vim.b.projroot = Findfile_any({
+                filelist = vim.g.ProjectRootTag,
+                startpath = vim.fn.fnamemodify(name, ":p:h"),
+                use_first_found = false,
+                return_dirname = true
+            }) or vim.fn.fnamemodify(name, ":p:h")
+            -- For asyncrun
+            vim.b.asyncrun_root = vim.b.projroot
+            -- vim.notify("setting " .. name .. ".projroot to" .. vim.b.projroot)
+        end
+    end,
+})

@@ -26,7 +26,7 @@ return {
         {
             "<F9>",
             function()
-                local continue = function()
+                local continue = function() -- FIXME:
                     if vim.fn.filereadable(vim.fs.joinpath(vim.g.ProjectRoot, ".vscode/launch.json")) then
                         require('dap.ext.vscode').load_launchjs(nil, { cppdbg = { "c", "cpp" } })
                     end

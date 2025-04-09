@@ -151,11 +151,11 @@ local update_for_buf = function()
     local filepath = (vim.b.projroot or vim.g.ProjectRoot) .. "/.vscode/tasks.json"
     local valid = vim.fn.filereadable(filepath)
     if not valid then return end
-    local buftype = vim.bo.buftype
-    local name = vim.api.nvim_buf_get_name(0)
-    if buftype ~= "" or name == "" then
-        return
-    end
+    -- local buftype = vim.bo.buftype
+    -- local name = vim.api.nvim_buf_get_name(0)
+    -- if buftype ~= "" or name == "" then
+    --     return
+    -- end
 
     local env_runtime = {}
     for k, v in pairs(envfunc_runtime) do

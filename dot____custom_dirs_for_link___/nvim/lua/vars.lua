@@ -69,7 +69,7 @@ do
         g.obsidianPath = obsidianpath;
     end
 end
-vim.api.nvim_create_autocmd({ "BufEnter", "BufFilePost" }, {
+vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
     callback = function()
         -- vim.notify("start setting projroot")
         local buftype = vim.bo.buftype

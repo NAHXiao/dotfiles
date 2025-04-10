@@ -75,7 +75,7 @@ vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
         local buftype = vim.bo.buftype
         local name = vim.api.nvim_buf_get_name(0)
         if buftype == "" and name ~= "" then
-            vim.b.projroot = Findfile_any({
+            vim.b.projroot = Findfile_any({ -- For Common Buffer : it's Projroot or it's parent dir ; For Other : nil
                 filelist = vim.g.ProjectRootTag,
                 startpath = vim.fn.fnamemodify(name, ":p:h"),
                 use_first_found = false,

@@ -4,21 +4,21 @@ return {
     version = false, -- Never set this value to "*"! Never!
     cond=false,
     opts = {
-        -- provider = "deepseek",
-        -- vendors = {
-        --     deepseek = {
-        --         __inherited_from = "openai",
-        --         api_key_name = "DEEPSEEK_API_KEY",
-        --         endpoint = "https://api.deepseek.com",
-        --         model = "deepseek-coder",
-        --         proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY") or nil,
-        --         timeout = 3000, -- Timeout in milliseconds, increase this for reasoning models
-        --     },
-        -- },
-        provider = "copilot",
-        copilot = {
-            model = "claude-3.5-sonnet",
+        provider = "deepseek",
+        vendors = {
+            deepseek = {
+                __inherited_from = "openai",
+                api_key_name = "DEEPSEEK_API_KEY",
+                endpoint = "https://api.deepseek.com",
+                model = "deepseek-coder",
+                proxy = os.getenv("HTTP_PROXY") or os.getenv("HTTPS_PROXY") or nil,
+                timeout = 3000, -- Timeout in milliseconds, increase this for reasoning models
+            },
         },
+        -- provider = "copilot",
+        -- copilot = {
+        --     model = "claude-3.5-sonnet",
+        -- },
     },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
     build = vim.g.is_win and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" or "make",

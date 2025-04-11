@@ -1,4 +1,3 @@
---TODO
 return {
     'hrsh7th/nvim-cmp',
     -- version = "*",
@@ -15,58 +14,10 @@ return {
         'hrsh7th/cmp-nvim-lua',
         "jalvesaq/cmp-nvim-r",
         'hrsh7th/cmp-vsnip',
+
+        "windwp/nvim-autopairs",
     },
     config = function()
-        require('func')
-        local lspkind = require("lspkind")
-        -- return comparators
-        -- package.path=package.path ..';'..vim.fn.stdpath("data").."/site/pack/packer/opt/compilot-cmp/lua/?.lua"
-        -- 曲线救国(require("copilot_cmp.comparators").prioritize加载不出来就手动把代码搬过来)
-        -- local cop_comparators = {
-        --    score = function (entry1, entry2)
-        --   if entry1.score and entry2.score then
-        --     return entry1.score > entry2.score
-        --   end
-        --   end,
-        --   prioritize = function (entry1, entry2)
-        --   if entry1.copilot and not entry2.copilot then
-        --     return true
-        --   elseif entry2.copilot and not entry1.copilot then
-        --     return false
-        --   end
-        --   end
-        -- }
-
-        --   פּ ﯟ   some other good icons
-        --
-        -- local kind_icons = {
-        --     Text = "",
-        --     Method = "m",
-        --     Function = "",
-        --     Constructor = "",
-        --     Field = "",
-        --     Variable = "",
-        --     Class = "",
-        --     Interface = "",
-        --     Module = "",
-        --     Property = "",
-        --     Unit = "",
-        --     Value = "",
-        --     Enum = "",
-        --     Keyword = "",
-        --     Snippet = "",
-        --     Color = "",
-        --     File = "",
-        --     Reference = "",
-        --     Folder = "",
-        --     EnumMember = "",
-        --     Constant = "",
-        --     Struct = "",
-        --     Event = "",
-        --     Operator = "",
-        --     TypeParameter = "",
-        --     Copilot = "",
-        -- }
         local kind_icons = {
             Text = "",
             Method = "ƒ",
@@ -101,16 +52,6 @@ return {
             return vim.api.nvim_replace_termcodes(str, true, true, true)
         end
         local cmp = require("cmp")
-
-        local has_words_before = function()
-            if vim.api.nvim_buf_get_option(0, "buftype") == "prompt" then return false end
-            -- local line, col = table.unpack(vim.api.nvim_win_get_cursor(0))
-            local cursor = vim.api.nvim_win_get_cursor(0)
-            local line   = cursor[1]
-            local col    = cursor[2]
-            return col ~= 0 and vim.api.nvim_buf_get_text(0, line - 1, 0, line - 1, col, {})[1]:match("^%s*$") == nil
-        end
-
         cmp.setup({
             preselect = cmp.PreselectMode.None,
             snippet = {
@@ -194,7 +135,7 @@ return {
                 ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
                 ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
                 ['<CR>'] = cmp.mapping.confirm({ select = false }),
-                ["<C-space>"] = function() -- 切换补全菜单:Copilot<Tab>在cmp.visible()==false时补全
+                ["<c-space>"] = function() -- 切换补全菜单:Copilot<Tab>在cmp.visible()==false时补全
                     if cmp.visible() then
                         cmp.abort()
                     else

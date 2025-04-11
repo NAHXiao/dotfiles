@@ -42,6 +42,8 @@ return {
                 "--no-auto-commits",
                 "--pretty",
                 "--stream",
+                "--model",
+                "deepseek/deepseek-chat"
             }
         })
     end,

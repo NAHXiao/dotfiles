@@ -2,7 +2,7 @@ return {
     "windwp/nvim-autopairs",
     version = "*",
     lazy = true,
-    event = "VeryLazy",
+    event = "InsertEnter",
     dependencies = {
     },
     config = function()

@@ -48,6 +48,8 @@ return {
         -- vim.g.asynctasks_term_pos = 'bottom'
         -- let g:asynctasks_term_pos = 'bottom'
         -- let g:asyncrun_open = 6
+
+        -- 终端关闭时不自动退出
         vim.api.nvim_create_autocmd('TermClose', {
             callback = function(ctx)
                 vim.cmd('stopinsert')

@@ -19,7 +19,7 @@ return {
         },
     },
     lazy = true,
-    event = "VeryLazy",
+    -- event = "VeryLazy",
     keys = {
         {
             "s",

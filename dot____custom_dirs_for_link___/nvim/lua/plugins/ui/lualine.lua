@@ -7,6 +7,7 @@ return {
         "kyazdani42/nvim-web-devicons",
     },
     config = function()
+        -- ▊   8.3k  lualine.lua  237:46  93%   12        LSP: lua_ls          UTF-8  UNIX   main   6 󰝤 1  ▊
         local function sessionname()
             return nil
             -- if require("lazy.core.config").plugins["auto-session"]._.loaded then
@@ -69,7 +70,7 @@ return {
                 lualine_z = {},
                 -- These will be filled later
                 -- lualine_c = { require('auto-session.lib').current_session_name }, -- Plua auto-session
-                lualine_c = { sessionname() }, -- Plua auto-session
+                lualine_c = { sessionname() }, -- Plus auto-session
                 lualine_x = {},
             },
             inactive_sections = {
@@ -184,7 +185,13 @@ return {
             function()
                 local msg = 'No Active Lsp'
                 local buf_ft = vim.api.nvim_buf_get_option(0, 'filetype')
-                local clients = vim.lsp.get_active_clients()
+                local clients = (function()
+                    if vim.lsp.get_clients then
+                        return vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
+                    else
+                        return vim.lsp.get_active_clients() -- deprecated
+                    end
+                end)()
                 if next(clients) == nil then
                     return msg
                 end

@@ -1,24 +1,37 @@
+vim.cmd('vnoremap K <Nop>')
 return {
     "neovim/nvim-lspconfig",
     version = "*",
     lazy = false,
     event = 'UIEnter',
+    commander = {
+        { cmd = "<cmd>LspStart", desc = "Lsp Start" },
+        { cmd = "<cmd>LspRestart", desc = "Lsp Restart" },
+        { cmd = "<cmd>LspStop",  desc = "Lsp Stop" },
+        { cmd = "<cmd>LspInfo",  desc = "Lsp Info" },
+        { cmd = "<cmd>LspLog",   desc = "Lsp Log" },
+    },
     keys = {
-        { "<leader>lsa", "<cmd>LspStart<cr>" },
-        { "<leader>lst", "<cmd>LspStart<cr>" },
-        { "<leader>lrs", "<cmd>LspRestart<cr>" },
-        { "<leader>q",   vim.diagnostic.open_float,    mode = "n" },
-        { "[d",          vim.diagnostic.goto_prev,     mode = "n" },
-        { "]d",          vim.diagnostic.goto_next,     mode = "n" },
-        { "ca",          vim.lsp.buf.code_action,      mode = "n" },
-        { "gc",          vim.lsp.buf.incoming_calls,   mode = "n" },
-        { "gs",          vim.lsp.buf.document_symbol,  mode = "n" },
-        { "gw",          vim.lsp.buf.workspace_symbol, mode = "n" },
-        { "g[",          vim.diagnostic.goto_prev,     mode = "n" },
-        { "g]",          vim.diagnostic.goto_next,     mode = "n" },
-        -- { '<leader>i', function() vim.diagnostic.open_float(nil, { focus = true, scope = "cursor" }) end, mode = 'n' },
+        { "[d",         vim.diagnostic.goto_prev,     mode = "n",          desc = "goto prev diagnostic" },
+        { "]d",         vim.diagnostic.goto_next,     mode = "n",          desc = "goto next diagnostic" },
+        { "g[",         vim.diagnostic.goto_prev,     mode = "n",          desc = "goto prev diagnostic" },
+        { "g]",         vim.diagnostic.goto_next,     mode = "n",          desc = "goto next diagnostic" },
+
+        { "ca",         vim.lsp.buf.code_action,      mode = "n",          desc = "list code action" },
+        { "gc",         vim.lsp.buf.incoming_calls,   mode = "n",          desc = "list incoming_calls" },
+        { "gs",         vim.lsp.buf.document_symbol,  mode = "n",          desc = "list document_symbol" },
+        { "gw",         vim.lsp.buf.workspace_symbol, mode = "n",          desc = "query workspace_symbol" },
+
+        { "gD",         vim.lsp.buf.declaration,      mode = "n",          desc = "goto declaration" },
+        { "gd",         vim.lsp.buf.definition,       mode = "n",          desc = "goto definition" },
+        { "gr",         vim.lsp.buf.references,       mode = "n",          desc = "goto references" },
+
+        { "K",          vim.lsp.buf.hover,            mode = "n",          desc = "show hover doc" },
+        -- { "<C-K>",       vim.lsp.buf.signature_help,   mode = "n" ,desc="show signature_help"},
+        { "<leader>rn", vim.lsp.buf.rename,           mode = "n",          desc = "symbol rename" },
+        { "<leader>ca", vim.lsp.buf.code_action,      mode = { "n", "v" }, desc = "list code action" },
         {
-            "<leader>i", -- 关闭浮动窗口(用于关闭vim.diagnostic_float)
+            "<leader>i", -- 切换浮动诊断窗口显示
             function()
                 local if_hasfloat_then_close = function()
                     local found_float = false
@@ -35,97 +48,53 @@ return {
                     return
                 end
             end,
-            mode = "n"
+            mode = "n",
+            desc = "toggle diagnostic float window",
         },
     },
     dependencies = {
         "williamboman/mason.nvim",
     },
     config = function()
-        vim.api.nvim_create_autocmd('LspAttach', {
-            group = vim.api.nvim_create_augroup('UserLspConfig', {}),
-            callback = function(ev)
-                -- Enable completion triggered by <c-x><c-o>
-                vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
-
-                -- Buffer local mappings.
-                -- See `:help vim.lsp.*` for documentation on any of the below functions
-                local opts = { buffer = ev.buf }
-                vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-                vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-                vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-                vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-                vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-                vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts)
-                vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts)
-                vim.keymap.set('n', '<space>wl', function()
-                    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-                end, opts)
-                vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, opts)
-                vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, opts)
-                vim.keymap.set({ 'n', 'v' }, '<space>ca', vim.lsp.buf.code_action, opts)
-                vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-                -- NOTE: for 0.8+: use conform to format code
-                if vim.version.cmp(vim.version(), "0.8.0") < 0 then
-                    vim.keymap.set('n', '<space>fo', function() -- f->fo
-                        vim.lsp.buf.format { async = true }
-                    end, opts)
-                    vim.keymap.set('v', '<space>fo', function() -- f->fo
-                        vim.lsp.buf.format { async = true }
-                        -- -> to normal  mode
-                        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-c>", true, false, true), "n", false)
-                    end, opts)
-                end
-            end,
-        })
-        vim.cmd('vnoremap K <Nop>')
-        ----------------------------------------
-        --        为hover文档添加边框       -----
-        ----------------------------------------
-        -- local curved = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
-        local border = {
-            { "╭", "FloatBorder" }, --1 🭽
-            { "─", "FloatBorder" }, --2 ▔
-            { "╮", "FloatBorder" }, --3 🭾
-            { "│", "FloatBorder" }, --4 ▕
-            { "╯", "FloatBorder" }, --5 🭿
-            { "─", "FloatBorder" }, --6 ▁
-            { "╰", "FloatBorder" }, --7 🭼
-            { "│", "FloatBorder" }, --8 ▏
-        }
-        vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
-        vim.lsp.buf.hover({
-            border = border,
-        })
-
-        -- LSP Diagnostics Options Setup
-        local sign = function(opts)
-            vim.fn.sign_define(opts.name, {
-                texthl = opts.name,
-                text = opts.text,
-                numhl = ''
-            })
+        -- vim.api.nvim_create_autocmd('LspAttach', {
+        --     group = vim.api.nvim_create_augroup('UserLspConfig', {}),
+        --     callback = function(ev)
+        --         vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'
+        --     end,
+        -- })
+        local orig_util_open_floating_preview = vim.lsp.util.open_floating_preview
+        function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+            opts = opts or {}
+            opts.border = opts.border or {
+                { "╭", "FloatBorder" },
+                { "─", "FloatBorder" },
+                { "╮", "FloatBorder" },
+                { "│", "FloatBorder" },
+                { "╯", "FloatBorder" },
+                { "─", "FloatBorder" },
+                { "╰", "FloatBorder" },
+                { "│", "FloatBorder" },
+            }
+            return orig_util_open_floating_preview(contents, syntax, opts, ...)
         end
-        sign({ name = 'DiagnosticSignError', text = '' }) --''
-        sign({ name = 'DiagnosticSignWarn', text = '' })
-        sign({ name = 'DiagnosticSignHint', text = 'H' }) --
-        sign({ name = 'DiagnosticSignInfo', text = '' })
-        vim.diagnostic.config({
+
+        local diagnostic = vim.diagnostic
+        diagnostic.config({
             virtual_text = true,
-            -- virtual_text = {
-            --     format = function(diagnostic)
-            --         if diagnostic.severity == vim.diagnostic.severity.ERROR then
-            --             return "" .. diagnostic.message
-            --         elseif diagnostic.severity == vim.diagnostic.severity.WARN then
-            --             return "" .. diagnostic.message
-            --         elseif diagnostic.severity == vim.diagnostic.severity.INFO then
-            --             return "" .. diagnostic.message
-            --         else
-            --             return "H" .. diagnostic.message
-            --         end
-            --     end
-            -- },
-            signs = true,
+            signs = {
+                text = {
+                    [diagnostic.severity.ERROR] = " ",
+                    [diagnostic.severity.WARN] = " ",
+                    [diagnostic.severity.INFO] = "󰋼 ",
+                    [diagnostic.severity.HINT] = "󰌵 ",
+                },
+                numhl = {
+                    [diagnostic.severity.ERROR] = "",
+                    [diagnostic.severity.WARN] = "",
+                    [diagnostic.severity.HINT] = "",
+                    [diagnostic.severity.INFO] = "",
+                },
+            },
             update_in_insert = true,
             underline = true,
             severity_sort = true,
@@ -137,17 +106,32 @@ return {
             },
         })
 
-        ----------------------------------------
-        --        LSP Diagnostics Float    -----
-        ----------------------------------------
-        -- vim.cmd([[
-        -- autocmd CursorHold * lua vim.diagnostic.open_float(nil, { focusable = false })
-        -- ]])
-
-
-        ----------------------------------------
-        --      Format on Save 自动格式化  -----
-        ----------------------------------------
-        -- vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
+        local icons = {
+            Class = "",
+            Color = "C",
+            Constant = "",
+            Constructor = "",
+            Enum = "",
+            EnumMember = "",
+            Field = "",
+            File = "",
+            Folder = "",
+            Function = "",
+            Interface = "",
+            Keyword = "K",
+            Method = "ƒ",
+            Module = "",
+            Property = "",
+            Snippet = "",
+            Struct = "",
+            Text = "",
+            Unit = "",
+            Value = "V",
+            Variable = ""
+        }
+        local kinds = vim.lsp.protocol.CompletionItemKind
+        for i, kind in ipairs(kinds) do
+            kinds[i] = icons[kind] or kind
+        end
     end,
 }

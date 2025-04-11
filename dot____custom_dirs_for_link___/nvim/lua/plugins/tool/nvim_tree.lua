@@ -6,8 +6,7 @@ return {
         'kyazdani42/nvim-web-devicons'
     },
     keys = {
-        { "<C-n>",     "<cmd>NvimTreeToggle<cr>" },
-        { "<leader>n", "<cmd>NvimTreeToggle<cr>" },
+        { "<C-n>",     "<cmd>NvimTreeToggle<cr>" ,desc="NvimTreeToggle(File Browser)" },
     },
     cmd = "NvimTreeToggle",
     config = function()

@@ -2,18 +2,11 @@ return {
     'phaazon/hop.nvim',
     version = "*",
     lazy = true,
-    dependencies = {
-    },
     keys = {
-        { "HH", "<cmd>HopWordMW<cr>" },
-        { "HF", "<cmd>HopPattern<cr>" },
-        { "HL", "<cmd>HopLineStart<cr>" },
+        { "HH", "<cmd>HopWordMW<cr>",     desc = "jump to word" },
+        { "HF", "<cmd>HopPattern<cr>",    desc = "jump to pattern" },
+        { "HL", "<cmd>HopLineStart<cr>",  desc = "jump to line" },
     },
-    -- cmd = {
-    --     "HopoWordMW",
-    --     "HopPattern",
-    --     "HopLineStart"
-    -- },
     config = function()
         require 'hop'.setup()
     end,

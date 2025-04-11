@@ -6,13 +6,6 @@ return {
     lazy = true,
     dependencies = {
     },
-    cmd = {
-        "Copilot",
-        "CopilotAuth",
-        "CopilotStop",
-        "CopilotPanel",
-        "CopilotDetach",
-    },
     config = function()
         require("copilot").setup({
             panel = {

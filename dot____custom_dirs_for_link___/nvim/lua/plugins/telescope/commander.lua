@@ -2,7 +2,9 @@ return {
     "FeiyouG/commander.nvim",
     lazy = true,
     dependencies = { "nvim-telescope/telescope.nvim" },
-    keys = { { "<C-p>", "<cmd>lua require('commander').show()<cr>" } },
+    keys = {
+        { "<C-p>", function() TeleMultiplexSearch(require("commander").show, {}, "Commands Panel") end, desc = "show commands panel" }
+    },
 
     config = function()
         require("commander").setup(
@@ -10,17 +12,17 @@ return {
                 -- Specify what components are shown in the prompt;
                 -- Order matters, and components may repeat
                 components = {
-                    "CMD",
-                    "DESC",
-                    "KEYS",
                     "CAT",
+                    "DESC",
+                    "CMD",
+                    -- "KEYS",
                 },
 
                 -- Specify by what components the commands is sorted
                 -- Order does not matter
                 sort_by = {
                     "DESC",
-                    "KEYS",
+                    -- "KEYS",
                     "CMD",
                     "CAT",
                 },
@@ -36,7 +38,7 @@ return {
                     },
                     lazy = {
                         enable = true,
-                        set_plugin_name_as_cat = false
+                        set_plugin_name_as_cat = true
                     }
                 }
             }

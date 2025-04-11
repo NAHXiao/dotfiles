@@ -11,11 +11,45 @@ local find_command = (function()
         return { "where", "/r", ".", "*" }
     end
 end)()
+
+local _latest_func_map = {}
+function TeleMultiplexSearch(func, funcopts, prompt_title, ctxfunc)
+    local ctx = ctxfunc and ctxfunc() or nil
+    local same_opt_and_ctx = _latest_func_map[func] and
+        vim.deep_equal(_latest_func_map[func].funcopts, funcopts) and
+        vim.deep_equal(_latest_func_map[func].ctx, ctx)
+    if not same_opt_and_ctx then
+        _latest_func_map[func] = { funcopts = vim.deepcopy(funcopts), ctx = ctx }
+        return func(vim.deepcopy(funcopts))
+    end
+    local latestindex = (function(query)
+        local cached_pickers = require("telescope.state").get_global_key "cached_pickers"
+        if cached_pickers == nil or vim.tbl_isempty(cached_pickers) then
+            return 0
+        end
+        local ret = math.huge
+        for i, v in ipairs(cached_pickers) do
+            if v.prompt_title == query then
+                ret = math.min(ret, i)
+            end
+        end
+        if ret == math.huge then
+            return 0
+        end
+        return ret
+    end)(prompt_title)
+    if latestindex == 0 then
+        _latest_func_map[func] = { funcopts = vim.deepcopy(funcopts), ctx = ctx }
+        return func(vim.deepcopy(funcopts))
+    end
+    require("telescope.builtin").resume({ cache_index = latestindex })
+end
+
+-- NOTE: telescope normal模式 `?` => show key map
 return {
     "nvim-telescope/telescope.nvim",
     version = "*",
     lazy = true,
-    event = "VeryLazy",
     dependencies = {
         { "nvim-lua/popup.nvim" },
         { "nvim-lua/plenary.nvim" },
@@ -26,38 +60,118 @@ return {
         },
         { 'nvim-telescope/telescope-ui-select.nvim' },
     },
+    -- NOTE: 仅lsp相关/文件相关复用
     keys = {
         {
             "<leader>ff",
             function()
-                require('telescope.builtin').find_files {
-                    find_command = find_command,
-                    no_ignore = true,
-                    hidden = true,
-                }
-            end
+                TeleMultiplexSearch(require('telescope.builtin').find_files, {
+                        find_command = find_command,
+                        no_ignore = true,
+                        hidden = true,
+                    },
+                    "Find Files"
+                )
+            end,
+            desc = "Find files"
         },
+        {
+            "<leader>fw",
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').live_grep, {
+                    additional_args = { "--follow" }
+                }, "Live Grep")
+            end
+            ,
+            desc = "Find word"
+        },
+        {
+            "<leader>fow",
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').live_grep, {
+                        additional_args = { "--follow" },
+                        grep_open_files = true
+                    }, "Live Grep",
+                    function() -- opened buf files
+                        local bufs = vim.api.nvim_list_bufs()
+                        local file_bufs = {}
+                        for _, buf in ipairs(bufs) do
+                            if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_option(buf, "buftype") == "" then
+                                local name = vim.api.nvim_buf_get_name(buf)
+                                if name ~= "" then
+                                    table.insert(file_bufs, name)
+                                end
+                            end
+                        end
+                        return file_bufs
+                    end
+                )
+            end,
+            desc = "Find word in open files"
+        },
+        {
+            "<leader>fb",
 
-        { "<leader>fw",  "<cmd>lua require('telescope.builtin').live_grep({additional_args={'--follow'}})<cr>" },
-        { "<leader>fow",  "<cmd>lua require('telescope.builtin').live_grep({additional_args={'--follow'},grep_open_files=true})<cr>" },
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').buffers, {}, "Buffers", vim.api.nvim_list_bufs)
+            end,
+            desc = "Find buffers"
+        },
+        {
+            "<leader>fd",
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').diagnostics, {}, "Workspace Diagnostics",
+                    function() -- projroot
+                        return vim.b.projroot
+                    end)
+            end,
+            desc = "Find diagnostics in project root"
+        },
+        {
+            "<leader>fr",
 
-        { "<leader>fb",  "<cmd>lua require('telescope.builtin').buffers()<cr>" },
-        { "<leader>fh",  "<cmd>lua require('telescope.builtin').help_tags()<cr>" },
-        { "<leader>fd",  "<cmd>lua require('telescope.builtin').diagnostics()<cr>" },
-        -- { "<leader>fs",  "<cmd>lua require('telescope.builtin').lsp_workspace_symbols()<cr>" },
-        { "<leader>fs",  "<cmd>lua require('telescope.builtin').treesitter()<cr>" },
-        { "<leader>fr",  "<cmd>lua require('telescope.builtin').lsp_references()<cr>" },
-        { "<leader>fi",  "<cmd>lua require('telescope.builtin').lsp_implementations()<cr>" },
-        { "<leader>fk",  "<cmd>lua require('telescope.builtin').keymaps()<cr>" },
-
-        { "<leader>fc",  "<cmd>lua require('telescope.builtin').commands()<cr>" },
-        -- { "<C-p>",       "<cmd>lua require('telescope.builtin').commands()<cr>" },
-
-        { "<leader>fmp", "<cmd>lua require('telescope.builtin').man_pages()<cr>" },
-
-        { "<leader>fgc", "<cmd>lua require('telescope.builtin').git_commits()<cr>" },
-        { "<leader>fgb", "<cmd>lua require('telescope.builtin').git_branches()<cr>" },
-        { "<leader>fsh", "<cmd>lua require('telescope.builtin').search_history()<cr>" },
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').lsp_references, {}, "LSP References", function() -- word
+                    local cursor0 = vim.api.nvim_win_get_cursor(0)
+                    vim.cmd.normal("lb")
+                    local cursor = vim.api.nvim_win_get_cursor(0)
+                    local word = vim.call('expand', '<cword>')
+                    vim.api.nvim_win_set_cursor(0, cursor0)
+                    return { cursor, word }
+                end)
+            end,
+            desc = "Find references of word under cursor"
+        },
+        {
+            "<leader>fi",
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').lsp_implementations, {}, "FIXME", function() -- word
+                    local cursor0 = vim.api.nvim_win_get_cursor(0)
+                    vim.cmd.normal("li")
+                    local cursor = vim.api.nvim_win_get_cursor(0)
+                    local word = vim.call('expand', '<cword>')
+                    vim.api.nvim_win_set_cursor(0, cursor0)
+                    return { cursor, word }
+                end)
+            end
+            ,
+            desc = "Find implementations of symbol under cursor"
+        },
+        {
+            "<leader>fs",
+            function()
+                TeleMultiplexSearch(require('telescope.builtin').treesitter, {}, "Treesitter Symbols", function()
+                    vim.api.nvim_buf_get_name(0)
+                end)
+            end,
+            desc = "Find treesitter symbols in current buffer"
+        },
+        { "<leader>fh",  "<cmd>lua require('telescope.builtin').search_history()<cr>", desc = "Find search history" },
+        { "<leader>fk",  "<cmd>lua require('telescope.builtin').keymaps()<cr>",        desc = "Find keymaps" },
+        { "<leader>fc",  "<cmd>lua require('telescope.builtin').commands()<cr>",       desc = "Find commands" },
+        { "<leader>fmp", "<cmd>lua require('telescope.builtin').man_pages()<cr>",      desc = "Find man pages" },
+        { "<leader>fgc", "<cmd>lua require('telescope.builtin').git_commits()<cr>",    desc = "Find git commits" },
+        { "<leader>fgb", "<cmd>lua require('telescope.builtin').git_branches()<cr>",   desc = "Find git branches" },
         {
             "<leader>fn",
             function()
@@ -65,38 +179,24 @@ return {
             end,
             desc = "Notify",
         },
-        -- {
-        --     "<leader>ft",
-        --     function()
-        --         require("telescope.builtin").colorscheme()
-        --     end,
-        --     desc = "Colorscheme",
-        -- },
     },
     cmd = "Telescope",
     config = function()
-        --- Telescope ---
         require('telescope').setup {
+            defaults = {
+                cache_picker = {
+                    num_pickers = 20,
+                }
+            },
+            pickers = {
+                search_history = { cache_picker = false },
+                keymaps =        { cache_picker = false },
+                commands =       { cache_picker = false },
+                man_pages =      { cache_picker = false },
+                git_commits =    { cache_picker = false },
+                git_branches =   { cache_picker = false },
+            },
             extensions = {
-                ["ui-select"] = {
-                    require("telescope.themes").get_dropdown {
-                        -- even more opts
-                    }
-
-                    -- pseudo code / specification for writing custom displays, like the one
-                    -- for "codeactions"
-                    -- specific_opts = {
-                    --   [kind] = {
-                    --     make_indexed = function(items) -> indexed_items, width,
-                    --     make_displayer = function(widths) -> displayer
-                    --     make_display = function(displayer) -> function(e)
-                    --     make_ordinal = function(e) -> string
-                    --   },
-                    --   -- for example to disable the custom builtin "codeactions" display
-                    --      do the following
-                    --   codeactions = false,
-                    -- }
-                },
                 fzf = {
                     fuzzy = true,                   -- false will only do exact matching
                     override_generic_sorter = true, -- override the generic sorter
@@ -108,96 +208,5 @@ return {
         }
         require("telescope").load_extension("ui-select")
         require('telescope').load_extension('fzf')
-        -- do
-        -- local actions = require('telescope.actions')
-        -- local finders = require('telescope.finders')
-        -- local pickers = require('telescope.pickers')
-        -- local utils = require('telescope.utils')
-        -- local make_entry = require "telescope.make_entry"
-        -- local conf = require("telescope.config").values
-        -- local action_state = require "telescope.actions.state"
-        -- vim.g.ShowCommandPanel = function(opts)
-        --     opts = opts or {}
-        --     opts.modes = vim.F.if_nil(opts.modes, { "n", "i", "c", "x" })
-        --
-        --     local keymap_encountered = {} -- used to make sure no duplicates are inserted into keymaps_table
-        --     local keymaps_table = {}
-        --     local max_len_lhs = 0         --右手边(执行的操作)字符串长度最大值
-        --
-        --     -- helper function to populate keymaps_table and determine max_len_lhs
-        --     local function extract_keymaps(keymaps)
-        --         for _, keymap in pairs(keymaps) do
-        --             local keymap_key = keymap.buffer ..
-        --                 keymap.mode .. keymap.lhs -- should be distinct for every keymap
-        --             if not keymap_encountered[keymap_key] then
-        --                 keymap_encountered[keymap_key] = true
-        --                 table.insert(keymaps_table, keymap)
-        --                 max_len_lhs = math.max(max_len_lhs, #utils.display_termcodes(keymap.lhs)) -- display_termcodes: =><Space> ^F=><Ctrl-F> 9=><Tab>
-        --             end
-        --         end
-        --     end
-        --
-        --     for _, mode in pairs(opts.modes) do
-        --         local global = vim.api.nvim_get_keymap(mode)
-        --         local buf_local = vim.api.nvim_buf_get_keymap(0, mode)
-        --         extract_keymaps(global)
-        --         extract_keymaps(buf_local)
-        --     end
-        --     opts.width_lhs = max_len_lhs + 1
-        --     DebugToFile(vim.inspect(keymaps_table))
-        --     DebugToFile(vim.inspect(opts))
-        --     opts = vim.tbl_extend('force', opts, {
-        --         prompt_title = "Commands Panel",
-        --         theme = require("telescope._extensions.commander.theme"),
-        --         -- sort_by = { "desc", "keymaps_str", "cmd_str", "cat" },
-        --         -- sorting_strategy = "ascending",
-        --         layout_strategy = "center",
-        --         layout_config = {
-        --             anchor = "N",
-        --             preview_cutoff = 0,
-        --             prompt_position = "top",
-        --             height = 30,
-        --             width = 150,
-        --         },
-        --     })
-        --     pickers
-        --         .new(opts, {
-        --             prompt_title = opts.prompt_title,
-        --             finder = finders.new_table {
-        --                 results = keymaps_table,
-        --                 entry_maker = function(entry)
-        --                     return {
-        --                         value = entry,
-        --                         display = function(tbl)
-        --                             return (tbl.lhs or "") .. "|" .. (tbl.cmd or "") .. "|" .. (tbl.desc or "")
-        --                         end,                               --- 显示函数
-        --                         ordinal = entry.desc or entry.rhs, --- SortBy(排序键)
-        --
-        --                         mode = entry.mode,
-        --                         lhs = entry.lhs:gsub(string.char(9), "<TAB>"):gsub("", "<C-F>"):gsub(" ", "<Space>"),
-        --                         desc = entry.desc,
-        --                         cmd = entry.rhs,
-        --                         valid = entry ~= "",
-        --                     }
-        --                 end
-        --             },
-        --             sorter = conf.generic_sorter(opts),
-        --             attach_mappings = function(prompt_bufnr)
-        --                 actions.select_default:replace(function()
-        --                     local selection = action_state.get_selected_entry()
-        --                     if selection == nil then
-        --                         utils.__warn_no_selection "builtin.keymaps"
-        --                         return
-        --                     end
-        --
-        --                     vim.api.nvim_feedkeys(
-        --                         vim.api.nvim_replace_termcodes(selection.value.lhs, true, false, true), "t", true)
-        --                     return actions.close(prompt_bufnr)
-        --                 end)
-        --                 return true
-        --             end,
-        --         })
-        --         :find()
-        -- end
     end,
 }

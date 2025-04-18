@@ -1,0 +1,71 @@
+"###普通配置
+let g:mapleader="\<Space>"
+set tabstop=4
+set softtabstop=4
+set autoindent
+set hidden 
+"syntax on
+
+"set NERDTree
+
+set nu
+set relativenumber 
+inoremap <expr> <Tab> 
+
+set clipboard+=unnamed
+set clipboard-=ideaput
+
+sethandler <C-o> i:ide n:vim
+sethandler <C-i> i:ide n:vim
+sethandler <C-v> i:ide n:vim
+sethandler <C-r> i:ide n:vim
+"c-[在ide中被设置为esc
+sethandler <C-[> a:ide
+sethandler <C-/> a:ide
+"sethandler <C-n> a:vim
+
+sethandler <C-h> i:vim n:ide
+sethandler <C-l> i:vim n:ide
+
+"sethandler <C-j> i:vim n:ide
+"sethandler <C-k> i:vim n:ide
+
+inoremap <C-h> <Home>
+inoremap <C-l> <End>
+
+nnoremap <leader>bn :bnext<CR>
+nnoremap <leader>bp :bpre<CR>
+nnoremap <leader>bd :bdelete<CR>
+
+map <leader>cp <Action>(ParameterInfo)
+map <leader>i <Action>(ShowErrorDescription)
+
+"imap <C-j> <Action>(ParameterInfo)
+"inoremap <C-k> <Action>(ShowErrorDescription)
+
+"自动切换输入法(IdeaVimExtension)
+set keep-english-in-normal
+set keep-english-in-normal-and-restore-in-insert
+
+"重构
+map <leader>rn <Action>(RenameElement)
+"注释
+map cc <Action>(CommentByLineComment)
+"格式化
+map <leader>fo <Action>(ReformatCode)
+
+map <leader>t <Action>(ActivateStructureToolWindow) "结构
+
+"nnoremap <C-n> :NERDTree<CR>
+
+if has('ide')
+  if &ide =~? 'intellij idea'
+    if &ide =~? 'community'
+    elseif &ide =~? 'ultimate'
+    endif
+  elseif &ide =~? 'pycharm'
+    map <leader>cr <Action>(ExecuteInPyConsoleAction)
+  endif
+endif
+
+

@@ -1,0 +1,16 @@
+{{ if (not (has "--mode=file" .chezmoi.args ) ) }}
+mode = "symlink"
+{{ end }}
+
+{{ if (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) )) }}
+encryption = "age"
+[age]
+    identity = "{{ .chezmoi.config.destDir }}/.config/chezmoi/key.txt"
+    recipient = {{ (bitwardenFields "item" "chezmoi_agekey.pem").pub.value|quote }}
+{{end}}
+
+{{ if eq .chezmoi.os "windows" }}
+[interpreters.ps1]
+command = "pwsh"
+args = ["-NoLogo", "-NoProfile"]
+{{ end }}

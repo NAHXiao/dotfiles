@@ -1,0 +1,30 @@
+{{/*********带加密参数时忽略************/}}
+{{ if (not (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) ))) }}
+{{ end }}
+
+
+
+
+
+{{/**********非Win排除项**********/}}
+{{/**********Win独有**********/}}
+{{ if ne .chezmoi.os "windows" }}
+starship.toml
+
+scoop
+{{ end }}
+
+
+
+{{/**********非Linux含(Android)排除项**********/}}
+{{/**********Linux含(Android)独有**********/}}
+{{ if (and (ne .chezmoi.os "linux") (ne .chezmoi.os "android") (ne .chezmoi.os "darwin") ) }}
+github-copilot
+htop
+hypr
+i3
+neofetch
+ranger
+zsh
+
+{{ end }}

@@ -1,0 +1,5 @@
+!config
+!git_sshkey_rsa.pem
+!git_sshkey_rsa.pub
+!github_token
+*

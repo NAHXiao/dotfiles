@@ -1,0 +1,21 @@
+{{ if (and ( eq .chezmoi.os "windows" ) (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args))))) }}#仅在Windows,且安装了bitwarden-cli时执行
+$env:PSModulePath = $null
+#避免从pwsh(core)启动powershellv5.1时PSModulePath错乱造成的错误
+#https://stackoverflow.com/questions/74862849/powershell-convertto-securestring-not-recognised-if-run-script-inline-from-cmd
+
+$CHEZMOI_PATH="{{ .chezmoi.config.destDir }}/.config/chezmoi"
+
+$KEY=$CHEZMOI_PATH+"/key.txt"
+$null=New-Item -Path $CHEZMOI_PATH -ItemType Directory -Force
+if (-Not (Test-Path $KEY)) {
+    {{ (bitwardenFields "item" "chezmoi_agekey.pem").pem_body.value|quote }} | Out-File -FilePath $KEY -Encoding UTF8
+    $acl = Get-Acl $KEY
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
+        "FullControl",
+        "Allow"
+    )
+    $acl.SetAccessRuleProtection($true, $false)
+    $acl.SetAccessRule($accessRule)
+    Set-Acl -Path $KEY -AclObject $acl
+}{{ end }}

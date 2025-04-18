@@ -1,0 +1,18 @@
+[user]
+	email = xiaohanzero@163.com
+	name = NAHxiao
+[init]
+	defaultBranch = main
+    
+[core]
+	autocrlf = {{ if eq .chezmoi.os "windows" }} true {{ else }} false {{ end }}
+
+{{ if eq .chezmoi.os "windows" }} 
+[credential "helperselector"]
+	selected = <no helper>
+[difftool "sourcetree"]
+	cmd = "'' "
+[mergetool "sourcetree"]
+	cmd = "'' "
+	trustExitCode = true
+{{ end }}

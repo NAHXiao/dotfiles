@@ -47,5 +47,15 @@ return {
                 },
             },
         })
+        require("commander").add({
+            {
+                cmd = "<cmd>set bg=dark<cr>",
+                desc = "Dark Theme",
+            },
+            {
+                cmd = "<cmd>set bg=light<cr>",
+                desc = "Light Theme",
+            },
+        })
     end,
 }

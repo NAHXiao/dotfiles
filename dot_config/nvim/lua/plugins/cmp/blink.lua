@@ -127,22 +127,22 @@ return {
     opts_extend = { "sources.default" },
     config = function(_, opts)
         require("blink.cmp").setup(opts)
-        local success, copilot = pcall(require, "copilot.suggestion")
-        if success then
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "BlinkCmpMenuOpen",
-                callback = function()
-                    copilot.dismiss()
-                    vim.b.copilot_suggestion_hidden = true
-                end,
-            })
-
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "BlinkCmpMenuClose",
-                callback = function()
-                    vim.b.copilot_suggestion_hidden = false
-                end,
-            })
-        end
+    --     local success, copilot = pcall(require, "copilot.suggestion")
+    --     if success then
+    --         vim.api.nvim_create_autocmd("User", {
+    --             pattern = "BlinkCmpMenuOpen",
+    --             callback = function()
+    --                 copilot.dismiss()
+    --                 vim.b.copilot_suggestion_hidden = true
+    --             end,
+    --         })
+    --
+    --         vim.api.nvim_create_autocmd("User", {
+    --             pattern = "BlinkCmpMenuClose",
+    --             callback = function()
+    --                 vim.b.copilot_suggestion_hidden = false
+    --             end,
+    --         })
+    --     end
     end,
 }

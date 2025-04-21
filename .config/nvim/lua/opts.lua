@@ -62,6 +62,6 @@ set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
 "           + save/restore buffer list
 ]]
 
-vim.opt.conceallevel = 1 -- Hide *concealed* text
+-- vim.opt.conceallevel = 1 -- Hide *concealed* text
 
 -- vim.o.winborder = "rounded"

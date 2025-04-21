@@ -248,8 +248,8 @@ return {
         for i, kind in ipairs(kinds) do
             kinds[i] = icons[kind] or kind
         end
-        vim.api.nvim_set_hl(0, "LspFloatWindowHeadline", { bg = "NONE" })
-        vim.api.nvim_set_hl(0, "LspFloatWindowCodeBlock", { bg = "NONE" })
+        -- vim.api.nvim_set_hl(0, "LspFloatWindowHeadline", { bg = "NONE" })
+        vim.api.nvim_set_hl(0, "LspFloatWindowRenderMarkdownCode", { bg = "NONE" })
 
         -- vim.api.nvim_create_autocmd("BufWinEnter", {
         --     callback = function()
@@ -264,13 +264,15 @@ return {
         --         end
         --     end,
         -- })
+
+        -- For RenderMarkdown
         vim.api.nvim_create_autocmd("User", {
             pattern = "LspFloatWindowOpened",
             callback = function(args)
                 local winnr = args.data.winnr
                 vim.api.nvim_set_option_value(
                     "winhighlight",
-                    "Headline:LspFloatWindowHeadline,CodeBlock:LspFloatWindowCodeBlock",
+                    "RenderMarkdownCode:LspFloatWindowRenderMarkdownCode",
                     { win = winnr }
                 )
             end,

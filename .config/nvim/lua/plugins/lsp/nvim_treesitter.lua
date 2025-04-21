@@ -1,7 +1,7 @@
 return {
     "nvim-treesitter/nvim-treesitter",
     version = "*",
-    lazy = true,
+    lazy = false,
     dependencies = {
         "neovim/nvim-lspconfig",
     },
@@ -18,32 +18,26 @@ return {
                 "go",
                 "gomod",
                 "gowork",
-                "hcl",
                 "html",
                 "http",
                 "java",
                 "javascript",
                 "json",
                 "lua",
+                -- "latex",
                 "make",
                 "markdown",
                 "markdown_inline",
                 "python",
-                "r",
                 "regex",
-                "ruby",
                 "rust",
                 "toml",
                 "vim",
                 "yaml",
-                "zig",
             },
-            -- TODO if true  some .d will open failed
             auto_install = true,
             highlight = {
                 enable = true,
-                -- 打开会导致python缩进异常/markdown <span>标签键入title时闪退
-                disable = { "markdown", "python" },
             },
             incremental_selection = {
                 enable = true,
@@ -53,7 +47,7 @@ return {
                     node_decremental = "<S-Tab", -- visual mode
                 },
             },
-            -- ident = { enable = true },
+            ident = { enable = true },
             rainbow = {
                 enable = true,
             },

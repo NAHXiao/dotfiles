@@ -70,7 +70,7 @@ function M.findfile_any(opt)
         if (#opt.exclude_dirs == 0) or (not vim.list_contains(opt.exclude_dirs, current_path)) then
             for _, filename in ipairs(opt.filelist) do
                 local filepath = vim.fs.joinpath(current_path, filename)
-                local stat = vim.loop.fs_stat(filepath)
+                local stat = uv.fs_stat(filepath)
                 if stat then
                     local valid_type = check_all_types or type_lookup[stat.type]
                     if valid_type then
@@ -139,7 +139,7 @@ function M.findfile_all(opt)
         if (#opt.exclude_dirs == 0) or (not vim.list_contains(opt.exclude_dirs, current_path)) then
             for _, filename in ipairs(opt.filelist) do
                 local filepath = vim.fs.joinpath(current_path, filename)
-                local stat = vim.loop.fs_stat(filepath)
+                local stat = uv.fs_stat(filepath)
                 if stat then
                     local valid_type = check_all_types or type_lookup[stat.type]
                     if valid_type then

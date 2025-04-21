@@ -278,7 +278,7 @@ return {
         -- 3. "hsplit" - to open in a horizontal split if there's not already a horizontal split
         open_notes_in = "current",
         ui = {
-            enable = true,
+            enable = false,
             update_debounce = 200,
             max_file_length = 5000,
             checkboxes = {

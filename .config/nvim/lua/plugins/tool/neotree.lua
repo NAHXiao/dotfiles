@@ -28,6 +28,12 @@ return {
     cmd = "Neotree",
     keys = {
         { "<C-n>", "<Cmd>Neotree toggle<CR>", desc = "Toggle Explorer", mode = "n" },
+        {
+            "<leader>t",
+            "<Cmd>Neotree document_symbols action=show toggle=true<CR>",
+            desc = "Toggle Explorer",
+            mode = "n",
+        },
     },
     config = function()
         vim.g.loaded_netrw = 1

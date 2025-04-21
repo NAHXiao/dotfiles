@@ -16,7 +16,7 @@ return {
         "ToggleTerm",
     },
     dependencies = {
-        "telescope.nvim",
+        -- "telescope.nvim",
     },
     config = function(LazyPlugin, opts)
         local start_in_insert = true

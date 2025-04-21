@@ -47,6 +47,16 @@ return {
             treesitter = true,
             hop = true,
             notify = true,
+            render_markdown = true,
+            alpha = true,
+            dap = true,
+            flash = true,
+            telescope = {
+                enabled = true,
+                -- style = "nvchad"
+                -- 
+            },
+            lsp_trouble = true,
             mini = {
                 enabled = false,
                 indentscope_color = "",
@@ -73,28 +83,28 @@ return {
         },
     },
     config = function(_, opts)
+        opts.custom_highlights = function(C)
+            local all = {
+                Pmenu = {
+                    bg = C.none,
+                    fg = C.overlay2,
+                },
+                -- PmenuSel = { bg = C.surface1, style = { "bold" } },
+                -- PmenuThumb = { bg = C.overlay0 },
+                -- PmenuSbar = { bg = C.surface1 },
+                NormalFloat = {
+                    fg = C.text,
+                    bg = C.none,
+                },
+                LspSignatureActiveParameter = {
+                    bg = C.none,
+                    style = { "bold" },
+                    underline = true,
+                },
+            }
+            return all
+        end
         opts.highlight_overrides = {
-            all = function(C)
-                local all = {
-                    Pmenu = {
-                        bg = C.none,
-                        fg = C.overlay2,
-                    },
-                    -- PmenuSel = { bg = C.surface1, style = { "bold" } },
-                    -- PmenuThumb = { bg = C.overlay0 },
-                    -- PmenuSbar = { bg = C.surface1 },
-                    NormalFloat = {
-                        fg = C.text,
-                        bg = C.none,
-                    },
-                    LspSignatureActiveParameter = {
-                        bg = C.none,
-                        style = { "bold" },
-                        underline = true,
-                    },
-                }
-                return all
-            end,
             latte = function(C)
                 return {
                     CursorLine = {

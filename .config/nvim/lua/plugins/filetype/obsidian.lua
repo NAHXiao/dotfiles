@@ -312,10 +312,26 @@ return {
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
         local commander = {
-            { "<cmd>ObsidianSearch<cr>", desc = "搜索关键词(Search keyword)" },
-            { "<cmd>ObsidianQuickSwitch<cr>", desc = "搜索Obsidian文件(Search file)" },
-            { "<cmd>ObsidianTags<cr>", desc = "搜索Obsidian Tag(Search tags)" },
-            { "<cmd>ObsidianToday<cr>", desc = "打开/创建今日日记(Open/Create diary)" },
+            {
+                cat = "obsidian",
+                cmd = "<cmd>ObsidianSearch<cr>",
+                desc = "搜索关键词(Search keyword)",
+            },
+            {
+                cat = "obsidian",
+                cmd = "<cmd>ObsidianQuickSwitch<cr>",
+                desc = "搜索Obsidian文件(Search file)",
+            },
+            {
+                cat = "obsidian",
+                cmd = "<cmd>ObsidianTags<cr>",
+                desc = "搜索Obsidian Tag(Search tags)",
+            },
+            {
+                cat = "obsidian",
+                cmd = "<cmd>ObsidianToday<cr>",
+                desc = "打开/创建今日日记(Open/Create diary)",
+            },
         }
         require("commander").add(commander)
     end,

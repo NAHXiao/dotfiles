@@ -1,17 +1,9 @@
+local map = require("utils").map
 -- [[ keys.lua ]]
-local function map(mode, lhs, rhs, opts)
-    local options = { silent = true, noremap = true }
-    if opts then
-        options = vim.tbl_extend("force", options, opts)
-    end
-    vim.keymap.set(mode, lhs, rhs, options)
-end
--- vim.keymap.set
-
-map("i", "<C-c>", "<Esc>")
 -- map('n','<C-c>','<Esc>')
 -- map('v','<C-c>','<Esc>')
 -- map('c','<C-c>','<Esc>')
+map("i", "<C-c>", "<Esc>", { remap = true })
 
 -- format encoding? (\r\n -> \n)
 map("n", "<leader>fe", ":%s#\\r##g<CR>", { silent = true })
@@ -22,6 +14,8 @@ map("i", "<C-f>", "<PageDown>")
 map("i", "<C-b>", "<PageUp>")
 
 map("n", "<leader>P", "ggVGp")
+map("v", "p", "P")
+map("v", "P", "p")
 
 -- vnew
 map("n", "<C-w>N", ":vnew<CR>")
@@ -32,10 +26,7 @@ map("n", "<A-h>", "<C-w>h")
 map("n", "<A-j>", "<C-w>j")
 map("n", "<A-k>", "<C-w>k")
 map("n", "<A-l>", "<C-w>l")
-map("n", "<A-q>", function()
-    if vim.bo.buftype ~= "" then
-        return
-    end
+map("n", "<A-q>", function() -- 不关闭最后一个文件窗口
     local wins = vim.api.nvim_tabpage_list_wins(0)
     local file_win_count = 0
     for _, win in ipairs(wins) do
@@ -45,7 +36,7 @@ map("n", "<A-q>", function()
             file_win_count = file_win_count + 1
         end
     end
-    if file_win_count > 1 then
+    if file_win_count > 1 or vim.bo.buftype ~= "" then
         vim.cmd("close")
     end
 end)

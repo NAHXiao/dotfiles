@@ -48,7 +48,7 @@ raw:
 	rsync -a --delete --exclude .git "$$TMP_DEST/" "$$REPO_ROOT/" || { echo "文件同步失败"; exit 1; }; \
 	\
 	echo "[7/9] 提交变更..."; \
-	git add -A && (git commit -m "Reset raw branch" || echo "无变更需提交"); \
+	git add -A && (git commit -m "latest commit" || echo "无变更需提交"); \
 	\
 	echo "[8/9] 清理临时资源..."; \
 	rm -rf "$$TMP_DEST" "$$TMP_TOML"; \

@@ -25,7 +25,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 function Is_plugin_loaded(plugin_name)
     local plugin = require("lazy.core.config").plugins[plugin_name]
-    return plugin and plugin._.loaded
+    return plugin ~= nil and plugin._.loaded ~= nil
 end
 require("lazy").setup({
     { import = "plugins.cmp" },

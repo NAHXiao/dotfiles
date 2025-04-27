@@ -1,17 +1,24 @@
 return {
     "MeanderingProgrammer/render-markdown.nvim",
     lazy = true,
-    ft = { "markdown", "vimwiki" },
+    version = "*",
+    ft = "markdown",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
     opts = {},
     config = function()
-        -- Create Once Autocmd (InsertEnter)
-        -- vim.api.nvim_create_autocmd("InsertEnter", {
-        --     callback = function()
-        --         vim.defer_fn(function()
         require("render-markdown").setup({
+            on = {
+                initial = function(ctx)
+                    if vim.api.nvim_win_get_config(ctx.win).relative ~= "" then
+                        local height = vim.api.nvim_win_text_height(ctx.win, {}).all
+                        vim.api.nvim_win_set_height(ctx.win, math.max(3, height))
+                        local width = vim.api.nvim_win_get_width(ctx.win)
+                        vim.api.nvim_win_set_width(ctx.win, math.max(10, width))
+                    end
+                end,
+            },
             completions = {
                 blink = { enabled = true },
                 lsp = { enabled = true },
@@ -25,9 +32,5 @@ return {
             },
         })
         vim.treesitter.language.register("markdown", "vimwiki")
-        --         end, 100)
-        --     end,
-        --     once = true,
-        -- })
     end,
 }

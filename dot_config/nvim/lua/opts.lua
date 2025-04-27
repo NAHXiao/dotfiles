@@ -42,11 +42,7 @@ set spelllang=en_us
 ]])
 -- 自动保存光标位置
 vim.cmd([[
-" Uncomment the following to have Vim jump to the last position when
-" reopening a file
-if has("autocmd")
   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
-endif
 ]])
 vim.o.sessionoptions =
     "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

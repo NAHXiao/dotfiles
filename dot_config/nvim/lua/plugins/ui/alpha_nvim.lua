@@ -37,7 +37,12 @@ return {
             },
             { type = "padding", val = 1 },
             dashboard.button("e", "󰈔  New file", "<Cmd>ene<CR>"),
-            dashboard.button("SPC s l", "  Recently sessions"),
+            -- dashboard.button("SPC s l", "  Recently sessions"),
+            dashboard.button(
+                "p",
+                "  Projects",
+                "<cmd>lua require('utils').proj:select_and_load()<cr>"
+            ),
             dashboard.button("SPC f f", "󰈞  Find file"),
             dashboard.button("SPC f w", "󰊄  Live grep"),
             obsidianbotton,
@@ -46,7 +51,7 @@ return {
                 "  Configuration",
                 "<cmd>cd " .. vim.fn.stdpath("config") .. " <CR><cmd>edit .<cr>"
             ),
-            dashboard.button("p", "  Plugins", "<Cmd>Lazy<CR>"),
+            dashboard.button("l", "  Plugins", "<Cmd>Lazy<CR>"),
             dashboard.button("q", "󰅚  Quit", "<Cmd>qa<CR>"),
         }
         alpha.setup(theta.config)

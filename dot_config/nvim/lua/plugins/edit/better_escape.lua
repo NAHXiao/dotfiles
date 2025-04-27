@@ -5,38 +5,45 @@ return {
     dependencies = {},
     event = { "InsertEnter", "TermEnter" },
     config = function()
+        local esc = function()
+            vim.api.nvim_feedkeys(
+                vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+                "m",
+                true
+            )
+        end
         require("better_escape").setup({
             timeout = vim.o.timeoutlen,
             default_mappings = false,
             mappings = {
                 i = {
                     j = {
-                        -- These can all also be functions
-                        k = "<Esc>",
-                        j = "<Esc>",
+                        k = esc,
+                        j = esc,
                     },
                 },
-                c = {
-                    j = {
-                        k = "<Esc>",
-                        j = "<Esc>",
-                    },
-                },
-                t = {
-                    j = {
-                        k = "<C-\\><C-n>",
-                    },
-                },
-                v = {
-                    -- j = {
-                    --     k = "<Esc>",
-                    -- },
-                },
-                s = {
-                    j = {
-                        k = "<Esc>",
-                    },
-                },
+                -- c= {
+                --     j = {
+                --         k = esc,
+                --         j = esc,
+                --     },
+                -- },
+                -- t = {
+                --     j = {
+                --         k = "<C-\\><C-n>",
+                --     },
+                -- },
+                -- v = {
+                --     j = {
+                --         k = "<Esc>",
+                --     },
+                -- },
+                -- s = {
+                --     j = {
+                --         k = esc,
+                --         j = esc,
+                --     },
+                -- },
             },
         })
     end,

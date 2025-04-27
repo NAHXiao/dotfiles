@@ -8,7 +8,7 @@ return {
     config = function()
         require("copilot").setup({
             panel = {
-                enabled = true,
+                enabled = false, -- NOTE: blink.cmp 函数补全
                 auto_refresh = false,
                 keymap = {
                     jump_prev = "[[",
@@ -23,7 +23,7 @@ return {
                 },
             },
             suggestion = {
-                enabled = true,
+                enabled = true, -- NOTE: blink.cmp 函数补全
                 auto_trigger = true,
                 debounce = 75,
                 keymap = {

@@ -10,6 +10,8 @@ return {
         "zbirenbaum/copilot.lua",
         "kyazdani42/nvim-web-devicons",
         "onsails/lspkind.nvim",
+
+        "fang2hou/blink-copilot",
     },
     lazy = true,
     event = events,
@@ -76,9 +78,12 @@ return {
                                         icon = dev_icon
                                     end
                                 else
-                                    icon = lspkind.symbolic(ctx.kind, {
+                                    local dev_icon = lspkind.symbolic(ctx.kind, {
                                         mode = "symbol",
                                     })
+                                    if dev_icon then
+                                        icon = dev_icon
+                                    end
                                 end
 
                                 return icon .. ctx.icon_gap
@@ -100,14 +105,14 @@ return {
                 border = "rounded",
             },
             trigger = {
-                prefetch_on_insert = false,
+                -- prefetch_on_insert = false,
             },
         },
 
         -- Default list of enabled providers defined so that you can extend it
         -- elsewhere in your config, without redefining it, due to `opts_extend`
         sources = {
-            default = { "lsp", "path", "snippets", "buffer" },
+            default = { "lsp", "path", "snippets", "buffer", "copilot" },
             providers = {
                 path = {
                     opts = {
@@ -115,6 +120,12 @@ return {
                             return vim.b.projroot
                         end,
                     },
+                },
+                copilot = {
+                    name = "copilot",
+                    module = "blink-copilot",
+                    score_offset = 100,
+                    async = true,
                 },
             },
         },
@@ -124,25 +135,32 @@ return {
             window = { border = "rounded" },
         },
     },
-    opts_extend = { "sources.default" },
     config = function(_, opts)
         require("blink.cmp").setup(opts)
-    --     local success, copilot = pcall(require, "copilot.suggestion")
-    --     if success then
-    --         vim.api.nvim_create_autocmd("User", {
-    --             pattern = "BlinkCmpMenuOpen",
-    --             callback = function()
-    --                 copilot.dismiss()
-    --                 vim.b.copilot_suggestion_hidden = true
-    --             end,
-    --         })
-    --
-    --         vim.api.nvim_create_autocmd("User", {
-    --             pattern = "BlinkCmpMenuClose",
-    --             callback = function()
-    --                 vim.b.copilot_suggestion_hidden = false
-    --             end,
-    --         })
-    --     end
+        local success, copilot = pcall(require, "copilot.suggestion")
+        if success then
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "BlinkCmpMenuOpen",
+                callback = function()
+                    -- copilot.dismiss()
+                    vim.b.copilot_suggestion_hidden = true
+                end,
+            })
+
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "BlinkCmpMenuClose",
+                callback = function()
+                    vim.b.copilot_suggestion_hidden = false
+                end,
+            })
+        end
+
+        -- NOTE:FOR BLINK:https://github.com/Saghen/blink.cmp/issues/1657
+        local map = require("utils").map
+        map({ "n", "s", "i" }, "<esc>", function()
+            vim.cmd("noh")
+            vim.snippet.stop()
+            return "<esc>"
+        end, { expr = true, desc = "Escape and clear hlsearch/snippet" })
     end,
 }

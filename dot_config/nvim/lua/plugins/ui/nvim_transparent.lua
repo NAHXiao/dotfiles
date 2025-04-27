@@ -1,15 +1,17 @@
 return {
     "xiyaowong/nvim-transparent",
     version = "*",
-    lazy = true,
+    lazy = false,
+    cmd = { "TransparentToggle" },
     keys = {
         { "<leader>\\", ":TransparentToggle<CR>", mode = "n" },
     },
     config = function()
-        -- require("transparent").setup({
-        --     groups = {
-        --         "NormalFloat",
-        --     },
-        -- })
+        require("transparent").setup({
+            exclude_groups = {
+                "CursorLine",
+                "CursorLine",
+            },
+        })
     end,
 }

@@ -26,7 +26,7 @@ return {
                         if vim.startswith(string.lower(mode), "v") then
                             vim.api.nvim_feedkeys(
                                 vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
-                                "n",
+                                "m",
                                 true
                             )
                         end
@@ -45,7 +45,7 @@ return {
                         if vim.startswith(string.lower(mode), "v") then
                             vim.api.nvim_feedkeys(
                                 vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
-                                "n",
+                                "m",
                                 true
                             )
                         end

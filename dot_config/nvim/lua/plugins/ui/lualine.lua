@@ -8,15 +8,15 @@ return {
     },
     config = function()
         -- ▊   8.3k  lualine.lua  237:46  93%   12        LSP: lua_ls          UTF-8  UNIX   main   6 󰝤 1  ▊
-        local function sessionname()
-            return nil
-            -- if require("lazy.core.config").plugins["auto-session"]._.loaded then
-            --     -- return require('auto-session.lib').current_session_name
-            --     return nil
-            -- else
-            --     return nil
-            -- end
-        end
+        -- local function sessionname()
+        --     return nil
+        --     -- if require("lazy.core.config").plugins["auto-session"]._.loaded then
+        --     --     -- return require('auto-session.lib').current_session_name
+        --     --     return nil
+        --     -- else
+        --     --     return nil
+        --     -- end
+        -- end
         local lualine = require("lualine")
         -- Color table for highlights
         -- stylua: ignore
@@ -72,7 +72,7 @@ return {
                 lualine_z = {},
                 -- These will be filled later
                 -- lualine_c = { require('auto-session.lib').current_session_name }, -- Plua auto-session
-                lualine_c = { sessionname() }, -- Plus auto-session
+                lualine_c = {},
                 lualine_x = {},
             },
             inactive_sections = {
@@ -205,7 +205,9 @@ return {
                 return msg
             end,
             icon = " LSP:",
-            color = { fg = "#ffffff", gui = "bold" },
+            cond = function()
+                return vim.bo.buftype == ""
+            end,
         })
 
         -- Add components to right sections

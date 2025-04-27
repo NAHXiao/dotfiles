@@ -1,3 +1,11 @@
+local _uiselect = vim.ui.select
+function vim.ui.select(...)
+    if not Is_plugin_loaded("telescope.nvim") then
+        vim.ui.select = _uiselect
+        require("lazy").load({ plugins = "telescope.nvim" })
+        return vim.ui.select(...)
+    end
+end
 local find_command = (function()
     if 1 == vim.fn.executable("rg") then
         return { "rg", "--files", "--color", "never", "--follow" }
@@ -55,7 +63,8 @@ return {
         { "nvim-lua/plenary.nvim" },
         {
             "nvim-telescope/telescope-fzf-native.nvim",
-            build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+            -- build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+            build = "make",
         },
         { "nvim-telescope/telescope-ui-select.nvim" },
     },
@@ -266,6 +275,11 @@ return {
                     override_file_sorter = true, -- override the file sorter
                     case_mode = "smart_case", -- or "ignore_case" or "respect_case"
                     -- the default case_mode is "smart_case"
+                },
+                ["ui-select"] = {
+                    require("telescope.themes").get_dropdown({
+                        layout_config = { anchor = "N" },
+                    }),
                 },
             },
         })

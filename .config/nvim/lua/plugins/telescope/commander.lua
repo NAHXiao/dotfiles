@@ -6,13 +6,22 @@ return {
         {
             "<C-p>",
             function()
-                TeleMultiplexSearch(require("commander").show, {}, "Commands Panel")
+                -- TeleMultiplexSearch(require("commander").show, {}, "Commands Panel")
+                require("commander").show()
             end,
             desc = "show commands panel",
         },
     },
 
     config = function()
+        -- local Commander = require("commander.model.Command")
+        -- function Commander:default_add_opts()
+        --     return {
+        --         cat = "custom",
+        --         set = true,
+        --         show = true,
+        --     }
+        -- end
         require("commander").setup({
             -- Specify what components are shown in the prompt;
             -- Order matters, and components may repeat
@@ -20,7 +29,7 @@ return {
                 "CAT",
                 "DESC",
                 "CMD",
-                -- "KEYS",
+                "KEYS",
             },
 
             -- Specify by what components the commands is sorted
@@ -55,6 +64,28 @@ return {
             {
                 cmd = "<cmd>set bg=light<cr>",
                 desc = "Light Theme",
+            },
+        })
+        require("commander").add({
+            {
+                cmd = "<cmd>lua require('utils').proj:save()<cr>",
+                desc = "Save as Project",
+                cat = "project",
+            },
+            {
+                cmd = "<cmd>lua require('utils').proj:update()<cr>",
+                desc = "Update Project",
+                cat = "project",
+            },
+            {
+                cmd = "<cmd>lua require('utils').proj:select_and_load()<cr>",
+                desc = "Load Project",
+                cat = "project",
+            },
+            {
+                cmd = "<cmd>lua require('utils').proj:select_and_del()<cr>",
+                desc = "Forget Project",
+                cat = "project",
             },
         })
     end,

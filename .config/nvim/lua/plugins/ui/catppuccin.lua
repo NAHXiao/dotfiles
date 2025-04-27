@@ -54,7 +54,7 @@ return {
             telescope = {
                 enabled = true,
                 -- style = "nvchad"
-                -- 
+                --
             },
             lsp_trouble = true,
             mini = {
@@ -84,7 +84,8 @@ return {
     },
     config = function(_, opts)
         opts.custom_highlights = function(C)
-            local all = {
+            -- default transparent groups
+            local transparent = {
                 Pmenu = {
                     bg = C.none,
                     fg = C.overlay2,
@@ -102,7 +103,12 @@ return {
                     underline = true,
                 },
             }
-            return all
+            local render_markdown = {
+                RenderMarkdownCode = {
+                    bg = C.surface0,
+                },
+            }
+            return vim.tbl_deep_extend("force", transparent, render_markdown)
         end
         opts.highlight_overrides = {
             latte = function(C)

@@ -10,7 +10,7 @@ return {
         notify.setup({
             render = "minimal",
             stages = "static", --"fade",
-            top_down = false,
+            top_down = true,
         })
         vim.notify = notify
     end,

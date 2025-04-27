@@ -192,3 +192,5 @@ vim.api.nvim_create_autocmd("TermOpen", {
 
 --禁用保存后的提示
 vim.cmd("autocmd BufWritePost * silent! !clear")
+
+

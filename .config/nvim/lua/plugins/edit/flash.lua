@@ -19,7 +19,7 @@ return {
         },
     },
     lazy = true,
-    -- event = "VeryLazy",
+    event = "CmdlineEnter",
     keys = {
         {
             "s",
@@ -36,6 +36,12 @@ return {
                 require("flash").treesitter_search()
             end,
             desc = "Search Treesitter Node",
+        },
+    },
+    commander = {
+        {
+            cmd = "<cmd>lua require('flash').toggle()<cr>",
+            desc = "Toggle Flash Search",
         },
     },
 }

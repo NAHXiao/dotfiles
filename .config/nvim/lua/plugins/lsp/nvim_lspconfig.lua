@@ -163,6 +163,7 @@ return {
     },
     dependencies = {
         "williamboman/mason.nvim",
+        "onsails/lspkind.nvim",
     },
     config = function()
         -- vim.api.nvim_create_autocmd('LspAttach', {
@@ -185,13 +186,14 @@ return {
                     { "╰", "FloatBorder" },
                     { "│", "FloatBorder" },
                 }
-            local bufnr, winnr = _open_floating_preview(contents, syntax, opts)
-            vim.api.nvim_exec_autocmds("User", {
-                pattern = "LspFloatWindowOpened",
-                modeline = false,
-                data = { bufnr = bufnr, winnr = winnr },
-            })
-            return bufnr, winnr
+            local bufnr, winid = _open_floating_preview(contents, syntax, opts)
+            -- For RenderMarkdown
+            vim.api.nvim_set_option_value(
+                "winhighlight",
+                "RenderMarkdownCode:TRANSPARENT",
+                { win = winid }
+            )
+            return bufnr,winid
         end
         local diagnostic = vim.diagnostic
         diagnostic.config({
@@ -220,62 +222,10 @@ return {
                 border = "rounded",
             },
         })
-
-        local icons = {
-            Class = "",
-            Color = "C",
-            Constant = "",
-            Constructor = "",
-            Enum = "",
-            EnumMember = "",
-            Field = "",
-            File = "",
-            Folder = "",
-            Function = "",
-            Interface = "",
-            Keyword = "K",
-            Method = "ƒ",
-            Module = "",
-            Property = "",
-            Snippet = "",
-            Struct = "",
-            Text = "",
-            Unit = "",
-            Value = "V",
-            Variable = "",
-        }
         local kinds = vim.lsp.protocol.CompletionItemKind
+        local lspkind = require("lspkind")
         for i, kind in ipairs(kinds) do
-            kinds[i] = icons[kind] or kind
+            kinds[i] = lspkind.symbolic(kind, { mode = "symbol" }) or kind
         end
-        -- vim.api.nvim_set_hl(0, "LspFloatWindowHeadline", { bg = "NONE" })
-        vim.api.nvim_set_hl(0, "LspFloatWindowRenderMarkdownCode", { bg = "NONE" })
-
-        -- vim.api.nvim_create_autocmd("BufWinEnter", {
-        --     callback = function()
-        --         local win = vim.api.nvim_get_current_win()
-        --         local config = vim.api.nvim_win_get_config(win)
-        --         if config.relative ~= "" then
-        --             vim.api.nvim_set_option_value(
-        --                 "winhighlight",
-        --                 "Headline:LspFloatWindowHeadline,CodeBlock:LspFloatWindowCodeBlock",
-        --                 { win = win }
-        --             )
-        --         end
-        --     end,
-        -- })
-
-        -- For RenderMarkdown
-        vim.api.nvim_create_autocmd("User", {
-            pattern = "LspFloatWindowOpened",
-            callback = function(args)
-                local winnr = args.data.winnr
-                vim.api.nvim_set_option_value(
-                    "winhighlight",
-                    "RenderMarkdownCode:LspFloatWindowRenderMarkdownCode",
-                    { win = winnr }
-                )
-            end,
-        })
     end,
 }

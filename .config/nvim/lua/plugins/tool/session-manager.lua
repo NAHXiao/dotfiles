@@ -2,9 +2,9 @@ return {
     "Shatur/neovim-session-manager",
     lazy = true,
     event = "VeryLazy",
-    cond = vim.version.cmp(vim.version(), "0.10.0") >= 0,
+    -- cond = vim.version.cmp(vim.version(), "0.10.0") >= 0,
     -- enable=false,
-    -- cond=false,
+    cond=false,
     dependencies = {
         "nvim-lua/plenary.nvim",
     },

@@ -1,4 +1,3 @@
--- FIXME:https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
 return {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
@@ -7,12 +6,6 @@ return {
     event = {
         vim.g.obsidianPath and "BufReadPre " .. vim.g.obsidianPath .. "/*.md" or nil,
         vim.g.obsidianPath and "BufNewFile  " .. vim.g.obsidianPath .. "/*.md" or nil,
-    },
-    keys = {
-        { "<leader>ofw", "<cmd>ObsidianSearch<cr>", desc = "搜索关键词" },
-        { "<leader>off", "<cmd>ObsidianQuickSwitch<cr>", desc = "搜索Obsidian文件" },
-        { "<leader>oft", "<cmd>ObsidianTags<cr>", desc = "搜索Obsidian Tag" },
-        { "<leader>ot", "<cmd>ObsidianToday<cr>", desc = "打开/创建今日日记" },
     },
     dependencies = {
         "nvim-lua/plenary.nvim",
@@ -316,6 +309,14 @@ return {
     },
     config = function(_, opts)
         require("obsidian").setup(opts)
+        --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+        local commander = {
+            { "<cmd>ObsidianSearch<cr>", desc = "搜索关键词(Search keyword)" },
+            { "<cmd>ObsidianQuickSwitch<cr>", desc = "搜索Obsidian文件(Search file)" },
+            { "<cmd>ObsidianTags<cr>", desc = "搜索Obsidian Tag(Search tags)" },
+            { "<cmd>ObsidianToday<cr>", desc = "打开/创建今日日记(Open/Create diary)" },
+        }
+        require("commander").add(commander)
     end,
 }

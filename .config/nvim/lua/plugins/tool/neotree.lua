@@ -183,7 +183,7 @@ return {
                         ["<cr>"] = function(state)
                             --在buf已有对应window时自动focus到该window而不是新开一个
                             local node = state.tree:get_node()
-                            vim.notify(vim.inspect(node))
+                            -- vim.notify(vim.inspect(node))
                             local target_bufnr = node.extra and node.extra.bufnr
                             if target_bufnr then
                                 for _, win in ipairs(vim.api.nvim_list_wins()) do
@@ -202,18 +202,7 @@ return {
                                     return
                                 end
                             end
-                            -- bugfix:对Terminals<cr>会打开一个buffer???
-                            if node.type == "terminal" and node.name == "Terminals" then
-                                -- if node:is_expanded() then
-                                --     node:collapse()
-                                --     -- vim.notify("collapse")
-                                -- else
-                                --     node:expand()
-                                --     -- vim.notify("expand")
-                                -- end
-                                return
-                            end
-                            require("neo-tree.sources.common.commands").open(state)
+                            state.commands["open"](state)
                         end,
                     },
                 },
@@ -259,6 +248,16 @@ return {
                     },
                 },
             },
+        })
+
+        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+            "NeoTreeNormalNC",
+            "NeoTreeNormal",
+            "NeoTreeTabActive",
+            "NeoTreeTabInactive",
+            "NeoTreeTabSeparatorActive",
+            "NeoTreeTabSeparatorInactive",
+            "NeoTreeWinSeparator",
         })
     end,
 }

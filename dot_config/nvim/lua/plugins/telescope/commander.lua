@@ -29,16 +29,16 @@ return {
                 "CAT",
                 "DESC",
                 "CMD",
-                "KEYS",
+                -- "KEYS",
             },
 
             -- Specify by what components the commands is sorted
             -- Order does not matter
             sort_by = {
-                "DESC",
-                -- "KEYS",
-                "CMD",
                 "CAT",
+                "DESC",
+                "CMD",
+                -- "KEYS",
             },
             -- Change the separator used to separate each component
             separator = " ",
@@ -60,10 +60,12 @@ return {
             {
                 cmd = "<cmd>set bg=dark<cr>",
                 desc = "Dark Theme",
+                cat = "theme(background)",
             },
             {
                 cmd = "<cmd>set bg=light<cr>",
                 desc = "Light Theme",
+                cat = "theme(background)",
             },
         })
         require("commander").add({
@@ -88,5 +90,24 @@ return {
                 cat = "project",
             },
         })
+
+        if vim.g.neovide then
+            require("commander").add({
+                {
+                    cmd = function()
+                        vim.g.neovide_fullscreen = not vim.g.neovide_fullscreen
+                    end,
+                    desc = "Toggle Fullscreen",
+                    cat = "neovide",
+                },
+                {
+                    cmd = function()
+                        vim.g.neovide_input_ime = not vim.g.neovide_input_ime
+                    end,
+                    desc = "Toggle InputIME",
+                    cat = "neovide",
+                },
+            })
+        end
     end,
 }

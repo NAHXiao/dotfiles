@@ -308,14 +308,17 @@ function proj:projreader()
     if projects == nil then
         return {}
     end
-    -- check path is exists , if not del it
+    local modified = false
     for path, _ in pairs(projects) do
-        if not vim.fn.isdirectory(path) then
+        if 0 == vim.fn.isdirectory(path) then
             projects[path] = nil
+            modified = true
+            self:notify(path .. " is not exist and has been deleted", vim.log.levels.WARN)
         end
-        self:notify(path .. " is not exist and has been deleted", vim.log.levels.WARN)
     end
-    self:projwriter(projects)
+    if modified then
+        self:projwriter(projects)
+    end
     return projects
 end
 ---@param projects Projects
@@ -460,7 +463,7 @@ function proj:select(callback)
         if choice ~= nil then
             callback(projects[choice.path])
         else
-           self:notify("No project selected")
+            self:notify("No project selected")
         end
     end)
 end

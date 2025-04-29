@@ -288,6 +288,9 @@ local proj = {
 }
 
 proj.__index = proj
+function proj:notify(msg, level, opts)
+    vim.notify("proj: " .. msg, level, opts)
+end
 ---@return Projects
 function proj:projreader()
     local projfile = self.config.projfile
@@ -296,6 +299,7 @@ function proj:projreader()
     end
     local file = io.open(projfile, "r")
     if not file then
+        self:notify(projfile .. " cannot be opened", vim.log.levels.ERROR)
         return {}
     end
     local content = file:read("*a")
@@ -304,6 +308,14 @@ function proj:projreader()
     if projects == nil then
         return {}
     end
+    -- check path is exists , if not del it
+    for path, _ in pairs(projects) do
+        if not vim.fn.isdirectory(path) then
+            projects[path] = nil
+        end
+        self:notify(path .. " is not exist and has been deleted", vim.log.levels.WARN)
+    end
+    self:projwriter(projects)
     return projects
 end
 ---@param projects Projects
@@ -312,7 +324,7 @@ function proj:projwriter(projects)
     vim.fn.mkdir(vim.fn.fnamemodify(projfile, ":h"), "p")
     local file = io.open(projfile, "w")
     if not file then
-        vim.notify("Failed to open proj file", vim.log.levels.ERROR)
+        self:notify("Failed to open proj file", vim.log.levels.ERROR)
         return
     end
     local content = vim.json.encode(projects)
@@ -428,7 +440,7 @@ end
 function proj:select(callback)
     local projects = self:projreader()
     if projects == nil then
-        vim.notify("No projects found", vim.log.levels.WARN)
+        self:notify("No projects found", vim.log.levels.WARN)
         return
     end
     local options = {}
@@ -436,7 +448,7 @@ function proj:select(callback)
         table.insert(options, { path = path, name = project.name })
     end
     if #options == 0 then
-        vim.notify("No projects found", vim.log.levels.WARN)
+        self:notify("No projects found", vim.log.levels.WARN)
         return
     end
     vim.ui.select(options, {
@@ -448,7 +460,7 @@ function proj:select(callback)
         if choice ~= nil then
             callback(projects[choice.path])
         else
-            vim.notify("No project selected")
+           self:notify("No project selected")
         end
     end)
 end

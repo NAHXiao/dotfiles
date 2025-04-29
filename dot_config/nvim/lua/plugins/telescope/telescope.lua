@@ -1,11 +1,12 @@
-local _uiselect = vim.ui.select
+-- local _uiselect = vim.ui.select -- For Telescope , No used
 function vim.ui.select(...)
     if not Is_plugin_loaded("telescope.nvim") then
-        vim.ui.select = _uiselect
+        -- vim.ui.select = _uiselect
         require("lazy").load({ plugins = "telescope.nvim" })
         return vim.ui.select(...)
     end
 end
+
 local find_command = (function()
     if 1 == vim.fn.executable("rg") then
         return { "rg", "--files", "--color", "never", "--follow" }
@@ -285,5 +286,19 @@ return {
         })
         require("telescope").load_extension("ui-select")
         require("telescope").load_extension("fzf")
+
+        local _select = vim.ui.select
+        function vim.ui.select(items, opts, on_choice)
+            if
+                opts
+                and opts.prompt
+                and type(opts.prompt) == "string"
+                and string.match(opts.prompt, [[^You've reached.*limit.*Upgrade.*$]])
+            then
+                vim.notify("Copilot: " .. opts.prompt, vim.log.levels.ERROR)
+            else
+                return _select(items, opts, on_choice)
+            end
+        end
     end,
 }

@@ -296,6 +296,7 @@ return {
                 and string.match(opts.prompt, [[^You've reached.*limit.*Upgrade.*$]])
             then
                 vim.notify("Copilot: " .. opts.prompt, vim.log.levels.ERROR)
+                vim.cmd("Copilot disable")
             else
                 return _select(items, opts, on_choice)
             end

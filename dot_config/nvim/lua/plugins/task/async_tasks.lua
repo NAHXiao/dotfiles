@@ -1,3 +1,4 @@
+-- createtask()
 return {
     "skywind3000/asynctasks.vim",
     version = "*",
@@ -10,6 +11,69 @@ return {
             "<cmd>TaskListAsync<cr>",
             desc = "find project tasks",
             noremap = true,
+        },
+    },
+    commander = {
+        {
+            cmd = function()
+                local content = [[
+#可替换宏/环境变量
+#$(VIM_FILEPATH)  - 当前 buffer 的文件名全路径
+#$(VIM_FILENAME)  - 当前 buffer 的文件名（没有前面的路径）
+#$(VIM_FILEDIR)   - 当前 buffer 的文件所在路径
+#$(VIM_FILEEXT)   - 当前 buffer 的扩展名
+#$(VIM_FILENOEXT) - 当前 buffer 的主文件名（没有前面路径和后面扩展名）
+#$(VIM_PATHNOEXT) - 带路径的主文件名（$VIM_FILEPATH 去掉扩展名）
+#$(VIM_CWD)       - 当前 Vim 目录
+#$(VIM_RELDIR)    - 相对于当前路径的文件名
+#$(VIM_RELNAME)   - 相对于当前路径的文件路径
+#$(VIM_ROOT)      - 当前 buffer 的项目根目录
+#$(VIM_CWORD)     - 光标下的单词
+#$(VIM_CFILE)     - 光标下的文件名
+#$(VIM_GUI)       - 是否在 GUI 下面运行？
+#$(VIM_VERSION)   - Vim 版本号
+#$(VIM_COLUMNS)   - 当前屏幕宽度
+#$(VIM_LINES)     - 当前屏幕高度
+#$(VIM_SVRNAME)   - v:servername 的值
+#$(VIM_PRONAME)   - 项目名称（projroot 目录的名称）
+#$(VIM_DIRNAME)   - 当前目录的名称
+
+#e.g. 
+
+#default build task
+#[build:debug]
+# ForAllFile
+#command=echo "$(VIM_FILEPATH)"
+#ForOnlyC
+#command:c=gcc -O3 --std=c23 --debug "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" -lm
+
+#default run task
+#[run]
+#command="$(VIM_FILEPATH)"
+]]
+                local taskfile = vim.fn.fnamemodify(vim.fs.joinpath(vim.g.projroot, ".tasks"),":p")
+                vim.fn.mkdir(vim.fn.fnamemodify(taskfile, ":h"), "p")
+                if not vim.uv.fs_stat(taskfile) then
+                    local file = io.open(taskfile, "a")
+                    if not file then
+                        vim.notify("Failed to open or create task file", vim.log.levels.ERROR)
+                        return
+                    end
+                    file:write(content)
+                    file:close()
+                end
+                local wins = vim.api.nvim_list_wins()
+                for _, win in ipairs(wins) do
+                    local buf = vim.api.nvim_win_get_buf(win)
+                    local buf_path = vim.api.nvim_buf_get_name(buf)
+                    if vim.fn.fnamemodify(buf_path, ":p") == taskfile then
+                        vim.api.nvim_set_current_win(win)
+                        return
+                    end
+                end
+                vim.cmd("vsplit " .. vim.fn.fnameescape(taskfile))
+            end,
+            desc = "Create Task",
         },
     },
     cmd = {

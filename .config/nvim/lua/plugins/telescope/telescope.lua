@@ -213,7 +213,15 @@ return {
                         return {
                             bufnr = bufnr,
                             bufname = vim.api.nvim_buf_get_name(0),
-                            changedtick = vim.b[bufnr].changedtick,
+                            -- changedtick = vim.b[bufnr].changedtick,
+                            sha256 = require("utils").is_bigfile(bufnr)
+                                    and vim.b[bufnr].changedtick
+                                or vim.fn.sha256(
+                                    table.concat(
+                                        vim.api.nvim_buf_get_lines(bufnr, 0, -1, false),
+                                        "\n"
+                                    )
+                                ),
                         }
                     end
                 )

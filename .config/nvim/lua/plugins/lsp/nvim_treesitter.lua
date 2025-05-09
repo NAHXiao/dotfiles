@@ -42,11 +42,7 @@ return {
             highlight = {
                 enable = true,
                 disable = function(lang, buf)
-                    local max_filesize = 100 * 1024 -- 100 KB
-                    local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
-                    if ok and stats and stats.size > max_filesize then
-                        return true
-                    end
+                    require('utils').is_bigfile(buf)
                 end,
             },
             incremental_selection = {
@@ -58,6 +54,17 @@ return {
                 },
             },
             indent = { enable = true },
+        })
+        vim.o.foldmethod = "expr"
+        vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        vim.api.nvim_create_autocmd("LspAttach", {
+            callback = function(args)
+                local client = vim.lsp.get_client_by_id(args.data.client_id)
+                if client and client:supports_method("textDocument/foldingRange") then
+                    local win = vim.api.nvim_get_current_win()
+                    vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+                end
+            end,
         })
     end,
 }

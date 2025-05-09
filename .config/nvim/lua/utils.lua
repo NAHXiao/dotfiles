@@ -25,6 +25,23 @@ M.log = function(log)
         )
     end
 end
+-- 5000行/100KB
+function M.is_bigfile(bufnr)
+    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+    if line_count > 5000 then
+        return true
+    end
+    local filepath = vim.api.nvim_buf_get_name(bufnr)
+    if filepath == "" then
+        return false
+    end
+    local stat = uv.fs_stat(filepath)
+    if stat and stat.size > 100 * 1024 then
+        return true
+    end
+    return false
+end
 function M.decode_path(path)
     if not path then
         return ""

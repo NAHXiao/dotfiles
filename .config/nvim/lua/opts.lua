@@ -30,7 +30,7 @@ opt.splitbelow = true
 opt.clipboard = "unnamedplus"
 --折叠
 opt.hidden = true
-opt.foldenable = true
+opt.foldenable = false
 --跨文件搜索
 vim.cmd("set path+=$PWD/**")
 opt.updatetime = 100

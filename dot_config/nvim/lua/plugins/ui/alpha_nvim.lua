@@ -2,7 +2,8 @@
 return {
     "goolord/alpha-nvim",
     version = "*",
-    lazy = false,
+    lazy = vim.fn.argc() > 0,
+    cmd = { "Alpha", "AlphaRedraw", "AlphaRemap" },
     config = function()
         --   Recently opened files                   SPC f h
         local alpha = require("alpha")

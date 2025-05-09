@@ -38,18 +38,33 @@ return {
 #$(VIM_PRONAME)   - 项目名称（projroot 目录的名称）
 #$(VIM_DIRNAME)   - 当前目录的名称
 
+
+#$(-argvname)
+#$(-argvname:) 记住上次输入
+#$(-argvname:default) 以default为默认值
+
 #e.g. 
 
 #default build task
 #[build:debug]
-# ForAllFile
 #command=echo "$(VIM_FILEPATH)"
-#ForOnlyC
 #command:c=gcc -O3 --std=c23 --debug "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" -lm
+command:cpp=gcc -O3 --std=c++23 "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)" -lstdc++ -lm -msse3
+command:java=javac -d "$(VIM_ROOT)/.build" "$(VIM_FILEPATH)"
+command:rust=cargo locate-project &>/dev/null && cmd='cargo build --release' || cmd='rustc -g "$(VIM_FILEPATH)" -o "$(VIM_FILEDIR)/$(VIM_FILENOEXT)"' ; eval $cmd
+command:go=go build -o "$(VIM_PATHNOEXT)" "$(VIM_FILEPATH)"
+output=quickfix
+cwd=$(VIM_FILEDIR)
 
 #default run task
 #[run]
 #command="$(VIM_FILEPATH)"
+command:c,cpp="$(VIM_PATHNOEXT)"
+command:rust=cargo locate-project &>/dev/null && cmd='cargo run --' || cmd='"$(VIM_FILEDIR)/$(VIM_FILENOEXT)"' ; eval $cmd
+command:java=java -cp "$(VIM_ROOT)/.build" "$(VIM_FILENOEXT)" 
+output=terminal
+pos=bottom
+cwd=$(VIM_FILEDIR)
 ]]
                 local taskfile = vim.fn.fnamemodify(vim.fs.joinpath(vim.g.projroot, ".tasks"),":p")
                 vim.fn.mkdir(vim.fn.fnamemodify(taskfile, ":h"), "p")

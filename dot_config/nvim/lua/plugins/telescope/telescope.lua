@@ -209,7 +209,12 @@ return {
                     {},
                     "Treesitter Symbols",
                     function()
-                        vim.api.nvim_buf_get_name(0)
+                        local bufnr = vim.api.nvim_get_current_buf()
+                        return {
+                            bufnr = bufnr,
+                            bufname = vim.api.nvim_buf_get_name(0),
+                            changedtick = vim.b[bufnr].changedtick,
+                        }
                     end
                 )
             end,

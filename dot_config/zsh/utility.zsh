@@ -35,6 +35,17 @@ function auto_proxy(){
        fi
     done
 }
+# 循环向上cd
+function g/(){
+    local next=;
+    while [[ $(pwd) != '/' ]] ; do
+        builtin cd .. 
+        echo "\033[31m"$(pwd)"\033[0m" "\033[32m[press enter to continue]\033[0m"
+        ls
+        read next;
+        [[ -n $next ]] && break
+    done
+}
 function _smooth_fzf() {
   local fname
   local current_dir="$PWD"

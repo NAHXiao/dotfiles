@@ -66,7 +66,7 @@ output=terminal
 pos=bottom
 cwd=$(VIM_FILEDIR)
 ]]
-                local taskfile = vim.fn.fnamemodify(vim.fs.joinpath(vim.g.projroot, ".tasks"),":p")
+                local taskfile = vim.fn.fnamemodify(vim.fs.joinpath(vim.g.projroot, ".tasks"), ":p")
                 vim.fn.mkdir(vim.fn.fnamemodify(taskfile, ":h"), "p")
                 if not vim.uv.fs_stat(taskfile) then
                     local file = io.open(taskfile, "a")
@@ -146,9 +146,6 @@ cwd=$(VIM_FILEDIR)
             map_win["${selectedText}"] = "%VIM_VSC_selectedText%"
             map_win["${userHome}"] = "%VIM_VSC_Home%"
             local map = vim.g.is_win and map_win or map_notwin
-            if not vim.fn.filereadable(filepath) then
-                return {}
-            end
             local file, err = io.open(filepath, "r")
             if not file then
                 print("Error opening file: " .. (err or "Unknown error"))
@@ -273,7 +270,7 @@ cwd=$(VIM_FILEDIR)
 
             local filepath = (vim.b.projroot or vim.g.projroot) .. "/.vscode/tasks.json"
             local valid = vim.fn.filereadable(filepath)
-            if not valid then
+            if 0 == valid then
                 return
             end
             -- local buftype = vim.bo.buftype

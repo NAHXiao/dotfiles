@@ -146,6 +146,9 @@ cwd=$(VIM_FILEDIR)
             map_win["${selectedText}"] = "%VIM_VSC_selectedText%"
             map_win["${userHome}"] = "%VIM_VSC_Home%"
             local map = vim.g.is_win and map_win or map_notwin
+            if not vim.fn.filereadable(filepath) then
+                return {}
+            end
             local file, err = io.open(filepath, "r")
             if not file then
                 print("Error opening file: " .. (err or "Unknown error"))

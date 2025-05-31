@@ -14,8 +14,13 @@ map("i", "<C-f>", "<PageDown>")
 map("i", "<C-b>", "<PageUp>")
 
 map("n", "<leader>P", "ggVGp")
-map("v", "p", "P")
-map("v", "P", "p")
+map("v", "p", function() vim.cmd("normal! P") end, { remap = true })
+map("v", "P", function() vim.cmd("normal! p") end, { remap = true })
+map("v", "<C-S-V>", "p")
+map("v", "<C-S-C>", "y")
+map({ "n", "v"}, "<C-S-V>", "p")
+map({ "c", "i" }, "<C-S-V>", '<C-R>"')
+map("v", "<C-S-C>", "y")
 
 -- vnew
 map("n", "<C-w>N", ":vnew<CR>")

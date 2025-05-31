@@ -1,3 +1,43 @@
+local colors = {
+    bg = "#202328",
+    fg = "#bbc2cf",
+    yellow = "#ECBE7B",
+    cyan = "#008080",
+    darkblue = "#081633",
+    green = "#98be65",
+    orange = "#FF8800",
+    violet = "#a9a1e1",
+    magenta = "#c678dd",
+    blue = "#51afef",
+    red = "#ec5f67",
+}
+local mode_info = {
+    ["n"] = { name = "Normal", color = colors.red },
+    ["no"] = { name = "Operator Pending", color = colors.red },
+    ["v"] = { name = "Visual", color = colors.blue },
+    ["V"] = { name = "Visual Line", color = colors.blue },
+    [""] = { name = "Visual Block", color = colors.blue },
+    ["s"] = { name = "Select", color = colors.orange },
+    ["S"] = { name = "Select Line", color = colors.orange },
+    [""] = { name = "Select Block", color = colors.orange },
+    ["i"] = { name = "Insert", color = colors.green },
+    ["ic"] = { name = "Insert Completion", color = colors.yellow },
+    ["ix"] = { name = "Insert Completion", color = colors.yellow },
+    ["R"] = { name = "Replace", color = colors.violet },
+    ["Rc"] = { name = "Replace", color = colors.violet },
+    ["Rx"] = { name = "Replace", color = colors.violet },
+    ["Rv"] = { name = "Virtual Replace", color = colors.violet },
+    ["Rvc"] = { name = "Virtual Replace", color = colors.violet },
+    ["Rvx"] = { name = "Virtual Replace", color = colors.violet },
+    ["c"] = { name = "Command", color = colors.magenta },
+    ["cv"] = { name = "Vim Ex", color = colors.red },
+    ["ce"] = { name = "Ex", color = colors.red },
+    ["r"] = { name = "Hit-Enter Prompt", color = colors.cyan },
+    ["rm"] = { name = "More Prompt", color = colors.cyan },
+    ["r?"] = { name = "Confirm Prompt", color = colors.cyan },
+    ["!"] = { name = "Shell", color = colors.red },
+    ["t"] = { name = "Terminal", color = colors.red },
+}
 return {
     "nvim-lualine/lualine.nvim",
     version = "*",
@@ -20,19 +60,6 @@ return {
         local lualine = require("lualine")
         -- Color table for highlights
         -- stylua: ignore
-        local colors = {
-            bg       = '#202328',
-            fg       = '#bbc2cf',
-            yellow   = '#ECBE7B',
-            cyan     = '#008080',
-            darkblue = '#081633',
-            green    = '#98be65',
-            orange   = '#FF8800',
-            violet   = '#a9a1e1',
-            magenta  = '#c678dd',
-            blue     = '#51afef',
-            red      = '#ec5f67',
-        }
 
         local conditions = {
             buffer_not_empty = function()
@@ -65,46 +92,41 @@ return {
                 ignore_focus = { "neo-tree" },
             },
             sections = {
-                -- these are to remove the defaults
                 lualine_a = {},
                 lualine_b = {},
+                lualine_c = {},
+
+                lualine_x = {},
                 lualine_y = {},
                 lualine_z = {},
-                -- These will be filled later
-                -- lualine_c = { require('auto-session.lib').current_session_name }, -- Plua auto-session
-                lualine_c = {},
-                lualine_x = {},
             },
             inactive_sections = {
-                -- these are to remove the defaults
                 lualine_a = {},
                 lualine_b = {},
+                lualine_c = {},
+
+                lualine_x = {},
                 lualine_y = {},
                 lualine_z = {},
-                lualine_c = {},
-                lualine_x = {},
             },
             tabline = {
                 lualine_a = {},
                 -- lualine_b = { 'branch' },
                 lualine_c = { "filename" },
+
                 lualine_x = {},
                 lualine_y = { "buffers" },
                 -- lualine_z = { 'tabs' }
             },
         }
-
-        -- Inserts a component in lualine_c at left section
-        local function ins_left(component)
+        local function insert_left(component)
             table.insert(config.sections.lualine_c, component)
         end
-
-        -- Inserts a component in lualine_x at right section
-        local function ins_right(component)
+        local function insert_right(component)
             table.insert(config.sections.lualine_x, component)
         end
 
-        ins_left({
+        insert_left({
             function()
                 return "▊"
             end,
@@ -112,57 +134,33 @@ return {
             padding = { left = 0, right = 1 }, -- We don't need space before this
         })
 
-        ins_left({
-            -- mode component
+        
+        insert_left({
             function()
-                return ""
+                return mode_info[vim.api.nvim_get_mode().mode].name
             end,
             color = function()
-                -- auto change color according to neovims mode
-                local mode_color = {
-                    n = colors.red,
-                    i = colors.green,
-                    v = colors.blue,
-                    [""] = colors.blue,
-                    V = colors.blue,
-                    c = colors.magenta,
-                    no = colors.red,
-                    s = colors.orange,
-                    S = colors.orange,
-                    [""] = colors.orange,
-                    ic = colors.yellow,
-                    R = colors.violet,
-                    Rv = colors.violet,
-                    cv = colors.red,
-                    ce = colors.red,
-                    r = colors.cyan,
-                    rm = colors.cyan,
-                    ["r?"] = colors.cyan,
-                    ["!"] = colors.red,
-                    t = colors.red,
-                }
-                return { fg = mode_color[vim.fn.mode()] }
+                return { fg = mode_info[vim.api.nvim_get_mode().mode].color }
             end,
             padding = { right = 1 },
         })
 
-        ins_left({
-            -- filesize component
+        insert_left({
             "filesize",
             cond = conditions.buffer_not_empty,
         })
 
-        ins_left({
+        insert_left({
             "filename",
             cond = conditions.buffer_not_empty,
             color = { fg = colors.magenta, gui = "bold" },
         })
 
-        ins_left({ "location" })
+        insert_left({ "location" })
 
-        ins_left({ "progress", color = { fg = colors.fg, gui = "bold" } })
+        insert_left({ "progress", color = { fg = colors.fg, gui = "bold" } })
 
-        ins_left({
+        insert_left({
             "diagnostics",
             sources = { "nvim_diagnostic" },
             symbols = { error = " ", warn = " ", info = " " },
@@ -175,13 +173,13 @@ return {
 
         -- Insert mid section. You can make any number of sections in neovim :)
         -- for lualine it's any number greater then 2
-        ins_left({
+        insert_left({
             function()
                 return "%="
             end,
         })
 
-        ins_left({
+        insert_left({
             -- Lsp server name .
             function()
                 local msg = "No Active Lsp"
@@ -211,27 +209,27 @@ return {
         })
 
         -- Add components to right sections
-        ins_right({
+        insert_right({
             "o:encoding", -- option component same as &encoding in viml
             fmt = string.upper, -- I'm not sure why it's upper case either ;)
             cond = conditions.hide_in_width,
             color = { fg = colors.green, gui = "bold" },
         })
 
-        ins_right({
+        insert_right({
             "fileformat",
             fmt = string.upper,
             icons_enabled = false, -- I think icons are cool but Eviline doesn't have them. sigh
             color = { fg = colors.green, gui = "bold" },
         })
 
-        ins_right({
+        insert_right({
             "branch",
             icon = "",
             color = { fg = colors.violet, gui = "bold" },
         })
 
-        ins_right({
+        insert_right({
             "diff",
             -- Is it me or the symbol for modified us really weird
             symbols = { added = " ", modified = "󰝤 ", removed = " " },
@@ -243,7 +241,7 @@ return {
             cond = conditions.hide_in_width,
         })
 
-        ins_right({
+        insert_right({
             function()
                 return "▊"
             end,

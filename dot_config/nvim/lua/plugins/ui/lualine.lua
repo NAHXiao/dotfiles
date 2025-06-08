@@ -70,8 +70,12 @@ return {
                     },
 
                     {
-                        require("noice").api.status.mode.get,
-                        cond = require("noice").api.status.mode.has,
+                        function()
+                            return "recording @" .. vim.fn.reg_recording()
+                        end,
+                        cond = function()
+                            return vim.fn.reg_recording() ~= ""
+                        end,
                         color = { fg = "#ff9e64" },
                     },
                     {
@@ -160,11 +164,11 @@ return {
                 lualine_z = {},
             },
             tabline = {
-                lualine_a = {
-                    { "tabs", use_mode_colors = true },
+                lualine_a = {},
+                lualine_b = {
+                    -- { "tabs", use_mode_colors = false },
                     "filename",
                 },
-                lualine_b = {},
                 lualine_c = {},
                 lualine_x = {},
                 lualine_y = { "buffers" },

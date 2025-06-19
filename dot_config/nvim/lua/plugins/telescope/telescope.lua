@@ -22,6 +22,7 @@ local find_command = (function()
 end)()
 
 local _latest_func_map = {}
+--FIXME: clear
 function TeleMultiplexSearch(func, funcopts, prompt_title, ctxfunc)
     local ctx = ctxfunc and ctxfunc() or nil
     local same_opt_and_ctx = _latest_func_map[func]

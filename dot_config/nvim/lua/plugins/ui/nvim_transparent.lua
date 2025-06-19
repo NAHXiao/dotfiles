@@ -29,6 +29,6 @@ return {
         vim.api.nvim_create_user_command("TransparentToggle", function()
             require("transparent").toggle()
             set_nr_color()
-        end, {desc="Toggle transparent"})
+        end, { desc = "Toggle transparent" })
     end,
 }

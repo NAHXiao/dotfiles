@@ -9,5 +9,11 @@ return {
     },
     config = function()
         require("hop").setup()
+        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+            "HopUnmatched",
+            "HopNextKey",
+            "HopNextKey1",
+            "HopNextKey2",
+        })
     end,
 }

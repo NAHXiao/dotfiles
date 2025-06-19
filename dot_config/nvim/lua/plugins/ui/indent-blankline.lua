@@ -44,6 +44,10 @@ return {
     },
 
     config = function()
+        local hooks = require("ibl.hooks")
+        hooks.register(hooks.type.ACTIVE, function(bufnr)
+            return not require("utils").is_bigfile(bufnr)
+        end)
         require("ibl").setup()
     end,
 }

@@ -25,21 +25,36 @@ M.log = function(log)
         )
     end
 end
--- 5000行/100KB
-function M.is_bigfile(bufnr)
+function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
+    opt = vim.tbl_extend("force", {
+        line_limit = 5000,
+        size_limit = 10 * 1024 * 1024, -- 10MB
+        avg_linesize_limit = 100 * 1024, -- 平均每行 100 KB
+    }, opt or {})
+
     local line_count = vim.api.nvim_buf_line_count(bufnr)
-    if line_count > 5000 then
+    if line_count > opt.line_limit then
         return true
     end
+
     local filepath = vim.api.nvim_buf_get_name(bufnr)
     if filepath == "" then
         return false
     end
+
     local stat = uv.fs_stat(filepath)
-    if stat and stat.size > 100 * 1024 then
-        return true
+    if stat then
+        if stat.size > opt.size_limit then
+            return true
+        end
+        -- 计算平均行大小，防止极端文件短行但超大
+        local avg = stat.size / math.max(line_count, 1)
+        if avg > opt.avg_linesize_limit then
+            return true
+        end
     end
+
     return false
 end
 function M.decode_path(path)

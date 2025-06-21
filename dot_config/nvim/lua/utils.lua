@@ -57,6 +57,22 @@ function M.is_bigfile(bufnr, opt)
 
     return false
 end
+-- 当tbl.trigger_key = trigger_value时，执行trigger_func
+function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
+    local mt = getmetatable(tbl) or {}
+    local old_newindex = mt.__newindex
+    mt.__newindex = function(t, key, value)
+        if old_newindex then
+            old_newindex(t, key, value)
+        else
+            rawset(t, key, value)
+        end
+        if key == trigger_key and value == trigger_value then
+            trigger_func()
+        end
+    end
+    setmetatable(tbl, mt)
+end
 function M.decode_path(path)
     if not path then
         return ""

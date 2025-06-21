@@ -29,7 +29,7 @@ return {
                 "CAT",
                 "DESC",
                 "CMD",
-                -- "KEYS",
+                "KEYS",
             },
 
             -- Specify by what components the commands is sorted

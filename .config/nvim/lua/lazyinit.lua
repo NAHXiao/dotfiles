@@ -27,19 +27,30 @@ function Is_plugin_loaded(plugin_name)
     local plugin = require("lazy.core.config").plugins[plugin_name]
     return plugin ~= nil and plugin._.loaded ~= nil
 end
-require("lazy").setup({
-    { import = "plugins.cmp" },
-    { import = "plugins.edit" },
-    { import = "plugins.filetype" },
-    { import = "plugins.lsp" },
-    { import = "plugins.tool" },
-    { import = "plugins.ui" },
-    { import = "plugins.telescope" },
-    { import = "plugins.task" },
-    { import = "plugins.dap" },
-}, {
-    checker = {
-        enable = true,
-        frequency = 240, -- 10days
-    },
-})
+require("lazy").setup(
+    (function(dir)
+        local result = {}
+        local uv = vim.loop or vim.uv
+        local handle = uv.fs_scandir(dir)
+        if not handle then
+            vim.notify("directory doesn't exist: " .. dir, vim.log.levels.WARN)
+            return result
+        end
+        while true do
+            local name, type = uv.fs_scandir_next(handle)
+            if not name then
+                break
+            end
+            if type == "directory" then
+                table.insert(result, { import = vim.fs.basename(dir) .. "." .. name })
+            end
+        end
+        return result
+    end)(vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "plugins")),
+    {
+        checker = {
+            enable = true,
+            frequency = 240, -- 10days
+        },
+    }
+)

@@ -48,11 +48,5 @@ return {
         -- vim.g.asynctasks_term_pos = 'bottom'
         -- let g:asynctasks_term_pos = 'bottom'
         -- let g:asyncrun_open = 6
-        vim.api.nvim_create_autocmd("User", {
-            pattern = "AsyncRunStop",
-            callback = function(args)
-                vim.notify(vim.inspect(args))
-            end,
-        })
     end,
 }

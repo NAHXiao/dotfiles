@@ -92,6 +92,7 @@ return {
                     },
                 }))
             end,
+            ["jdtls"] = function() end, -- use nvim-jdtls plugin
         })
     end,
 }

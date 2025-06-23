@@ -433,7 +433,9 @@ function proj:load(project)
                 vim.cmd("split")
                 vim.cmd("wincmd j")
             end
-            vim.cmd("edit " .. filepath)
+            if vim.fn.filereadable(filepath) then
+                vim.cmd("edit " .. filepath)
+            end
         end
     end
     vim.api.nvim_set_current_win(base_win)
@@ -453,7 +455,9 @@ function proj:load(project)
     for _, filepath in ipairs(buffers) do
         local buf = vim.api.nvim_create_buf(false, false)
         vim.api.nvim_buf_call(buf, function()
-            vim.cmd("edit " .. filepath)
+            if vim.fn.filereadable(filepath) then
+                vim.cmd("edit " .. filepath)
+            end
         end)
     end
     ----------------------------------------

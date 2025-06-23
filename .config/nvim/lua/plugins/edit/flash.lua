@@ -1,3 +1,4 @@
+--TODO: disable for binary file
 return {
     "folke/flash.nvim",
     opts = {

@@ -147,12 +147,11 @@ return {
                 -- },
                 follow_current_file = {
                     enabled = true,
-                    leave_dirs_open = false,
+                    leave_dirs_open = true,
                 },
                 hijack_netrw_behavior = "open_current",
                 window = {
                     mappings = {
-                        -- ["."] = "set_root",
                         ["."] = function(state)
                             local node = state.tree:get_node()
                             if not node:get_parent_id() then
@@ -166,6 +165,15 @@ return {
                             else
                                 require("neo-tree.sources.filesystem.commands").set_root(state)
                             end
+                        end,
+                        ["<cr>"] = function(state)
+                            local node = state.tree:get_node()
+                            if node.type ~= "message" then
+                                state.commands["open"](state)
+                            else
+                                state.commands["toggle_hidden"](state)
+                            end
+                            -- hidden files
                         end,
                     },
                 },

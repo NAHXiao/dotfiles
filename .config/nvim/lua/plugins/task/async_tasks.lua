@@ -268,6 +268,7 @@ return {
         {
             "<F10>",
             function()
+                vim.g.asynctasks_term_focus = 1
                 if vim.g.asynctasks_config == "auto" then -- project-run -> file-run
                     local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })
                     local taskname = (function()
@@ -299,6 +300,7 @@ return {
                 elseif vim.g.asynctasks_config == "file" then
                     vim.cmd("AsyncTask " .. "file-run")
                 end
+                vim.g.asynctasks_term_focus = 0
             end,
             desc = "run",
         },
@@ -365,7 +367,7 @@ return {
     config = function()
         vim.g.asynctasks_extra_config = default_asynctasks_extra_config
         vim.g.asynctasks_term_rows = 10
-        vim.g.asynctasks_term_pos = 'bottom'
+        vim.g.asynctasks_term_pos = "bottom"
         vim.g.asynctasks_confirm = 0
         vim.g.asynctasks_template = vim.fn.stdpath("config")
             .. "/lua/plugins/task/asynctask_template.ini"

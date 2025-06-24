@@ -194,3 +194,25 @@ vim.api.nvim_create_autocmd("TermOpen", {
 vim.cmd("autocmd BufWritePost * silent! !clear")
 
 
+-- popup
+vim.cmd([[
+set mousemodel=popup
+aunmenu PopUp.How-to\ disable\ mouse
+aunmenu PopUp.-2-
+function! s:copy_to_clipboards(text)
+  let cb = &clipboard
+  if cb =~# 'unnamedplus'
+    call setreg('+', a:text)
+  endif
+  if cb =~# 'unnamed'
+    call setreg('*', a:text)
+  endif
+  call setreg('"', a:text)
+endfunction
+autocmd BufEnter * if expand('%:p') !=# '' |
+      \ silent! aunmenu PopUp.Copy\ file\ path |
+      \ silent! aunmenu PopUp.Copy\ file\ name |
+      \ amenu PopUp.Copy\ file\ path <cmd>call <SID>copy_to_clipboards(expand('%:p'))<CR> |
+      \ amenu PopUp.Copy\ file\ name <cmd>call <SID>copy_to_clipboards(expand('%:t'))<CR> |
+      \ endif
+]])

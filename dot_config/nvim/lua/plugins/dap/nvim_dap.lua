@@ -12,23 +12,53 @@ return {
     },
     lazy = true,
     keys = {
-        --F2设置断点
-        --F5启动/继续
-        --F10单步不步入
-        --F11/ShiftF11步入/步出
         {
-            "<F12>",
+            "<F2>",
             function()
                 require("dap").toggle_breakpoint()
             end,
             desc = "Debug: Toggle breakpoint",
         },
         {
-            "<F9>",
+            "<F14>",
             function()
-                local continue = function() -- FIXME:
+                require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
+            end,
+            desc = "Debug: Set breakpoint <Shift-F2>",
+        },
+        {
+            "<F26>",
+            function()
+                require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
+            end,
+            desc = "Debug: Set log point <Ctrl-F2>",
+        },
+
+        {
+            "<F3>",
+            function()
+                require("dap").repl.toggle()
+            end,
+            desc = "Debug: Toggle REPL",
+        },
+
+        {
+            "<F4>",
+            function()
+                require("dap").run_last()
+            end,
+            desc = "Debug: Run last",
+        },
+
+        {
+            "<F5>",
+            function()
+                local continue = function()
                     if
-                        vim.fn.filereadable(vim.fs.joinpath(vim.g.projroot, ".vscode/launch.json"))
+                        1
+                        == vim.fn.filereadable(
+                            vim.fs.joinpath(vim.g.projroot, ".vscode/launch.json")
+                        )
                     then
                         require("dap.ext.vscode").load_launchjs(nil, { cppdbg = { "c", "cpp" } })
                     end
@@ -38,55 +68,27 @@ return {
             end,
             desc = "Debug: Continue",
         },
+
         {
-            "<F10>",
-            function()
-                require("dap").step_over()
-            end,
-            desc = "Debug: Step over",
-        },
-        {
-            "<F11>",
+            "<F6>",
             function()
                 require("dap").step_into()
             end,
             desc = "Debug: Step into Function/Method",
         },
         {
-            "<F23>", -- Shift + <F11>
+            "<F7>",
+            function()
+                require("dap").step_over()
+            end,
+            desc = "Debug: Step over",
+        },
+        {
+            "<F8>",
             function()
                 require("dap").step_out()
             end,
             desc = "Debug: Step out Function/Method",
-        },
-
-        {
-            "<leader>db",
-            function()
-                require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
-            end,
-            desc = "Debug: Set breakpoint",
-        },
-        {
-            "<leader>dp",
-            function()
-                require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
-            end,
-            desc = "Debug: Set log point",
-        },
-        {
-            "<leader>dr",
-            function()
-                require("dap").repl.toggle()
-            end,
-            desc = "Debug: Toggle REPL",
-        },
-        {
-            "<leader>dl",
-            function()
-                require("dap").run_last()
-            end,
-            desc = "Debug: Run last",
         },
     },
     config = function()

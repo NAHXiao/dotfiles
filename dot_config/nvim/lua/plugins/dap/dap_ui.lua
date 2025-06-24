@@ -8,18 +8,19 @@ return {
     lazy = true,
     keys = {
         {
+            "<F1>",
+            function()
+                require("dapui").toggle({})
+            end,
+            desc = "Debug: Toggle UI",
+        },
+
+        {
             "<leader>du",
             function()
                 require("dapui").toggle({ layout = 1 })
             end,
             desc = "Debug: Toggle UI sidebar",
-        },
-        {
-            "<leader>dU",
-            function()
-                require("dapui").toggle({})
-            end,
-            desc = "Debug: Toggle UI",
         },
         {
             "<leader>dc",
@@ -30,7 +31,6 @@ return {
         },
         {
             "<leader>dk",
-            -- "<M-k>",
             function()
                 require("dapui").eval()
             end,

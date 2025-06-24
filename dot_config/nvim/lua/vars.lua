@@ -29,3 +29,7 @@ if osname == "Linux" or osname == "Darwin" then
 elseif osname == "Windows_NT" then
     g.is_win = true
 end
+
+vim.env.PATH = vim.env.PATH
+    .. (g.is_nix and ":" or ";")
+    .. (vim.fs.joinpath(vim.fn.stdpath("config"), "bin"))

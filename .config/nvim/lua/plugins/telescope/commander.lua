@@ -38,7 +38,7 @@ return {
                 "CAT",
                 "DESC",
                 "CMD",
-                -- "KEYS",
+                "KEYS",
             },
             -- Change the separator used to separate each component
             separator = " ",

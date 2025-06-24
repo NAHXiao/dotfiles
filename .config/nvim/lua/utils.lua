@@ -90,7 +90,9 @@ function M.encode_path(encoded_path)
         return string.char(tonumber(hex, 16))
     end)
 end
-
+function M.trim(s)
+    return s:match("^%s*(.-)%s*$")
+end
 function M.findfile_any(opt)
     local default_opt = {
         filelist = {},

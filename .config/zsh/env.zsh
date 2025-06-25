@@ -33,6 +33,9 @@ export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 
 export XDG_CONFIG_DIRS="/etc/xdg"
 export XDG_DATA_DIRS="/usr/local/share:/usr/share:/var/lib/flatpak/exports/share:$XDG_DATA_HOME/flatpak/exports/share"
+
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
 ############################################# PATH #################################################
 export_chkexist PATH "$PNPM_HOME"                               "$PNPM_HOME:$PATH"
 export_chkexist PATH "$HOME/.local/share/fnm"                   "$HOME/.local/share/fnm:$PATH"
@@ -106,7 +109,7 @@ export_chkexist MANDOCPATH "$HOME/.local/Obsidian/main/CLIMAN"
 
 ############################################# APPS #################################################
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
-command -v thefuck &>/dev/null && eval $(thefuck --alias)
+command -v thefuck &>/dev/null && eval $(thefuck --alias) && alias fk='fuck'
 export_chkexist PNPM_HOME "$HOME/.local/share/pnpm"
 
 ############################################# PROJ #################################################

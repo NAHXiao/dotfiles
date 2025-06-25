@@ -20,18 +20,18 @@ return {
             desc = "Debug: Toggle breakpoint",
         },
         {
-            "<F14>",
+            vim.g.is_win and "<S-F2>" or "<F14>",
             function()
                 require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
             end,
-            desc = "Debug: Set breakpoint <Shift-F2>",
+            desc = "Debug: Set breakpoint" .. (vim.g.is_win and "" or " <Shift-F2>"),
         },
         {
-            "<F26>",
+            vim.g.is_win and "<C-F2>" or "<F26>",
             function()
                 require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
             end,
-            desc = "Debug: Set log point <Ctrl-F2>",
+            desc = "Debug: Set log point" .. (vim.g.is_win and "" or " <Ctrl-F2>"),
         },
 
         {

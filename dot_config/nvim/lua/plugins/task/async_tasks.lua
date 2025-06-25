@@ -321,7 +321,7 @@ return {
             desc = "toggle profile(release/debug)",
         },
         {
-            "<F23>",
+            vim.g.is_win and "<S-F11>" or "<F23>",
             function()
                 local old = vim.g.asynctasks_config
                 vim.g.asynctasks_config = (function(o)
@@ -342,7 +342,7 @@ return {
                     vim.g.asynctasks_config
                 ))
             end,
-            desc = "toggle profile(project/file/auto) <Shift-F11>",
+            desc = "toggle profile(project/file/auto)" .. (vim.g.is_win and "" or " <Shift-F11>"),
         },
         {
             "<F12>",
@@ -351,9 +351,9 @@ return {
             noremap = true,
         },
         {
-            "<F24>",
+            vim.g.is_win and "<S-F12>" or "<F24>",
             "<cmd>AsyncTaskEdit<cr>",
-            desc = "create/edit tasks",
+            desc = "create/edit tasks" .. (vim.g.is_win and "" or " <Shift-F12>"),
             noremap = true,
         },
     },

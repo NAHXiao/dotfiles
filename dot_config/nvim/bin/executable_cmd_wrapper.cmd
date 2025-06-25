@@ -1,5 +1,4 @@
 @echo off
-setlocal enabledelayedexpansion
 set "full_command=%*"
 echo [%full_command%]
 %*

@@ -231,9 +231,10 @@ return {
         {
             "<F9>",
             function()
+                local taskname
                 if vim.g.asynctasks_config == "auto" then -- project-build -> file-build
                     local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })
-                    local taskname = (function()
+                    taskname = (function()
                         local file_build = false
                         local trim = require("utils").trim
                         for _, task in ipairs(tasks) do
@@ -249,18 +250,21 @@ return {
                             return "file-build"
                         end
                     end)()
-                    if taskname then
-                        vim.cmd("AsyncTask " .. taskname)
-                    else
-                        vim.notify(
-                            "Error: not find tasks [project-build,file-build]",
-                            vim.log.levels.ERROR
-                        )
-                    end
                 elseif vim.g.asynctasks_config == "project" then
-                    vim.cmd("AsyncTask " .. "project-build")
+                    taskname = "project-build"
                 elseif vim.g.asynctasks_config == "file" then
-                    vim.cmd("AsyncTask " .. "file-build")
+                    taskname = "file-build"
+                else
+                    assert(0, "asynctasks_config should be one of [auto project file]")
+                end
+                if taskname then
+                    vim.notify("start " .. taskname, vim.log.levels.INFO)
+                    vim.cmd("AsyncTask " .. taskname)
+                else
+                    vim.notify(
+                        "Error: not find tasks [project-build,file-build]",
+                        vim.log.levels.ERROR
+                    )
                 end
             end,
             desc = "build",
@@ -268,10 +272,12 @@ return {
         {
             "<F10>",
             function()
+                local old_asynctasks_term_focus = vim.g.asynctasks_term_focus
                 vim.g.asynctasks_term_focus = 1
+                local taskname
                 if vim.g.asynctasks_config == "auto" then -- project-run -> file-run
                     local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })
-                    local taskname = (function()
+                    taskname = (function()
                         local file_run = false
                         local trim = require("utils").trim
                         for _, task in ipairs(tasks) do
@@ -287,20 +293,20 @@ return {
                             return "file-run"
                         end
                     end)()
-                    if taskname then
-                        vim.cmd("AsyncTask " .. taskname)
-                    else
-                        vim.notify(
-                            "Error: not find tasks [project-run,file-run]",
-                            vim.log.levels.ERROR
-                        )
-                    end
                 elseif vim.g.asynctasks_config == "project" then
-                    vim.cmd("AsyncTask " .. "project-run")
+                    taskname = "project-run"
                 elseif vim.g.asynctasks_config == "file" then
-                    vim.cmd("AsyncTask " .. "file-run")
+                    taskname = "file-run"
+                else
+                    assert(0, "asynctasks_config should be one of [auto project file]")
                 end
-                vim.g.asynctasks_term_focus = 0
+                if taskname then
+                    vim.notify("start " .. taskname, vim.log.levels.INFO)
+                    vim.cmd("AsyncTask " .. taskname)
+                else
+                    vim.notify("Error: not find tasks [project-run,file-run]", vim.log.levels.ERROR)
+                end
+                vim.g.asynctasks_term_focus = old_asynctasks_term_focus
             end,
             desc = "run",
         },
@@ -344,6 +350,12 @@ return {
             desc = "select project tasks",
             noremap = true,
         },
+        {
+            "<F24>",
+            "<cmd>AsyncTaskEdit<cr>",
+            desc = "create/edit tasks",
+            noremap = true,
+        },
     },
     cmd = {
         "AsyncRun",
@@ -366,8 +378,10 @@ return {
     },
     config = function()
         vim.g.asynctasks_extra_config = default_asynctasks_extra_config
+
         vim.g.asynctasks_term_rows = 10
         vim.g.asynctasks_term_pos = "bottom"
+
         vim.g.asynctasks_confirm = 0
         vim.g.asynctasks_template = vim.fn.stdpath("config")
             .. "/lua/plugins/task/asynctask_template.ini"

@@ -356,6 +356,12 @@ return {
             desc = "create/edit tasks" .. (vim.g.is_win and "" or " <Shift-F12>"),
             noremap = true,
         },
+        {
+            vim.g.is_win and "<C-F12>" or "<F36>",
+            "<cmd>AsyncTaskEdit<cr>",
+            desc = "create/edit tasks" .. (vim.g.is_win and "" or " <Ctrl-F12>"),
+            noremap = true,
+        },
     },
     cmd = {
         "AsyncRun",

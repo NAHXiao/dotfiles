@@ -35,7 +35,7 @@ echo # set^(CMAKE_CXX_COMPILER "/usr/bin/g++"^)
 echo.
 echo.
 echo add_executable^(${PROJECT_NAME} src/main.cpp^)
-echo target_compile_definitions^(${PROJECT_NAME} PRIVATE FMT_HEADER_ONLY=0^)
+echo #target_compile_definitions^(${PROJECT_NAME} PRIVATE FMT_HEADER_ONLY=0^)
 echo #target_link_libraries^(${PROJECT_NAME} PRIVATE fmt::fmt^)
 echo.
 echo.

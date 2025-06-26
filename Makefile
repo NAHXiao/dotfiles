@@ -1,5 +1,6 @@
 SKIPCHECK ?= false
 RAW_FORCE ?= false
+MAIN_FORCE ?= false
 
 .ONESHELL:
 .SHELL := bash
@@ -59,8 +60,13 @@ raw:
 
 push: raw
 	@set -euo pipefail; \
-	echo "main->main" && 
-	git push origin main:main && 
+	if [ "$(MAIN_FORCE)" == "true" ]; then \
+		echo "main->main(force)" &&
+		git push origin main:main --force; \
+	else \
+		echo "main->main" &&
+		git push origin main:main; \
+	fi
 	if [ "$(RAW_FORCE)" == "true" ]; then \
 		echo "raw->raw(force)" &&
 		git push origin raw:raw --force; \

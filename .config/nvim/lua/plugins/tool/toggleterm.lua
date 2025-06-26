@@ -1,4 +1,4 @@
-local key = "<c-space>"
+local key = vim.g.is_win and "<c-\\>" or "<c-space>"
 return {
     "akinsho/toggleterm.nvim",
     version = "*",

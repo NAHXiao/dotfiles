@@ -231,6 +231,9 @@ return {
         {
             "<F9>",
             function()
+                if not Is_plugin_loaded("asynctasks.vim") then
+                    require("lazy").load({ plugins = "asynctasks.vim" })
+                end
                 local taskname
                 if vim.g.asynctasks_config == "auto" then -- project-build -> file-build
                     local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })
@@ -272,8 +275,11 @@ return {
         {
             "<F10>",
             function()
-                local old_asynctasks_term_focus = vim.g.asynctasks_term_focus
-                vim.g.asynctasks_term_focus = 1
+                if not Is_plugin_loaded("asynctasks.vim") then
+                    require("lazy").load({ plugins = "asynctasks.vim" })
+                end
+                -- local old_asynctasks_term_focus = vim.g.asynctasks_term_focus
+                -- vim.g.asynctasks_term_focus = 1
                 local taskname
                 if vim.g.asynctasks_config == "auto" then -- project-run -> file-run
                     local tasks = vim.api.nvim_call_function("asynctasks#source", { 50 })
@@ -306,13 +312,16 @@ return {
                 else
                     vim.notify("Error: not find tasks [project-run,file-run]", vim.log.levels.ERROR)
                 end
-                vim.g.asynctasks_term_focus = old_asynctasks_term_focus
+                -- vim.g.asynctasks_term_focus = old_asynctasks_term_focus
             end,
             desc = "run",
         },
         {
             "<F11>",
             function()
+                if not Is_plugin_loaded("asynctasks.vim") then
+                    require("lazy").load({ plugins = "asynctasks.vim" })
+                end
                 vim.cmd(
                     "AsyncTaskProfile "
                         .. (vim.g.asynctasks_profile == "debug" and "release" or "debug")
@@ -323,6 +332,9 @@ return {
         {
             vim.g.is_win and "<S-F11>" or "<F23>",
             function()
+                if not Is_plugin_loaded("asynctasks.vim") then
+                    require("lazy").load({ plugins = "asynctasks.vim" })
+                end
                 local old = vim.g.asynctasks_config
                 vim.g.asynctasks_config = (function(o)
                     if o == "auto" then

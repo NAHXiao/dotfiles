@@ -1,6 +1,39 @@
 return {
     "folke/noice.nvim",
     event = "VeryLazy",
+    dependencies = {
+        "MunifTanjim/nui.nvim",
+        {
+            "rcarriga/nvim-notify",
+            event = "VeryLazy",
+            keys = {
+                -- { "<leader>fn", "<cmd>Telescope notify<cr>" },
+            },
+            cond = vim.version.cmp(vim.version(), "0.10.0") >= 0,
+            config = function()
+                local notify = require("notify")
+                notify.setup({
+                    render = "minimal",
+                    stages = "static", --"fade",
+                    top_down = true,
+                })
+                local old_notify = notify.notify
+                local new_notify = function(msg, level, opts)
+                    if
+                        string.match(
+                            string.lower(tostring(msg)),
+                            "^.*copilot.*not authenticated.*$"
+                        )
+                    then
+                        vim.cmd("Copilot disable")
+                    end
+                    return old_notify(msg, level, opts)
+                end
+                notify.notify = new_notify
+                vim.notify = notify
+            end,
+        },
+    },
     opts = {
         presets = {
             bottom_search = true, -- use a classic bottom cmdline for search
@@ -14,9 +47,5 @@ return {
                 enabled = false,
             },
         },
-    },
-    dependencies = {
-        "MunifTanjim/nui.nvim",
-        "rcarriga/nvim-notify",
     },
 }

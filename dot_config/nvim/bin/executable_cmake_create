@@ -15,7 +15,7 @@ EOF
 
 cat > CMakeLists.txt << 'EOF'
 cmake_minimum_required(VERSION 3.24)
-#set(VCPKG_TARGET_TRIPLET "x64-linux-static")
+#set(VCPKG_TARGET_TRIPLET "x64-linux")
 #set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake) # before project() command
 project(PROJECT_NAME_PLACEHOLDER VERSION 0.1.0 LANGUAGES CXX)
 #find_package(fmt CONFIG REQUIRED) # after project() command

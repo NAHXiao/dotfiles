@@ -46,6 +46,30 @@ function g/(){
         [[ -n $next ]] && break
     done
 }
+function clear_invalid_link(){
+    if [ $# -ne 1 ]; then
+        echo "Usage: $0 <directory>"
+        return 1
+    fi
+    dir="$1"
+    if [ ! -d "$dir" ]; then
+        echo "Error: Directory '$dir' does not exist" >&2
+        return 1
+    fi
+    deleted_count=0
+    _IFS=$IFS;IFS=$'\n'
+    for link in $(find "$dir" -type l -print);do
+        if [ ! -e "$link" ]; then
+            echo "delete $link"
+            command rm -- "$link"
+            ((deleted_count++))
+        fi
+    done
+    IFS=$_IFS;unset _IFS
+    if [ $deleted_count -eq 0 ]; then
+        echo "nothing to do"
+    fi
+}
 function _smooth_fzf() {
   local fname
   local current_dir="$PWD"

@@ -1,9 +1,9 @@
--- local _uiselect = vim.ui.select -- For Telescope , No used
+-- 一次性:首次调用则加载Telescope
 function vim.ui.select(...)
     if not Is_plugin_loaded("telescope.nvim") then
         -- vim.ui.select = _uiselect
         require("lazy").load({ plugins = "telescope.nvim" })
-        return vim.ui.select(...)
+        vim.ui.select(...)
     end
 end
 
@@ -249,9 +249,19 @@ return {
             desc = "Find keymaps",
         },
         {
-            "<leader>fc",
+            "<leader>f;",
             "<cmd>lua require('telescope.builtin').commands()<cr>",
             desc = "Find commands",
+        },
+        {
+            "<leader>f'",
+            "<cmd>lua require('telescope.builtin').marks()<cr>",
+            desc = "Find marks",
+        },
+        {
+            "<leader>fc",
+            "<cmd>lua require('telescope.builtin').colorscheme()<cr>",
+            desc = "Find colorscheme",
         },
         {
             "<leader>fmp",
@@ -309,20 +319,5 @@ return {
         })
         require("telescope").load_extension("ui-select")
         require("telescope").load_extension("fzf")
-
-        local _select = vim.ui.select
-        function vim.ui.select(items, opts, on_choice)
-            if
-                opts
-                and opts.prompt
-                and type(opts.prompt) == "string"
-                and string.match(opts.prompt, [[^You've reached.*limit.*Upgrade.*$]])
-            then
-                vim.notify("Copilot: " .. opts.prompt, vim.log.levels.ERROR)
-                vim.cmd("Copilot disable")
-            else
-                return _select(items, opts, on_choice)
-            end
-        end
     end,
 }

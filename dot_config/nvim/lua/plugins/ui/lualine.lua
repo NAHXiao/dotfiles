@@ -37,11 +37,10 @@ return {
         }
         require("lualine").setup({
             options = {
-                -- Disable sections and component separators
+                ignore_focus = { "neo-tree" }, --be drawn as inactive statusline
                 component_separators = "",
-                section_separators = "",
-                theme = "catppuccin",
-                ignore_focus = { "neo-tree" },
+                section_separators = { left = "", right = "" },
+                globalstatus = true,
             },
             sections = {
                 lualine_a = { "mode" },
@@ -51,11 +50,11 @@ return {
                         "filesize",
                         cond = conditions.buffer_not_empty,
                     },
-                    {
-                        "filename",
-                        cond = conditions.buffer_not_empty,
-                        color = { fg = colors.magenta, gui = "bold" },
-                    },
+                    -- {
+                    --     "filename",
+                    --     cond = conditions.buffer_not_empty,
+                    --     color = { fg = colors.magenta, gui = "bold" },
+                    -- },
                     { "location" },
                     { "progress", color = { fg = colors.fg, gui = "bold" } },
                     {
@@ -86,23 +85,22 @@ return {
                     {
                         -- Lsp server name .
                         function()
-                            local msg = "No Active Lsp"
-                            local buf_ft = vim.api.nvim_get_option_value("filetype", { buf = 0 })
-                            local clients = (function()
-                                return vim.lsp.get_clients({
-                                    bufnr = vim.api.nvim_get_current_buf(),
-                                })
-                            end)()
-                            if next(clients) == nil then
-                                return msg
-                            end
-                            for _, client in ipairs(clients) do
-                                local filetypes = client.config.filetypes
-                                if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
+                            local clients = vim.lsp.get_clients()
+                            local buf = vim.api.nvim_get_current_buf()
+                            clients = vim.iter(clients)
+                                :filter(function(client)
+                                    return client.attached_buffers[buf]
+                                end)
+                                :map(function(client)
                                     return client.name
-                                end
+                                end)
+                                :totable()
+                            if #clients == 0 then
+                                return "No Active Lsp"
+                            else
+                                local info = table.concat(clients, ", ")
+                                return info
                             end
-                            return msg
                         end,
                         icon = " LSP:",
                         cond = function()
@@ -118,15 +116,63 @@ return {
                         color = { fg = colors.orange },
                     },
                     {
-                        require("noice").api.status.search.get,
-                        cond = require("noice").api.status.search.has,
-                        color = { fg = colors.blue },
-                    },
-                    {
-                        "o:encoding", -- option component same as &encoding in viml
-                        fmt = string.upper, -- I'm not sure why it's upper case either ;)
+                        function()
+                            return "sw=" .. vim.o.shiftwidth
+                        end,
                         cond = conditions.hide_in_width,
                         color = { fg = colors.green, gui = "bold" },
+                        padding = { left = 1, right = 0 },
+                        on_click = function(num, btn, mod)
+                            local old = vim.o.shiftwidth
+                            if btn == "l" then
+                                vim.o.shiftwidth = (old - 1) > 0 and (old - 1) or 1
+                            elseif btn == "r" then
+                                vim.o.shiftwidth = old + 1
+                            elseif btn == "m" then
+                                vim.cmd([[stopinsert]])
+                                vim.api.nvim_feedkeys(":set shiftwidth=", "nt", false)
+                            end
+                        end,
+                    },
+                    {
+                        function()
+                            return "ts=" .. vim.o.tabstop
+                        end,
+                        cond = conditions.hide_in_width,
+                        color = { fg = colors.green, gui = "bold" },
+                        padding = { left = 1, right = 0 },
+                        on_click = function(num, btn, mod)
+                            local old = vim.o.tabstop
+                            if btn == "l" then
+                                vim.o.tabstop = (old - 1) > 0 and (old - 1) or 1
+                            elseif btn == "r" then
+                                vim.o.tabstop = old + 1
+                            elseif btn == "m" then
+                                vim.cmd([[stopinsert]])
+                                vim.api.nvim_feedkeys(":set tabstop=", "nt", false)
+                            end
+                        end,
+                    },
+                    {
+                        function()
+                            return "et=" .. (vim.o.expandtab and "on" or "off")
+                        end,
+                        cond = conditions.hide_in_width,
+                        padding = { left = 1, right = 1 },
+                        color = { fg = colors.green, gui = "bold" },
+                        on_click = function()
+                            local old = vim.o.expandtab
+                            vim.o.expandtab = not old
+                        end,
+                    },
+                    {
+                        "encoding",
+                        cond = conditions.hide_in_width,
+                        color = { fg = colors.green, gui = "bold" },
+                        on_click = function()
+                            vim.cmd([[stopinsert]])
+                            vim.api.nvim_feedkeys(":set fileencoding=", "nt", false)
+                        end,
                     },
                     {
                         "fileformat",

@@ -1,6 +1,6 @@
 return {
     "williamboman/mason-lspconfig.nvim",
-    version = "*",
+    version = "1.*",
     lazy = false,
     event = "UIEnter",
     dependencies = {

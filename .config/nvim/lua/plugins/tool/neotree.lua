@@ -29,9 +29,9 @@ return {
     keys = {
         { "<C-n>", "<Cmd>Neotree toggle<CR>", desc = "Toggle Explorer", mode = "n" },
         {
-            "<leader>t",
+            "<leader>s",
             "<Cmd>Neotree document_symbols action=show toggle=true<CR>",
-            desc = "Toggle Explorer",
+            desc = "Toggle Document_symbols",
             mode = "n",
         },
     },

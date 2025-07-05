@@ -8,16 +8,19 @@ return {
     config = function()
         require("illuminate").configure({
             providers = {
+                "treesitter",
                 "lsp",
-                -- 'treesitter',
                 "regex",
             },
             delay = 100,
             under_cursor = true,
-            max_file_lines = 3000,
+            filetypes_denylist = {
+                "neo-tree",
+            },
             should_enable = function(bufnr)
-                require("utils").is_bigfile(bufnr)
+                return not require("utils").is_bigfile(bufnr)
             end,
+            disable_keymaps = true,
         })
     end,
 }

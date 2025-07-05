@@ -2,7 +2,6 @@ return {
     "rcarriga/nvim-dap-ui",
     dependencies = {
         "mfussenegger/nvim-dap",
-        "LiadOz/nvim-dap-repl-highlights",
         "nvim-neotest/nvim-nio",
     },
     lazy = true,
@@ -91,13 +90,15 @@ return {
         dap.listeners.before.launch.dapui_config = function()
             dapui.open()
         end
-        dap.listeners.before.event_terminated.dapui_config = function()
-            dapui.close()
-        end
-        dap.listeners.before.event_exited.dapui_config = function()
-            dapui.close()
-        end
+        -- dap.listeners.before.event_terminated.dapui_config = function()
+        --     dapui.close()
+        -- end
+        -- dap.listeners.before.event_exited.dapui_config = function()
+        --     dapui.close()
+        -- end
         --注册命令DapuiClose,DapuiOpen
         vim.cmd("command! DapUiToggle lua require('dapui').toggle()")
+        vim.cmd([[ autocmd FileType,BufNewFile,BufRead,BufEnter * if match(&filetype, '^dapui') >= 0 | setlocal nofoldenable foldcolumn=0 | endif ]])
+        vim.cmd([[ autocmd FileType dap-float nnoremap <buffer> <silent> q <C-w>q ]])
     end,
 }

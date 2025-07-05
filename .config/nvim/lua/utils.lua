@@ -526,7 +526,7 @@ end
 function proj:setup()
     if proj._setuped == false then
         vim.api.nvim_create_augroup("proj", { clear = true })
-        vim.api.nvim_create_autocmd("VimLeavePre", {
+        vim.api.nvim_create_autocmd("vimleavepre", {
             group = "proj",
             callback = function()
                 local _saved = false

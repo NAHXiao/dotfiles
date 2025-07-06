@@ -11,17 +11,17 @@ cat &>/dev/null <<-EOF
 │   └── msys
 └── windows
 EOF
-IS_NIX=false
-    ISLINUX=false
-        ISANDROID=false
-        ISWSL=false
-    ISMAC=false
-    ISMSYS=false
-    ISCYGWIN=false
-IS_WIN=false
+IS_NIX=;
+    ISLINUX=;
+        ISANDROID=;
+        ISWSL=;
+    ISMAC=;
+    ISMSYS=;
+    ISCYGWIN=;
+IS_WIN=;
 
-IS_ARM64=false
-IS_AMD64=false
+IS_ARM64=;
+IS_AMD64=;
 
 SYSNAMEALL=$(uname -a)
 SYSARCH=$(uname -m)
@@ -31,39 +31,39 @@ SYSARCH="${SYSARCH:l}"
 
 case $SYSNAMEALL in
     *linux*)
-        IS_NIX=true;ISLINUX=true;
+        IS_NIX=1;ISLINUX=1;
         case $(uname -a) in
             *microsoft*)
-                ISWSL=true;
+                ISWSL=1;
                 ;;
             *android*)
-                ISANDROID=true;
+                ISANDROID=1;
                 ;;
             *)# Common Linux
                 ;;
         esac
         ;;
     *darwin*)
-        ISNIX=true;ISMAC=true;
+        ISNIX=1;ISMAC=1;
         ;;
     *msys*)
-        ISNIX=true;ISMSYS=true;
+        ISNIX=1;ISMSYS=1;
         ;;
     *cygwin*)
-        ISNIX=true;ISCYGWIN=true;
+        ISNIX=1;ISCYGWIN=1;
         ;;
     *windows_nt*)
-        IS_WIN=true;
+        IS_WIN=1;
         ;;
     *)
         ;;
 esac
 case $SYSARCH in
     *arm64*|*aarch64*)
-        IS_ARM64=true;
+        IS_ARM64=1;
         ;;
     *x86_64*)
-        IS_AMD64=true;
+        IS_AMD64=1;
         ;;
     *)
         ;;

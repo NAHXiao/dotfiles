@@ -34,7 +34,7 @@ export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_CONFIG_DIRS="/etc/xdg"
 export XDG_DATA_DIRS="/usr/local/share:/usr/share:/var/lib/flatpak/exports/share:$XDG_DATA_HOME/flatpak/exports/share"
 
-if ! $ISANDROID ;then #Termux不支持
+if [ ! $ISANDROID ] ;then #Termux不支持
     export LANG=zh_CN.UTF-8
     export LC_ALL=zh_CN.UTF-8
 fi

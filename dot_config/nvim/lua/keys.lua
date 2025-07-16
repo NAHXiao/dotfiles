@@ -8,10 +8,8 @@ map("i", "<C-c>", "<Esc>", { remap = true })
 -- format encoding? (\r\n -> \n)
 map("n", "<leader>fe", ":%s#\\r##g<CR>", { silent = true })
 -- 翻页
-map("n", "<C-f>", "<PageDown>")
-map("n", "<C-b>", "<PageUp>")
-map("i", "<C-f>", "<PageDown>")
-map("i", "<C-b>", "<PageUp>")
+map({ "n", "i" }, "<C-f>", "<PageDown>")
+map({ "n", "i" }, "<C-b>", "<PageUp>")
 
 map("n", "<leader>P", "ggVGp")
 map("v", "p", function()
@@ -28,8 +26,8 @@ map("v", "<C-S-C>", "y")
 
 -- vnew
 map("n", "<C-w>N", ":vnew<CR>")
-map("n", "<A-n>", ":new<CR>")
-map("n", "<A-N>", ":vnew<CR>")
+map("n", "<A-s>", ":new<CR>")
+map("n", "<A-v>", ":vnew<CR>")
 --normal窗口 A-hjkl
 map("n", "<A-h>", "<C-w>h")
 map("n", "<A-j>", "<C-w>j")
@@ -58,8 +56,7 @@ map("t", "<C-[>", "<C-\\><C-n>")
 --禁用H
 map("n", "H", "h")
 --禁用F1
-map("n", "<F1>", "<Nop>")
-map("i", "<F1>", "<Nop>")
+map({ "n", "i" }, "<F1>", "<Nop>")
 
 map("i", "<C-h>", function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
@@ -120,8 +117,13 @@ vim.cmd([[
     cnoreabbrev Q! q!
     cnoreabbrev Q1 q!
     cnoreabbrev q1 q!
+    
+    cnoreabbrev qa1 qa!
+    cnoreabbrev Qa qa
     cnoreabbrev Qa! qa!
+    cnoreabbrev Qall qall
     cnoreabbrev Qall! qall!
+    
     cnoreabbrev Wa wa
     cnoreabbrev Wq wq
     cnoreabbrev wQ wq
@@ -132,8 +134,6 @@ vim.cmd([[
     cnoreabbrev WQ1 wq!
     cnoreabbrev W w
     cnoreabbrev Q q
-    cnoreabbrev Qa qa
-    cnoreabbrev Qall qall
     cnoreabbrev WQA wqa
     cnoreabbrev WQa wqa
     cnoreabbrev WqA wqa

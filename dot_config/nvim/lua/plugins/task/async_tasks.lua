@@ -375,6 +375,7 @@ return {
             noremap = true,
         },
     },
+    cond=false,
     cmd = {
         "AsyncRun",
         "AsyncStop",

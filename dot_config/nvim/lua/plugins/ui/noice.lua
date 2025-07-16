@@ -15,7 +15,7 @@ return {
                 notify.setup({
                     render = "minimal",
                     stages = "static", --"fade",
-                    top_down = true,
+                    top_down = false,
                 })
                 local old_notify = notify.notify
                 local new_notify = function(msg, level, opts)

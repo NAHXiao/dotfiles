@@ -2,9 +2,22 @@ return {
     "luukvbaal/statuscol.nvim",
     enabled = true,
     event = { "BufReadPost", "BufWritePost", "BufNewFile" },
-    config = function ()
+    config = function()
         local builtin = require("statuscol.builtin")
-        require("statuscol").setup {
+        local ffi = require("statuscol.ffidef")
+        local C = ffi.C
+
+        -- only show fold level up to this level
+        local fold_level_limit = 2
+        local function foldfunc(args)
+            local foldinfo = C.fold_info(args.wp, args.lnum)
+            if foldinfo.level > fold_level_limit then
+                return " "
+            end
+
+            return builtin.foldfunc(args)
+        end
+        require("statuscol").setup({
             relculright = true,
             ft_ignore = { "neo-tree", "neotree" },
             bt_ignore = { "nofile", "terminal" },
@@ -23,9 +36,9 @@ return {
                     click = "v:lua.ScSa",
                 },
                 -- { text = { " " } },
-                { text = { builtin.foldfunc },      click = "v:lua.ScFa" },
+                { text = { foldfunc }, click = "v:lua.ScFa" },
                 { text = { " " } },
             },
-        }
-    end
+        })
+    end,
 }

@@ -3,8 +3,14 @@ return {
     "RRethy/vim-illuminate",
     version = "*",
     lazy = true,
-    -- cond=
     event = "VeryLazy",
+    init = function()
+        vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {
+            IlluminatedWordWrite = { underline = true },
+            IlluminatedWordText = { underline = true },
+            IlluminatedWordRead = { underline = true },
+        })
+    end,
     config = function()
         require("illuminate").configure({
             providers = {

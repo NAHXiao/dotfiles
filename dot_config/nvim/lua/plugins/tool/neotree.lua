@@ -28,24 +28,35 @@ return {
     cmd = "Neotree",
     keys = {
         { "<C-n>", "<Cmd>Neotree toggle<CR>", desc = "Toggle Explorer", mode = "n" },
-        {
-            "<leader>s",
-            "<Cmd>Neotree document_symbols action=show toggle=true<CR>",
-            desc = "Toggle Document_symbols",
-            mode = "n",
-        },
+        -- {
+        --     "<leader>s",
+        --     "<Cmd>Neotree document_symbols action=show toggle=true<CR>",
+        --     desc = "Toggle Document_symbols",
+        --     mode = "n",
+        -- },
     },
-    config = function()
+    init = function()
         vim.g.loaded_netrw = 1
         vim.g.loaded_netrwPlugin = 1
         vim.g.loaded_netrwSettings = 1
         vim.g.loaded_netrwFileHandlers = 1
+        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+            "NeoTreeNormalNC",
+            "NeoTreeNormal",
+            "NeoTreeTabActive",
+            "NeoTreeTabInactive",
+            "NeoTreeTabSeparatorActive",
+            "NeoTreeTabSeparatorInactive",
+            "NeoTreeWinSeparator",
+        })
+    end,
+    config = function()
         require("neo-tree").setup({
             sources = {
                 "filesystem",
                 "buffers",
                 "git_status",
-                "document_symbols",
+                -- "document_symbols",
             },
             close_if_last_window = false,
             default_source = "filesystem",
@@ -68,7 +79,7 @@ return {
                 sources = {
                     { source = "filesystem", display_name = " 󰉓 File " },
                     { source = "buffers", display_name = " 󰈚 Buf " },
-                    { source = "document_symbols", display_name = "  Sym " },
+                    -- { source = "document_symbols", display_name = "  Sym " },
                     { source = "git_status", display_name = " 󰊢 Git " },
                 },
                 highlight_tab = "NeoTreeTabInactive",
@@ -127,10 +138,10 @@ return {
                     ["2"] = function()
                         vim.api.nvim_exec("Neotree focus buffers left", true)
                     end,
+                    -- ["3"] = function()
+                    --     vim.api.nvim_exec("Neotree focus document_symbols left", true)
+                    -- end,
                     ["3"] = function()
-                        vim.api.nvim_exec("Neotree focus document_symbols left", true)
-                    end,
-                    ["4"] = function()
                         vim.api.nvim_exec("Neotree focus git_status left", true)
                     end,
                 },
@@ -241,31 +252,21 @@ return {
                     },
                 },
             },
-            document_symbols = {
-                follow_cursor = true, -- 易BUG
-                window = {
-                    mappings = {
-                        ["y"] = nope,
-                        ["m"] = nope,
-                        ["a"] = nope,
-                        ["d"] = nope,
-                        ["x"] = nope,
-                        ["A"] = nope,
-                        ["p"] = nope,
-                        ["c"] = nope,
-                    },
-                },
-            },
-        })
-
-        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
-            "NeoTreeNormalNC",
-            "NeoTreeNormal",
-            "NeoTreeTabActive",
-            "NeoTreeTabInactive",
-            "NeoTreeTabSeparatorActive",
-            "NeoTreeTabSeparatorInactive",
-            "NeoTreeWinSeparator",
+            -- document_symbols = {
+            --     follow_cursor = true, -- 易BUG
+            --     window = {
+            --         mappings = {
+            --             ["y"] = nope,
+            --             ["m"] = nope,
+            --             ["a"] = nope,
+            --             ["d"] = nope,
+            --             ["x"] = nope,
+            --             ["A"] = nope,
+            --             ["p"] = nope,
+            --             ["c"] = nope,
+            --         },
+            --     },
+            -- },
         })
     end,
 }

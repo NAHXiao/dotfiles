@@ -12,6 +12,8 @@ return {
                     or vim.wo[win].winbar ~= ""
                     or vim.bo[buf].ft == "help"
                     or vim.bo[buf].ft == "neo-tree-preview"
+                    or vim.bo[buf].buftype == "terminal" --TODO: only file? only file with name(no) 
+                    or vim.bo[buf].buftype == "nofile"
                     or vim.w[win].neo_tree_preview == 1
                 then
                     return false
@@ -21,13 +23,13 @@ return {
                 if stat and stat.size > 1024 * 1024 then
                     return false
                 end
-
-                return vim.bo[buf].ft == "markdown"
-                    or pcall(vim.treesitter.get_parser, buf)
-                    or not vim.tbl_isempty(vim.lsp.get_clients({
-                        bufnr = buf,
-                        method = "textDocument/documentSymbol",
-                    }))
+                return true
+                -- return vim.bo[buf].ft == "markdown"
+                --     or pcall(vim.treesitter.get_parser, buf)
+                --     or not vim.tbl_isempty(vim.lsp.get_clients({
+                --         bufnr = buf,
+                --         method = "textDocument/documentSymbol",
+                --     }))
             end,
         },
         sources = {

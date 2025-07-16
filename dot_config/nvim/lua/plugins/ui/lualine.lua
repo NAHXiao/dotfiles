@@ -1,3 +1,4 @@
+local shorten_path = require("utils").shorten_path
 local colors = {
     bg = "#202328",
     fg = "#bbc2cf",
@@ -44,19 +45,18 @@ return {
             },
             sections = {
                 lualine_a = { "mode" },
-                lualine_b = {},
+                lualine_b = {
+                    {
+                        "branch",
+                        icon = "",
+                        color = { fg = colors.violet, gui = "bold" },
+                    },
+                },
                 lualine_c = {
                     {
                         "filesize",
                         cond = conditions.buffer_not_empty,
                     },
-                    -- {
-                    --     "filename",
-                    --     cond = conditions.buffer_not_empty,
-                    --     color = { fg = colors.magenta, gui = "bold" },
-                    -- },
-                    { "location" },
-                    { "progress", color = { fg = colors.fg, gui = "bold" } },
                     {
                         "diagnostics",
                         sources = { "nvim_diagnostic" },
@@ -66,8 +66,8 @@ return {
                             color_warn = { fg = colors.yellow },
                             color_info = { fg = colors.cyan },
                         },
+                        cond = conditions.hide_in_width,
                     },
-
                     {
                         function()
                             return "recording @" .. vim.fn.reg_recording()
@@ -116,78 +116,7 @@ return {
                         color = { fg = colors.orange },
                     },
                     {
-                        function()
-                            return "sw=" .. vim.o.shiftwidth
-                        end,
-                        cond = conditions.hide_in_width,
-                        color = { fg = colors.green, gui = "bold" },
-                        padding = { left = 1, right = 0 },
-                        on_click = function(num, btn, mod)
-                            local old = vim.o.shiftwidth
-                            if btn == "l" then
-                                vim.o.shiftwidth = (old - 1) > 0 and (old - 1) or 1
-                            elseif btn == "r" then
-                                vim.o.shiftwidth = old + 1
-                            elseif btn == "m" then
-                                vim.cmd([[stopinsert]])
-                                vim.api.nvim_feedkeys(":set shiftwidth=", "nt", false)
-                            end
-                        end,
-                    },
-                    {
-                        function()
-                            return "ts=" .. vim.o.tabstop
-                        end,
-                        cond = conditions.hide_in_width,
-                        color = { fg = colors.green, gui = "bold" },
-                        padding = { left = 1, right = 0 },
-                        on_click = function(num, btn, mod)
-                            local old = vim.o.tabstop
-                            if btn == "l" then
-                                vim.o.tabstop = (old - 1) > 0 and (old - 1) or 1
-                            elseif btn == "r" then
-                                vim.o.tabstop = old + 1
-                            elseif btn == "m" then
-                                vim.cmd([[stopinsert]])
-                                vim.api.nvim_feedkeys(":set tabstop=", "nt", false)
-                            end
-                        end,
-                    },
-                    {
-                        function()
-                            return "et=" .. (vim.o.expandtab and "on" or "off")
-                        end,
-                        cond = conditions.hide_in_width,
-                        padding = { left = 1, right = 1 },
-                        color = { fg = colors.green, gui = "bold" },
-                        on_click = function()
-                            local old = vim.o.expandtab
-                            vim.o.expandtab = not old
-                        end,
-                    },
-                    {
-                        "encoding",
-                        cond = conditions.hide_in_width,
-                        color = { fg = colors.green, gui = "bold" },
-                        on_click = function()
-                            vim.cmd([[stopinsert]])
-                            vim.api.nvim_feedkeys(":set fileencoding=", "nt", false)
-                        end,
-                    },
-                    {
-                        "fileformat",
-                        fmt = string.upper,
-                        icons_enabled = false, -- I think icons are cool but Eviline doesn't have them. sigh
-                        color = { fg = colors.green, gui = "bold" },
-                    },
-                    {
-                        "branch",
-                        icon = "",
-                        color = { fg = colors.violet, gui = "bold" },
-                    },
-                    {
                         "diff",
-                        -- Is it me or the symbol for modified us really weird
                         symbols = { added = " ", modified = "󰝤 ", removed = " " },
                         diff_color = {
                             added = { fg = colors.green },
@@ -196,9 +125,60 @@ return {
                         },
                         cond = conditions.hide_in_width,
                     },
+                    {
+                        function()
+                            local str
+                            if
+                                (vim.o.softtabstop == vim.o.tabstop)
+                                and (vim.o.tabstop == vim.o.shiftwidth)
+                            then
+                                str = tostring(vim.o.tabstop)
+                            elseif vim.o.softtabstop == vim.o.tabstop then
+                                str = tostring(vim.o.shiftwidth) .. ":" .. tostring(vim.o.tabstop)
+                            else
+                                str = tostring(vim.o.softtabstop)
+                                    .. ":"
+                                    .. tostring(vim.o.tabstop)
+                                    .. ":"
+                                    .. tostring(vim.o.shiftwidth)
+                            end
+                            return "Sp:" .. str
+                        end,
+                        on_click = function(num, btn, mod)
+                            vim.cmd([[stopinsert]])
+                            vim.api.nvim_feedkeys(
+                                string.format(
+                                    ":set softtabstop=%d tabstop=%d shiftwidth=%d",
+                                    vim.o.softtabstop,
+                                    vim.o.tabstop,
+                                    vim.o.shiftwidth
+                                ),
+                                "nt",
+                                false
+                            )
+                        end,
+                    },
                 },
-                lualine_y = {},
-                lualine_z = {},
+                lualine_y = {
+                    {
+                        "progress",
+                        color = { fg = colors.violet },
+                    },
+                    {
+                        "location",
+                        color = { fg = colors.violet },
+                    },
+                },
+                lualine_z = {
+                    {
+                        "encoding",
+                        fmt = string.upper,
+                        on_click = function()
+                            vim.cmd([[stopinsert]])
+                            vim.api.nvim_feedkeys(":set fileencoding=", "nt", false)
+                        end,
+                    },
+                },
             },
             inactive_sections = {
                 lualine_a = {},
@@ -211,13 +191,16 @@ return {
             },
             tabline = {
                 lualine_a = {},
-                lualine_b = {
-                    -- { "tabs", use_mode_colors = false },
-                    "filename",
+                lualine_b = {},
+                lualine_c = { { "buffers" } },
+                lualine_x = {
+                    {
+                        function()
+                            return shorten_path(vim.g.projroot, math.floor(vim.o.columns / 3))
+                        end,
+                    },
                 },
-                lualine_c = {},
-                lualine_x = {},
-                lualine_y = { "buffers" },
+                lualine_y = {},
                 lualine_z = {},
             },
         })

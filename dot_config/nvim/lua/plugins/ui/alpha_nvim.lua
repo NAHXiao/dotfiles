@@ -42,7 +42,7 @@ return {
             dashboard.button(
                 "p",
                 "  Projects",
-                "<cmd>lua require('utils').proj:select_and_load()<cr>"
+                "<cmd>lua require('tools.proj'):select_and_load()<cr>"
             ),
             dashboard.button("SPC f f", "󰈞  Find file"),
             dashboard.button("SPC f w", "󰊄  Live grep"),

@@ -1,6 +1,7 @@
 --TODO: disable for binary file
 return {
     "folke/flash.nvim",
+    cond=false,
     opts = {
         modes = {
             search = {

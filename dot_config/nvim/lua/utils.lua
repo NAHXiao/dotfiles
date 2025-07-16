@@ -90,8 +90,214 @@ function M.encode_path(encoded_path)
         return string.char(tonumber(hex, 16))
     end)
 end
+local function shorten_path(path, maxlen)
+    if not path or path == "" then
+        return ""
+    end
+    local normalized_path = path:gsub("\\", "/")
+    if #normalized_path <= maxlen then
+        return normalized_path
+    end
+    local is_absolute = normalized_path:sub(1, 1) == "/"
+    local segments = {}
+    for segment in normalized_path:gmatch("[^/]+") do
+        table.insert(segments, segment)
+    end
+    if #segments == 0 then
+        return "/"
+    end
+    local basename = segments[#segments]
+    local dirname_segments = {}
+    for i = 1, #segments - 1 do
+        table.insert(dirname_segments, segments[i])
+    end
+    if #basename > maxlen then
+        local truncated_len = maxlen - 3
+        if truncated_len <= 0 then
+            return "..."
+        end
+        return "..." .. basename:sub(-truncated_len)
+    end
+    if maxlen - #basename == 8 then
+        if #dirname_segments > 0 then
+            local first_seg = dirname_segments[1]
+            if is_absolute then
+                local prefix_len = math.min(2, #first_seg)
+                return "/" .. first_seg:sub(1, prefix_len) .. "/.../" .. basename
+            else
+                local prefix_len = math.min(3, #first_seg)
+                return first_seg:sub(1, prefix_len) .. "/.../" .. basename
+            end
+        else
+            return is_absolute and ("/" .. basename) or basename
+        end
+    elseif maxlen - #basename < 8 then
+        return basename
+    end
+    local function build_path(dir_segments, base)
+        local result = ""
+        if is_absolute then
+            result = "/"
+        end
+        if #dir_segments > 0 then
+            result = result .. table.concat(dir_segments, "/")
+            if base and base ~= "" then
+                result = result .. "/" .. base
+            end
+        else
+            if base and base ~= "" then
+                result = result .. base
+            end
+        end
+        return result
+    end
+    if #dirname_segments == 0 then
+        return build_path({}, basename)
+    end
+    local function compress_segments(segs)
+        if #segs == 0 then
+            return segs
+        end
+        local compressed = {}
+        for i, seg in ipairs(segs) do
+            compressed[i] = seg
+        end
+        local current_path = build_path(compressed, basename)
+        if #current_path <= maxlen then
+            return compressed
+        end
+        local length_groups = {}
+        for i, seg in ipairs(compressed) do
+            local len = #seg
+            if not length_groups[len] then
+                length_groups[len] = {}
+            end
+            table.insert(length_groups[len], { index = i, segment = seg })
+        end
+        local lengths = {}
+        for len, _ in pairs(length_groups) do
+            table.insert(lengths, len)
+        end
+        table.sort(lengths, function(a, b)
+            return a > b
+        end)
+        for len_idx, current_len in ipairs(lengths) do
+            local group = length_groups[current_len]
+            if #group > 0 then
+                local next_len = len_idx < #lengths and lengths[len_idx + 1] or 1
+                local test_path = build_path(compressed, basename)
+                local excess = #test_path - maxlen
+                if excess > 0 then
+                    local total_reduction_needed = excess
+                    local reduction_per_segment = math.ceil(total_reduction_needed / #group)
+                    for _, item in ipairs(group) do
+                        local target_len = math.max(next_len, current_len - reduction_per_segment)
+                        local min_len = item.segment:sub(1, 1) == "." and 2 or 1
+                        target_len = math.max(target_len, min_len)
+                        if target_len < #item.segment then
+                            compressed[item.index] = item.segment:sub(1, target_len)
+                        end
+                    end
+                    local new_path = build_path(compressed, basename)
+                    if #new_path <= maxlen then
+                        return compressed
+                    end
+                end
+            end
+        end
+        for i, seg in ipairs(compressed) do
+            local min_len = seg:sub(1, 1) == "." and 2 or 1
+            if #seg > min_len then
+                compressed[i] = seg:sub(1, min_len)
+            end
+        end
+        return compressed
+    end
+    local compressed_segments = compress_segments(dirname_segments)
+    local compressed_path = build_path(compressed_segments, basename)
+    if #compressed_path <= maxlen then
+        return compressed_path
+    end
+    local function remove_segments(segs)
+        if #segs <= 1 then
+            return segs
+        end
+        for remove_start = 2, #segs - 1 do
+            local new_segs = {}
+            table.insert(new_segs, segs[1])
+            table.insert(new_segs, "...")
+            if #segs > remove_start then
+                table.insert(new_segs, segs[#segs])
+            end
+            local test_path = build_path(new_segs, basename)
+            if #test_path <= maxlen then
+                return new_segs
+            end
+        end
+        return { segs[1], "..." }
+    end
+    if #compressed_segments > 1 then
+        local final_segments = remove_segments(compressed_segments)
+        local final_path = build_path(final_segments, basename)
+        if #final_path <= maxlen then
+            return final_path
+        end
+    end
+    local min_path = is_absolute and "/" or ""
+    if #compressed_segments > 0 then
+        local first_seg = compressed_segments[1]
+        local min_len = first_seg:sub(1, 1) == "." and 2 or 1
+        min_path = min_path .. first_seg:sub(1, min_len) .. "/.../" .. basename
+    else
+        min_path = min_path .. basename
+    end
+    if #min_path <= maxlen then
+        return min_path
+    end
+    assert(false, "unreachable code")
+end
+local shorten_path_cache = {}
+M.shorten_path = function(path, maxlen)
+    if shorten_path_cache[path] and shorten_path_cache[path][tostring(maxlen)] then
+        return shorten_path_cache[path][tostring(maxlen)]
+    end
+    local ret = shorten_path(path, maxlen)
+    if shorten_path_cache[path] == nil then
+        shorten_path_cache[path] = {}
+    end
+    shorten_path_cache[path][tostring(maxlen)] = ret
+    return ret
+end
+
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
+end
+function M.range(...)
+    local args = { ... }
+    local start, end_, step
+    if #args == 1 then
+        start, end_, step = 1, args[1], 1
+    elseif #args == 2 then
+        start, end_, step = args[1], args[2], 1
+    elseif #args == 3 then
+        start, end_, step = args[1], args[2], args[3]
+    else
+        error("range() takes 1-3 arguments")
+    end
+    local result = {}
+    local idx = 1
+    if step > 0 then
+        for i = start, end_ - 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    else
+        for i = start, end_ + 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    end
+    return result
 end
 function M.findfile_any(opt)
     local default_opt = {
@@ -254,320 +460,6 @@ function M.transparent_bg_test()
 
     process_next()
 end
--------------------------------------------
----@alias path string
-
----@class Project
----@field name string
----@field path path  (Unique)
----@field mainwindows path[][]
----@field filebuffers path[]
-
----@alias Projects table<path,Project>
-
-local proj = {
-    _setuped = false,
-    config = {
-        save_on_exit = true,
-        update_on_exit = true,
-        workspace = {
-            vim.fs.joinpath(uv.os_homedir(), "workspace") .. "/1*/*",
-            vim.fs.joinpath(uv.os_homedir(), "workspace") .. "/2*/*",
-            vim.fs.joinpath(uv.os_homedir(), "workspace") .. "/3*/*",
-        },
-        projfile = vim.fs.joinpath(vim.fn.stdpath("data"), "proj/proj.json"),
-        mksession = {
-            name = function(path)
-                return vim.fn.fnamemodify(path, ":t")
-            end,
-            path = function()
-                return vim.g.projroot
-            end,
-            -- {
-            -- 	{ -- 第一列file窗口
-            -- 		"filepath1", -- top1
-            -- 		"filepath2", -- top2
-            -- 	},
-            -- }
-            mainwindow = function()
-                local windows = vim.api.nvim_list_wins()
-                local columns = {}
-                for _, win in ipairs(windows) do
-                    local buf = vim.api.nvim_win_get_buf(win)
-                    local bufname = vim.api.nvim_buf_get_name(buf)
-                    if
-                        bufname ~= ""
-                        and vim.api.nvim_get_option_value("buftype", { buf = buf }) == ""
-                    then
-                        local pos = vim.api.nvim_win_get_position(win)
-                        local col = pos[2] + 1
-                        if not columns[col] then
-                            columns[col] = {}
-                        end
-                        table.insert(columns[col], bufname)
-                    end
-                end
-                local sorted_columns = {}
-                for col, buffers in pairs(columns) do
-                    table.insert(sorted_columns, { col = col, buffers = buffers })
-                end
-                table.sort(sorted_columns, function(a, b)
-                    return a.col < b.col
-                end)
-                local result = {}
-                for _, entry in ipairs(sorted_columns) do
-                    table.insert(result, entry.buffers)
-                end
-                return result
-            end,
-            filebuffers = function()
-                local buffers = {}
-                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                    if vim.api.nvim_buf_is_loaded(buf) then
-                        local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
-                        local name = vim.api.nvim_buf_get_name(buf)
-                        if buftype == "" and name ~= "" then
-                            table.insert(buffers, name)
-                        end
-                    end
-                end
-                return buffers
-            end,
-        },
-    },
-}
-
-proj.__index = proj
-function proj:notify(msg, level, opts)
-    vim.notify("proj: " .. msg, level, opts)
-end
----@return Projects
-function proj:projreader()
-    local projfile = self.config.projfile
-    if not vim.fn.filereadable(projfile) then
-        return {}
-    end
-    local file = io.open(projfile, "r")
-    if not file then
-        self:notify(projfile .. " cannot be opened", vim.log.levels.ERROR)
-        return {}
-    end
-    local content = file:read("*a")
-    file:close()
-    local projects = vim.json.decode(content)
-    if projects == nil then
-        return {}
-    end
-    local modified = false
-    for path, _ in pairs(projects) do
-        if 0 == vim.fn.isdirectory(path) then
-            projects[path] = nil
-            modified = true
-            self:notify(path .. " is not exist and has been deleted", vim.log.levels.WARN)
-        end
-    end
-    if modified then
-        self:projwriter(projects)
-    end
-    return projects
-end
----@param projects Projects
-function proj:projwriter(projects)
-    local projfile = self.config.projfile
-    vim.fn.mkdir(vim.fn.fnamemodify(projfile, ":h"), "p")
-    local file = io.open(projfile, "w")
-    if not file then
-        self:notify("Failed to open proj file", vim.log.levels.ERROR)
-        return
-    end
-    local content = vim.json.encode(projects)
-    file:write(content)
-    file:close()
-end
-
----@return Project
-function proj:mksession()
-    local funcs = self.config.mksession
-    local path = funcs.path()
-    local project = {
-        name = funcs.name(path),
-        path = path,
-        mainwindows = funcs.mainwindow(),
-        filebuffers = funcs.filebuffers(),
-    }
-    return project
-end
-
-function proj:save()
-    local project = self:mksession()
-    vim.notify(vim.inspect(project))
-    local projects = self:projreader()
-    if projects == nil then
-        projects = {}
-    end
-    projects[project.path] = project
-    self:projwriter(projects)
-end
-
----@param project Project
----@return boolean
-function proj:load(project)
-    local layout = project.mainwindows or {}
-    ----------------------------------------
-    local _buffers = vim.api.nvim_list_bufs()
-    vim.cmd("wa!")
-    for _, buf in ipairs(_buffers) do
-        vim.api.nvim_buf_delete(buf, { force = true })
-    end
-    _buffers = vim.api.nvim_list_bufs()
-    ----------------------------------------
-    vim.cmd("vsplit")
-    vim.cmd("wincmd l")
-    local base_win = vim.api.nvim_get_current_win()
-    vim.cmd("enew")
-    for col_idx, column in ipairs(layout) do
-        if col_idx > 1 then
-            vim.cmd("vsplit")
-            vim.cmd("wincmd l")
-        end
-        for row_idx, filepath in ipairs(column) do
-            if row_idx > 1 then
-                vim.cmd("split")
-                vim.cmd("wincmd j")
-            end
-            if vim.fn.filereadable(filepath) then
-                vim.cmd("edit " .. filepath)
-            end
-        end
-    end
-    vim.api.nvim_set_current_win(base_win)
-    ----------------------------------------
-    local buffers = proj.filebuffers or {}
-    --exclude mainwindows
-    for _, filepaths in ipairs(layout) do
-        for _, filepath in ipairs(filepaths) do
-            for i, buffer in ipairs(buffers) do
-                if buffer == filepath then
-                    table.remove(buffers, i)
-                    break
-                end
-            end
-        end
-    end
-    for _, filepath in ipairs(buffers) do
-        local buf = vim.api.nvim_create_buf(false, false)
-        vim.api.nvim_buf_call(buf, function()
-            if vim.fn.filereadable(filepath) then
-                vim.cmd("edit " .. filepath)
-            end
-        end)
-    end
-    ----------------------------------------
-    --- set cwd to path
-    local path = project.path
-    if vim.fn.isdirectory(path) == 1 then
-        vim.cmd("cd " .. path)
-    else
-        vim.cmd("lcd " .. path)
-    end
-    ----------------------------------------
-    for _, buf in ipairs(_buffers) do
-        vim.api.nvim_buf_delete(buf, { force = false })
-    end
-    return true
-end
-function proj:update()
-    local project = self:mksession()
-    local projects = self:projreader()
-    if projects == nil or projects[project.path] == nil then
-        return false
-    end
-    projects[project.path] = project
-    self:projwriter(projects)
-end
-function proj:delbypath(path)
-    local projects = self:projreader()
-    if projects == nil or projects[path] == nil then
-        return
-    end
-    projects[path] = nil
-    self:projwriter(projects)
-end
----@param callback fun(project:Project)
-function proj:select(callback)
-    local projects = self:projreader()
-    if projects == nil then
-        self:notify("No projects found", vim.log.levels.WARN)
-        return
-    end
-    local options = {}
-    for path, project in pairs(projects) do
-        table.insert(options, { path = path, name = project.name })
-    end
-    if #options == 0 then
-        self:notify("No projects found", vim.log.levels.WARN)
-        return
-    end
-    vim.ui.select(options, {
-        prompt = "Select a project:",
-        format_item = function(item)
-            return item.name .. " (" .. item.path .. ")"
-        end,
-    }, function(choice)
-        if choice ~= nil then
-            callback(projects[choice.path])
-        else
-            self:notify("No project selected")
-        end
-    end)
-end
--- Create Autocmds
--- Save/Update Proj When Exit , then set _setuped true
-function proj:setup()
-    if proj._setuped == false then
-        vim.api.nvim_create_augroup("proj", { clear = true })
-        vim.api.nvim_create_autocmd("vimleavepre", {
-            group = "proj",
-            callback = function()
-                local _saved = false
-                if self.config.save_on_exit then
-                    local matched_paths = {}
-                    for _, glob in ipairs(self.config.workspace) do
-                        vim.list_extend(matched_paths, vim.fn.glob(glob, true, true))
-                    end
-                    if vim.tbl_contains(matched_paths, self.config.mksession.path()) then
-                        self:save()
-                        _saved = true
-                    end
-                end
-                if self.config.update_on_exit and not _saved then
-                    self:update()
-                end
-            end,
-        })
-        self._setuped = true
-    end
-end
-vim.schedule(function()
-    proj:setup()
-end)
-
-function proj:select_and_load()
-    self:select(function(project)
-        if project ~= nil then
-            self:load(project)
-        end
-    end)
-end
-function proj:select_and_del()
-    self:select(function(project)
-        if project ~= nil then
-            self:delbypath(project.path)
-        end
-    end)
-end
-
-M.proj = proj
 -------------------------------------------
 
 return M

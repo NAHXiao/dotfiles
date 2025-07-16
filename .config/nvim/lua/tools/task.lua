@@ -466,7 +466,7 @@ local argv_cache = {}
 ---@return task
 ---for cmd,cwd,env.value
 ---modify task itself
-M.macro_replace = function(task)
+M.macro_replace = function(task) --TODO:interrupt
     ---@param task1 task
     ---@param task2 task
     ---@return boolean
@@ -531,6 +531,9 @@ M.macro_replace = function(task)
             }, function(value)
                 input_value = value or default
             end)
+            if input_value == nil or input_value == "" then
+                error("please input value for "..argname)
+            end
             local found_cache = false
             for _, cache in ipairs(argv_cache) do
                 if eq(cache.task, task) then

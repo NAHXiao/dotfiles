@@ -1,6 +1,7 @@
 return {
     "mfussenegger/nvim-dap-python",
     lazy = true,
+    cond=false,
     ft = { "python" },
     config = function()
         if require("mason-registry").is_installed("debugpy") then
@@ -42,3 +43,4 @@ return {
         },
     },
 }
+

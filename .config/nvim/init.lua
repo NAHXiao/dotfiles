@@ -13,3 +13,8 @@ require("opts")
 require("keys")
 require("etc")
 require("lazyinit")
+
+vim.defer_fn(function()
+    require("tools.terminal")
+    require("tools.task")
+end, 10)

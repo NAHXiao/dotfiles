@@ -3,16 +3,17 @@ return {
     version = "*",
     keys = {
         {
-            "<leader>t",
+            "<leader>ta",
             "<cmd>Trouble diagnostics toggle<cr>",
             desc = "Diagnostics (Trouble)",
         },
-    },
-    commander = {
         {
-            cmd = "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+            "<leader>tb",
+            "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
             desc = "Buffer Diagnostics (Trouble)",
         },
+    },
+    commander = {
         {
             cmd = "<cmd>Trouble symbols toggle focus=false<cr>",
             desc = "Symbols (Trouble)",
@@ -32,6 +33,11 @@ return {
     },
     cmd = "Trouble",
     lazy = true,
+    init = function()
+        vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {
+            TroubleNormal = { link = "Normal" },
+        })
+    end,
     config = function()
         require("trouble").setup()
     end,

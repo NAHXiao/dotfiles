@@ -35,11 +35,22 @@ return {
             mode = "n",
         },
     },
-    config = function()
+    init = function()
         vim.g.loaded_netrw = 1
         vim.g.loaded_netrwPlugin = 1
         vim.g.loaded_netrwSettings = 1
         vim.g.loaded_netrwFileHandlers = 1
+        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+            "NeoTreeNormalNC",
+            "NeoTreeNormal",
+            "NeoTreeTabActive",
+            "NeoTreeTabInactive",
+            "NeoTreeTabSeparatorActive",
+            "NeoTreeTabSeparatorInactive",
+            "NeoTreeWinSeparator",
+        })
+    end,
+    config = function()
         require("neo-tree").setup({
             sources = {
                 "filesystem",
@@ -256,16 +267,6 @@ return {
                     },
                 },
             },
-        })
-
-        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
-            "NeoTreeNormalNC",
-            "NeoTreeNormal",
-            "NeoTreeTabActive",
-            "NeoTreeTabInactive",
-            "NeoTreeTabSeparatorActive",
-            "NeoTreeTabSeparatorInactive",
-            "NeoTreeWinSeparator",
         })
     end,
 }

@@ -407,7 +407,7 @@ M.sort = function(globaltaskss, localtaskss)
     end
     table.sort(keylist, gt)
 
-    local last = 2
+    local last = 1
     for i = 2, #keylist do
         if eq(keylist[i], keylist[i - 1]) then
             last = i
@@ -904,3 +904,4 @@ M.setkeymap = function()
 end
 M.setkeymap()
 return M
+---FIXME:many bug about F9F10

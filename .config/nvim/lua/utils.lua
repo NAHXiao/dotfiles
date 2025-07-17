@@ -185,10 +185,6 @@ local function shorten_path(path, maxlen)
             local group = length_groups[current_len]
             if #group > 0 then
                 local next_len = len_idx < #lengths and lengths[len_idx + 1] or 1
-                local original_segments = {}
-                for _, item in ipairs(group) do
-                    original_segments[item.index] = compressed[item.index]
-                end
                 local test_path = build_path(compressed, basename)
                 local excess = #test_path - maxlen
                 if excess > 0 then

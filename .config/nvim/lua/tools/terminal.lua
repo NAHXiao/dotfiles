@@ -6,7 +6,7 @@
 -- <M-n>: jump to the next terminal
 -- <M-p>: jump to the previous terminal
 -- <M-1> ... <M-9>: jump to terminal #i
--- <leader>rn: rename the current terminal
+-- <M-r>: rename the current terminal
 -- <M-,>: move the current terminal backwards
 -- <M-.>: move the current terminal forwards
 --
@@ -18,7 +18,7 @@ local pinned_icon = "📌"
 local default_terminal_cmd = (function()
     if vim.g.is_win then
         local options = {
-            { "pwsh",      "-nologo" },
+            { "pwsh", "-nologo" },
             { "powershell" },
             { "cmd" },
         }
@@ -42,7 +42,7 @@ local state = {
     panel_win = nil,
     panel_width = math.floor(vim.o.columns / 10),
 
-    terminals = {},   --jobid,burnr,cmd,name
+    terminals = {}, --jobid,burnr,cmd,name
 
     unique_name = {}, --设置unique后,后来的同名job将顶替前面的
 }
@@ -271,7 +271,7 @@ local function setup_termbuf(bufnr)
     end
 
     -- Rename
-    map({ "n", "t" }, "<leader>rn", function()
+    map({ "n", "t" }, "<M-r>", function()
         require("tools.terminal").rename()
     end)
 

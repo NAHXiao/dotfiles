@@ -1,6 +1,7 @@
 --
 -- <M-`>: toggle
 -- <M-;>: new a terminal
+-- <M-'>: new a terminal with specific cmd
 -- <M-q>: delete the current terminal
 -- <M-n>: jump to the next terminal
 -- <M-p>: jump to the previous terminal
@@ -14,6 +15,21 @@ local M = {}
 
 local term_icon = ""
 local pinned_icon = "📌"
+local default_terminal_cmd = (function()
+    if vim.g.is_win then
+        local options = {
+            { "pwsh", "-nologo" },
+            { "powershell" },
+            { "cmd" },
+        }
+        for _, cmd in ipairs(options) do
+            if vim.fn.executable(cmd[1]) then
+                return cmd
+            end
+        end
+    end
+    return vim.o.shell
+end)()
 local state = {
     -- Current terminal
     cur_index = nil,
@@ -185,12 +201,16 @@ local function setup_termbuf(bufnr)
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            if
-                vim.api.nvim_get_current_buf() == bufnr
-                and vim.fn.jobwait({ state.terminals[get_index_by_bufnr(bufnr)].jobid }, 0)[1]
-                    == -1
-            then
+            if vim.fn.jobwait({ state.terminals[get_index_by_bufnr(bufnr)].jobid }, 0)[1] == -1 then
                 vim.cmd("startinsert")
+                if vim.g.is_win then --NOTE: Fixed: Cursor blinking issue on Windows
+                    vim.cmd("stopinsert")
+                    vim.defer_fn(function()
+                        if vim.api.nvim_get_current_buf() == bufnr then
+                            vim.cmd("startinsert")
+                        end
+                    end, 50)
+                end
             end
         end,
     })
@@ -201,6 +221,29 @@ local function setup_termbuf(bufnr)
     -- New terminal
     map({ "n", "t" }, "<M-;>", function()
         require("tools.terminal").new()
+    end)
+    map({ "n", "t" }, "<M-'>", function()
+        local cmds = {}
+        local i = 1
+        while true do
+            local prompt = ("Enter value for cmd[%d]"):format(i)
+                .. (i ~= 1 and table.concat(cmds, " ") or "")
+            local done = false
+            vim.ui.input({ prompt = prompt }, function(input)
+                if input == nil or input == "" then
+                    done = true
+                else
+                    cmds[i] = input
+                    i = i + 1
+                end
+            end)
+            if done then
+                break
+            end
+        end
+        if cmds ~= nil and #cmds ~= 0 then
+            require("tools.terminal").new(cmds)
+        end
     end)
 
     -- Delete the current terminal
@@ -247,6 +290,7 @@ end
 ----------------------------------------------------------------------
 local function update_panelbuf()
     local panel_buf = state.panel_buf
+    assert(panel_buf ~= nil)
     local lines = {}
     for i, term in ipairs(state.terminals) do
         table.insert(lines, line_pack(i, term.name))
@@ -256,7 +300,12 @@ local function update_panelbuf()
     vim.api.nvim_buf_add_highlight(panel_buf, 0, "Visual", state.cur_index - 1, 0, -1)
 end
 local function update_cursor_panelwin()
-    vim.api.nvim_win_set_cursor(state.panel_win, { state.cur_index, 0 })
+    local winid = state.panel_win
+    if winid and vim.api.nvim_win_is_valid(winid) then
+        vim.api.nvim_win_set_cursor(winid, { state.cur_index, 0 })
+    else
+        assert(0)
+    end
 end
 ----@param index number|number[]
 ---@param index number
@@ -284,30 +333,34 @@ local function delete_term(index)
     update_cursor_panelwin()
 end
 
----@param cmd string|string[]
----@param name string
+---@param cmd string[]
+---@param name string|nil
+---@return table|nil
 local function create_terminal_buf(cmd, name, opts)
-    cmd = (type(cmd) == "string" and { cmd } or cmd)
     opts = vim.tbl_deep_extend("force", {
         term = true,
     }, opts or {})
-    assert(type(cmd) == "table")
     local term_buf = vim.api.nvim_create_buf(false, true)
     setup_termbuf(term_buf)
     local jobid
+    local success
     vim.api.nvim_buf_call(term_buf, function()
-        if not vim.fn.executable(cmd[1]) then
-            cmd = { vim.o.shell }
+        local ok, result = pcall(vim.fn.jobstart, cmd, opts)
+        if ok then
+            success = true
+            jobid = result
+        else
+            success = false
             vim.notify(
-                "[terminal]: "
-                    .. tostring(cmd[1] .. "is not executable")
-                    .. ",fallback to "
-                    .. vim.o.shell,
+                "[terminal]: create terminal error:" .. tostring(result),
                 vim.log.levels.ERROR
             )
         end
-        jobid = vim.fn.jobstart(cmd, opts)
     end)
+    if success == false then
+        return nil
+    end
+    -- if vim.fs.
     return {
         jobid = jobid,
         bufnr = term_buf,
@@ -319,12 +372,21 @@ end
 ---@param cmd nil|string|string[]
 ---@param name string|nil
 ---@param unique boolean|nil
+---@return boolean success
 local function new_terminal(cmd, name, unique, opts)
-    cmd = cmd or vim.o.shell
+    cmd = cmd or default_terminal_cmd
+    cmd = (type(cmd) == "string" and { cmd } or cmd)
+    assert(type(cmd) == "table")
+    assert(cmd[1] ~= "")
+    name = name == nil and (vim.fn.fnamemodify(cmd[1], ":t:r")) or name
+    assert(name ~= nil)
+
     unique = (unique == nil) and false or unique
-    name = name or "Terminal"
     name = (unique == true) and (pinned_icon .. name) or name
     local new_term = create_terminal_buf(cmd, name, opts)
+    if new_term == nil then
+        return false
+    end
     state.terminals[#state.terminals + 1] = new_term
     state.cur_index = #state.terminals
     bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
@@ -335,8 +397,8 @@ local function new_terminal(cmd, name, unique, opts)
         state.unique_name[name] = new_term.jobid
     end
     update_panelbuf()
+    return true
 end
--- new_terminal()
 ---term_win:create minmal
 ---panel_win:create minmal
 ---panel_buf:create when first , bind to panel_win
@@ -381,8 +443,6 @@ end
 M.switch = function(index)
     state.cur_index = index
     bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
-
-    vim.api.nvim_win_set_cursor(state.panel_win, { index, 0 })
     update_panelbuf()
     update_cursor_panelwin()
 end
@@ -407,10 +467,13 @@ M.rename = function()
         assert(type(input) == "string")
         -- forbid name start with pinned_icon
         if input:sub(1, 2) == pinned_icon then
-            vim.notify("[terminal]: Terminal name cannot start with " .. pinned_icon, vim.log.levels.ERROR)
+            vim.notify(
+                "[terminal]: Terminal name cannot start with " .. pinned_icon,
+                vim.log.levels.ERROR
+            )
             return
         end
-        state.terminals[state.cur_index].name = line_pack(state.cur_index, input)
+        state.terminals[state.cur_index].name = input
         update_panelbuf()
     end)
 end
@@ -429,18 +492,34 @@ end
 
 -- Create a new terminal
 ---@param cmd string|string[]|nil
----@param open boolean|nil
+---@param open boolean|nil TODO:该参数无用
 ---@param focus boolean|nil nil=true
 ---@param name string|nil
 ---@param unique boolean|nil
 M.new = function(cmd, open, focus, name, unique, opts)
-    open = open == nil and true or open
+    -- open = open == nil and true or open
     focus = focus == nil and true or focus
-    if open and not is_opened() then
+    local before_opened
+    if not is_opened() then
+        before_opened = false
         open_wins(focus)
         set_autocmd()
+    else
+        before_opened = true
     end
-    new_terminal(cmd, name, unique, opts)
+    --notopen and n=0 => close
+    --notopen and n~=0 => close
+    --opened and n=0 close
+    --opened and n~=0 return
+    if new_terminal(cmd, name, unique, opts) == false then
+        if before_opened and #state.terminals ~= 0 then
+            return
+        else
+            M.close()
+            return
+        end
+    end
+
     if focus then
         vim.api.nvim_set_current_win(state.term_win)
     else
@@ -457,7 +536,7 @@ M.open = function()
     if
         not state.cur_index or not vim.api.nvim_buf_is_valid(state.terminals[state.cur_index].bufnr)
     then
-        new_terminal()
+        assert(new_terminal() == true)
     end
     bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
 end

@@ -1,3 +1,4 @@
+local shorten_path = require("utils").shorten_path
 local colors = {
     bg = "#202328",
     fg = "#bbc2cf",
@@ -189,10 +190,16 @@ return {
                 lualine_z = {},
             },
             tabline = {
-                lualine_b = {},
-                lualine_c = { { "buffers"} },
                 lualine_a = {},
-                lualine_x = {},
+                lualine_b = {},
+                lualine_c = { { "buffers" } },
+                lualine_x = {
+                    {
+                        function()
+                            return shorten_path(vim.g.projroot, math.floor(vim.o.columns / 3))
+                        end,
+                    },
+                },
                 lualine_y = {},
                 lualine_z = {},
             },

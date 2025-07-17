@@ -350,7 +350,7 @@ end
 ---@param globaltaskss tasks|nil
 ---@param localtaskss tasks|nil
 ---@return  { global: boolean, index: number }[]
-M.sort = function(globaltaskss, localtaskss)
+M.findmax = function(globaltaskss, localtaskss)
     globaltaskss = globaltaskss or {}
     localtaskss = localtaskss or {}
     if next(globaltaskss) == nil and next(localtaskss) == nil then
@@ -401,7 +401,6 @@ M.sort = function(globaltaskss, localtaskss)
         end
         if not vim.deep_equal(x.filetypes, y.filetypes) then
             return (next(y.filetypes) == nil)
-                and (getmetatable(y.filetypes) == getmetatable(vim.empty_dict()))
         end
         return false
     end
@@ -449,7 +448,7 @@ local function draw_decode(str)
         table.insert(parts, part)
     end
     if #parts ~= 5 then
-        return nil, "invalid row"
+        error("code error:len(str.parts)!=5")
     end
     local filetypes = (parts[5] == "*" and {}) or vim.split(parts[5], ",", { plain = true })
     return {
@@ -532,7 +531,7 @@ M.macro_replace = function(task) --TODO:interrupt
                 input_value = value or default
             end)
             if input_value == nil or input_value == "" then
-                error("please input value for "..argname)
+                error("please input value for " .. argname)
             end
             local found_cache = false
             for _, cache in ipairs(argv_cache) do
@@ -588,7 +587,7 @@ M.run = function(taskname, type, mode, opts)
         localtasks = M.filter(all_tasks.localtasks, taskname, ft, type, mode),
     }
 
-    local found_tasks_index = M.sort(filtered_tasks.globaltasks, filtered_tasks.localtasks)
+    local found_tasks_index = M.findmax(filtered_tasks.globaltasks, filtered_tasks.localtasks)
     local found_tasks = {}
     for _, idx in ipairs(found_tasks_index) do
         table.insert(
@@ -596,20 +595,23 @@ M.run = function(taskname, type, mode, opts)
             filtered_tasks[idx.global == true and "globaltasks" or "localtasks"][idx.index]
         )
     end
+    local found_task
     if #found_tasks == 0 then
-        vim.notify("Task not found: " .. taskname, vim.log.levels.ERROR)
+        vim.notify("[task]: Task not found: " .. taskname, vim.log.levels.ERROR)
         return
+    elseif #found_tasks == 1 then
+        found_task = found_tasks[1]
     elseif #found_tasks > 1 then
-        vim.notify(
-            "Multi Task found for" .. taskname .. " :" .. vim.inspect(found_tasks),
-            vim.log.levels.ERROR
-        )
+        M.select_task({ taskname = found_tasks }, function(_, tasks) --Re
+            assert(#tasks == 1)
+            found_task = tasks[1]
+        end, taskname, false)
         return
     end
-    local found_task = found_tasks[1]
     found_task.opts = vim.tbl_deep_extend("force", found_task.opts or {}, opts or {})
     M.macro_replace(found_task)
-    run_wrap(found_tasks.cmd, found_task.name, found_task.opts)
+    run_wrap(found_task.cmd, found_task.name, found_task.opts)
+    vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(found_task.cmd)))
 end
 
 M.localtask_path = ".tasks.lua"
@@ -691,7 +693,7 @@ return tasks
 M.template_appendtask = function(str, task)
     local return_pos = str:find("return tasks")
     if not return_pos then
-        vim.notify("'return tasks' not found", vim.log.levels.ERROR)
+        vim.notify("[task]: 'return tasks' not found", vim.log.levels.ERROR)
         return str
     end
     local line_start = str:sub(1, return_pos):find("\n[^\n]*$")
@@ -719,23 +721,7 @@ M.edit_task = function()
     ---@param args {bufnr:integer,filepath:string}
     local select_and_write = function(args)
         assert(args.bufnr ~= nil or args.filepath ~= nil)
-        M.select_task(all_tasks, function(taskattr)
-            local tasks = all_tasks[taskattr.field]
-            local result = {}
-            if taskattr.name == "all" then
-                for _, task in ipairs(tasks) do
-                    table.insert(result, task)
-                end
-            else
-                result = M.filter(
-                    tasks,
-                    taskattr.name,
-                    taskattr.filetypes,
-                    taskattr["type"],
-                    taskattr.mode
-                )
-                assert(#result == 1)
-            end
+        M.select_task(all_tasks, function(taskattr, result)
             local bufnr = args.bufnr
                 or (function()
                     vim.cmd("edit " .. args.filepath)
@@ -788,13 +774,14 @@ end
 ---@field filetypes string[]
 
 ---@param all_tasks table<field,tasks>
----@param callback fun(taskattr:taskattr)
+---@param callback fun(taskattr:taskattr,task:tasks)
 ---@param prompt string|nil
----@param add_all_task boolean
-M.select_task = function(all_tasks, callback, prompt, add_all_task)
+---@param field_option boolean default false
+M.select_task = function(all_tasks, callback, prompt, field_option)
+    field_option = field_option or false
     local rows = {}
     for field, tasks in pairs(all_tasks) do
-        if add_all_task then
+        if field_option then
             table.insert(rows, {
                 field = field,
                 name = "all",
@@ -829,7 +816,16 @@ M.select_task = function(all_tasks, callback, prompt, add_all_task)
         end
         local taskattr = draw_decode(choice)
         assert(taskattr ~= nil)
-        callback(taskattr)
+        local tasks = all_tasks[taskattr.field]
+        local result = {}
+        if field_option and taskattr.name == "all" then
+            result = tasks
+        else
+            result =
+                M.filter(tasks, taskattr.name, taskattr.filetypes, taskattr["type"], taskattr.mode)
+            assert(#result == 1)
+        end
+        callback(taskattr, result)
     end)
 end
 M.select_and_run = function()
@@ -838,14 +834,12 @@ M.select_and_run = function()
         global = M.filter(all_tasks.globaltasks, nil, vim.bo.filetype),
         locall = M.filter(all_tasks.localtasks, nil, vim.bo.filetype),
     }
-    M.select_task(all_tasks, function(taskattr)
-        local tasks = all_tasks[taskattr.field]
-        local result = {}
-        result = M.filter(tasks, taskattr.name, taskattr.filetypes, taskattr["type"], taskattr.mode)
-        assert(#result == 1)
-        local task = result[1]
+    M.select_task(all_tasks, function(_, tasks)
+        assert(#tasks == 1)
+        local task = tasks[1]
         M.macro_replace(task)
         run_wrap(task.cmd, task.name, task.opts)
+        vim.notify(string.format("[task]: %s cmd:%s", task.name, vim.inspect(task.cmd)))
     end, "Select task to run", false)
 end
 
@@ -872,7 +866,7 @@ M.setkeymap = function()
         vim.cmd(string.format(
             [[
 				echohl Number
-				echo "Current task_mode: %s" 
+				echo "Current task_mode: %s"
 				echohl None
                 ]],
             M.task_mode
@@ -889,7 +883,7 @@ M.setkeymap = function()
         vim.cmd(string.format(
             [[
 				echohl Number
-				echo "Current task_type: %s" 
+				echo "Current task_type: %s"
 				echohl None
                 ]],
             M.task_type
@@ -904,4 +898,3 @@ M.setkeymap = function()
 end
 M.setkeymap()
 return M
----FIXME:many bug about F9F10

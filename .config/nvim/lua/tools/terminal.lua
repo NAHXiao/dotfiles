@@ -53,10 +53,6 @@ local function get_max_line_display_width(bufnr)
     end
     return maxlen
 end
-local function set_buf_hl_line(bufnr, line, hl_group)
-    vim.api.nvim_buf_clear_namespace(bufnr, 0, 0, -1)
-    vim.api.nvim_buf_add_highlight(bufnr, 0, hl_group, line - 1, 0, -1)
-end
 local function line_unpack(line)
     local num, text = line:match("^%[(%d+)%]%s+" .. term_icon .. "%s+(.*)")
     return tonumber(num), tostring(text)
@@ -86,16 +82,6 @@ local function list_swap(list, i, j)
     if i >= 1 and i <= #list and j >= 1 and j <= #list and i ~= j then
         list[i], list[j] = list[j], list[i]
     end
-end
-
--- Swap any two lines in the side pane
-local function panel_lines_swap(i, j)
-    local i_line = vim.api.nvim_buf_get_lines(state.panel_buf, i - 1, i, false)[1]
-    local j_line = vim.api.nvim_buf_get_lines(state.panel_buf, j - 1, j, false)[1]
-    i_line = i_line:gsub("^%[(%d+)%]", "[" .. j .. "]")
-    j_line = j_line:gsub("^%[(%d+)%]", "[" .. i .. "]")
-    vim.api.nvim_buf_set_lines(state.panel_buf, i - 1, i, false, { j_line })
-    vim.api.nvim_buf_set_lines(state.panel_buf, j - 1, j, false, { i_line })
 end
 
 local function get_index_by_jobid(jobid)
@@ -194,22 +180,20 @@ local function setup_panelbuf(bufnr)
     })
 end
 
+--TODO: BufDelete
 local function setup_termbuf(bufnr)
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            if vim.fn.jobwait({ state.terminals[get_index_by_bufnr(bufnr)].jobid }, 0)[1] == -1 then
+            if
+                vim.api.nvim_get_current_buf() == bufnr
+                and vim.fn.jobwait({ state.terminals[get_index_by_bufnr(bufnr)].jobid }, 0)[1]
+                    == -1
+            then
                 vim.cmd("startinsert")
             end
         end,
     })
-    --TODO:
-    -- vim.api.nvim_create_autocmd({ "BufUnload", "BufDelete", "BufWipeout" }, {
-    --     callback = function(args)
-    --          -- args.buf
-    --     end,
-    -- })
-
     local function map(mode, lhs, rhs)
         vim.keymap.set(mode, lhs, rhs, { buffer = bufnr })
     end
@@ -261,7 +245,19 @@ local function set_win_minimal(winid)
     end
 end
 ----------------------------------------------------------------------
-
+local function update_panelbuf()
+    local panel_buf = state.panel_buf
+    local lines = {}
+    for i, term in ipairs(state.terminals) do
+        table.insert(lines, line_pack(i, term.name))
+    end
+    vim.api.nvim_buf_set_lines(panel_buf, 0, -1, false, lines)
+    vim.api.nvim_buf_clear_namespace(panel_buf, 0, 0, -1)
+    vim.api.nvim_buf_add_highlight(panel_buf, 0, "Visual", state.cur_index - 1, 0, -1)
+end
+local function update_cursor_panelwin()
+    vim.api.nvim_win_set_cursor(state.panel_win, { state.cur_index, 0 })
+end
 ----@param index number|number[]
 ---@param index number
 local function delete_term(index)
@@ -276,32 +272,20 @@ local function delete_term(index)
         reset()
         return
     end
-    -- Update the side panel
-    local lines = vim.api.nvim_buf_get_lines(state.panel_buf, index, -1, false)
-    for i, line in ipairs(lines) do
-        lines[i] = line_pack(line_unpack(line) - 1)
-    end
-    vim.api.nvim_buf_set_lines(state.panel_buf, index - 1, -2, false, lines)
-    vim.api.nvim_buf_set_lines(state.panel_buf, -2, -1, false, {})
-
     table.remove(state.terminals, index)
-
     if index < state.cur_index then
         state.cur_index = state.cur_index - 1
-        vim.api.nvim_win_set_cursor(state.panel_win, { state.cur_index, 0 })
     elseif index == state.cur_index then
         local target_index = index > #state.terminals and index - 1 or index
         M.switch(target_index)
     end
-
     delete_buf(bufnr)
+    update_panelbuf()
+    update_cursor_panelwin()
 end
 
 ---@param cmd string|string[]
 ---@param name string
----terminals:append
----panel_buf:newline,hl
----other:unique
 local function create_terminal_buf(cmd, name, opts)
     cmd = (type(cmd) == "string" and { cmd } or cmd)
     opts = vim.tbl_deep_extend("force", {
@@ -315,7 +299,10 @@ local function create_terminal_buf(cmd, name, opts)
         if not vim.fn.executable(cmd[1]) then
             cmd = { vim.o.shell }
             vim.notify(
-                tostring(cmd[1] .. "is not executable") .. ",fallback to " .. vim.o.shell,
+                "[terminal]: "
+                    .. tostring(cmd[1] .. "is not executable")
+                    .. ",fallback to "
+                    .. vim.o.shell,
                 vim.log.levels.ERROR
             )
         end
@@ -339,16 +326,15 @@ local function new_terminal(cmd, name, unique, opts)
     name = (unique == true) and (pinned_icon .. name) or name
     local new_term = create_terminal_buf(cmd, name, opts)
     state.terminals[#state.terminals + 1] = new_term
+    state.cur_index = #state.terminals
+    bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
     if unique == true then
         if state.unique_name[name] ~= nil then
             delete_term(get_index_by_jobid(state.unique_name[name]))
         end
         state.unique_name[name] = new_term.jobid
     end
-    -- Update the panel
-    local count = #state.terminals
-    vim.api.nvim_buf_set_lines(state.panel_buf, count - 1, count, false, { line_pack(count, name) })
-    set_buf_hl_line(state.panel_buf, count, "Visual")
+    update_panelbuf()
 end
 -- new_terminal()
 ---term_win:create minmal
@@ -359,7 +345,6 @@ end
 local function open_wins(focus)
     focus = focus == nil and true or focus
     local origin_win = vim.api.nvim_get_current_win()
-
     -- Window for terminal
     vim.cmd("botright " .. state.term_height .. "split")
     state.term_win = vim.api.nvim_get_current_win()
@@ -398,7 +383,8 @@ M.switch = function(index)
     bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
 
     vim.api.nvim_win_set_cursor(state.panel_win, { index, 0 })
-    set_buf_hl_line(state.panel_buf, index, "Visual")
+    update_panelbuf()
+    update_cursor_panelwin()
 end
 
 -- Jump to the previous or next terminal
@@ -415,19 +401,17 @@ end
 M.rename = function()
     vim.ui.input({ prompt = "[Terminal] Enter name: " }, function(input)
         if not input or input == "" then
-            vim.notify("Terminal name cannot be empty", vim.log.levels.ERROR)
+            vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
             return
         end
         assert(type(input) == "string")
         -- forbid name start with pinned_icon
         if input:sub(1, 2) == pinned_icon then
-            vim.notify("Terminal name cannot start with " .. pinned_icon, vim.log.levels.ERROR)
+            vim.notify("[terminal]: Terminal name cannot start with " .. pinned_icon, vim.log.levels.ERROR)
             return
         end
-        local cur_index = state.cur_index
-        vim.api.nvim_buf_set_lines(state.panel_buf, cur_index - 1, cur_index, false, {
-            line_pack(cur_index, input),
-        })
+        state.terminals[state.cur_index].name = line_pack(state.cur_index, input)
+        update_panelbuf()
     end)
 end
 
@@ -437,10 +421,10 @@ M.move = function(direction)
     if target_index > #state.terminals or target_index < 1 then
         return
     end
-    panel_lines_swap(state.cur_index, target_index)
     list_swap(state.terminals, state.cur_index, target_index)
     state.cur_index = target_index
     M.switch(target_index)
+    update_panelbuf()
 end
 
 -- Create a new terminal
@@ -457,14 +441,13 @@ M.new = function(cmd, open, focus, name, unique, opts)
         set_autocmd()
     end
     new_terminal(cmd, name, unique, opts)
-    state.cur_index = #state.terminals
-    bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
-    vim.api.nvim_win_set_cursor(state.panel_win, { #state.terminals, 0 })
     if focus then
         vim.api.nvim_set_current_win(state.term_win)
     else
         vim.cmd("stopinsert")
     end
+    update_panelbuf()
+    update_cursor_panelwin()
 end
 
 ---
@@ -475,7 +458,6 @@ M.open = function()
         not state.cur_index or not vim.api.nvim_buf_is_valid(state.terminals[state.cur_index].bufnr)
     then
         new_terminal()
-        state.cur_index = #state.terminals
     end
     bind_buf_to_win(state.term_win, state.terminals[state.cur_index].bufnr)
 end
@@ -502,9 +484,3 @@ vim.keymap.set({ "n", "t" }, "<M-`>", function()
 end)
 
 return M
-
---TEST:
---1. operater through keymap Ok
---2. F12 run F12 run j(auto enter innsert ? and bug: Cursor position outside buffer)
---require("tools.terminal").new({""}) Ok
---3.

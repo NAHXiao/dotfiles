@@ -18,7 +18,7 @@ local pinned_icon = "📌"
 local default_terminal_cmd = (function()
     if vim.g.is_win then
         local options = {
-            { "pwsh", "-nologo" },
+            { "pwsh",      "-nologo" },
             { "powershell" },
             { "cmd" },
         }
@@ -42,7 +42,7 @@ local state = {
     panel_win = nil,
     panel_width = math.floor(vim.o.columns / 10),
 
-    terminals = {}, --jobid,burnr,cmd,name
+    terminals = {},   --jobid,burnr,cmd,name
 
     unique_name = {}, --设置unique后,后来的同名job将顶替前面的
 }
@@ -227,10 +227,13 @@ local function setup_termbuf(bufnr)
         local i = 1
         while true do
             local prompt = ("Enter value for cmd[%d]"):format(i)
-                .. (i ~= 1 and table.concat(cmds, " ") or "")
+                .. (i ~= 1 and ": " .. (table.concat(cmds, " ")) or "")
             local done = false
             vim.ui.input({ prompt = prompt }, function(input)
-                if input == nil or input == "" then
+                if input == nil then
+                    cmds = nil
+                    done = true
+                elseif input == "" then
                     done = true
                 else
                     cmds[i] = input

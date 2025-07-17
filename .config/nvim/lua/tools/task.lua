@@ -893,8 +893,8 @@ M.select_task = function(all_tasks, callback, prompt, field_option)
                 choice["type"],
                 choice.mode
             )
+            assert(#result == 1)
         end
-        assert(#result == 1)
         callback(result)
     end)
 end

@@ -552,7 +552,6 @@ M.rename = function(index)
             "[terminal]: Renaming a Unique Buffer will cancel its ‘unique’ status",
             vim.log.levels.WARN
         )
-        return
     end
     vim.ui.input({ prompt = "[Terminal] Enter name: " }, function(input)
         if not input or input == "" then

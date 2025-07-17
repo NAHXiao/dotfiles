@@ -58,12 +58,6 @@ M.run_wrapper = "cmd_wrapper"
 local globaltasks = {
     --general
     {
-        name = "task-test",
-        cmd = { "bash", "-c", "echo $(-input:) $(VIM_FILEPATH)" },
-        filetypes = {},
-        type = "file",
-    },
-    {
         name = "run",
         cmd = { "$(VIM_FILEPATH)" },
         filetypes = {},
@@ -183,6 +177,44 @@ local globaltasks = {
             "$(VIM_FILENOEXT)",
         },
         filetypes = { "java" },
+        type = "file",
+    },
+    --scripts
+    {
+        name = "run",
+        cmd = {
+            "lua",
+            "$(VIM_FILEPATH)",
+        },
+        filetypes = { "lua" },
+        type = "file",
+    },
+    {
+        name = "run",
+        cmd = {
+            "python",
+            "$(VIM_FILEPATH)",
+        },
+        filetypes = { "python" },
+        type = "file",
+    },
+    {
+        name = "run",
+        cmd = {
+            "node",
+            "$(VIM_FILEPATH)",
+        },
+        filetypes = { "javascript" },
+        type = "file",
+    },
+    {
+        name = "run",
+        cmd = {
+            "powershell",
+            "-file",
+            "$(VIM_FILEPATH)",
+        },
+        filetypes = { "ps1" },
         type = "file",
     },
 }

@@ -630,23 +630,30 @@ M.run = function(taskname, type, mode, opts)
             filtered_tasks[idx.global == true and "globaltasks" or "localtasks"][idx.index]
         )
     end
-    local found_task
+    local exec = function(task)
+        task.opts = vim.tbl_deep_extend("force", task.opts or {}, opts or {})
+        M.macro_replace(task)
+        run_wrap(task.cmd, task.name, task.opts)
+        vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(task.cmd)))
+    end
     if #found_tasks == 0 then
         vim.notify("[task]: Task not found: " .. taskname, vim.log.levels.ERROR)
         return
     elseif #found_tasks == 1 then
-        found_task = found_tasks[1]
+        exec(found_tasks[1])
     elseif #found_tasks > 1 then
-        M.select_task({ taskname = found_tasks }, function(_, tasks) --Re
-            assert(#tasks == 1)
-            found_task = tasks[1]
-        end, taskname, false)
-        return
+        vim.ui.select(found_tasks, {
+            prompt = "Select task:",
+            format_item = function(item)
+                return table.concat(item.cmd, " ")
+            end,
+        }, function(choice)
+            if choice == nil then
+                return
+            end
+            exec(choice)
+        end)
     end
-    found_task.opts = vim.tbl_deep_extend("force", found_task.opts or {}, opts or {})
-    M.macro_replace(found_task)
-    run_wrap(found_task.cmd, found_task.name, found_task.opts)
-    vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(found_task.cmd)))
 end
 
 --刷新M.localtasks
@@ -754,7 +761,7 @@ M.edit_task = function()
     ---@param args {bufnr:integer,filepath:string}
     local select_and_write = function(args)
         assert(args.bufnr ~= nil or args.filepath ~= nil)
-        M.select_task(all_tasks, function(taskattr, result)
+        M.select_task(all_tasks, function(result)
             local bufnr = args.bufnr
                 or (function()
                     vim.cmd("edit " .. args.filepath)
@@ -807,58 +814,56 @@ end
 ---@field filetypes string[]
 
 ---@param all_tasks table<field,tasks>
----@param callback fun(taskattr:taskattr,task:tasks)
+---@param callback fun(task:tasks)
 ---@param prompt string|nil
 ---@param field_option boolean default false
 M.select_task = function(all_tasks, callback, prompt, field_option)
     field_option = field_option or false
-    local rows = {}
+    local items = {}
     for field, tasks in pairs(all_tasks) do
         if field_option then
-            table.insert(rows, {
+            table.insert(items, {
                 field = field,
                 name = "all",
                 mode = "",
                 type = "",
                 filetypes = {},
+                all = true,
             })
         end
         for _, task in ipairs(tasks) do
-            table.insert(rows, {
-                field = field,
-                name = task.name,
-                mode = task.mode,
-                type = task.type,
-                filetypes = task.filetypes,
-            })
+            table.insert(
+                items,
+                vim.tbl_deep_extend("force", task, {
+                    field = field,
+                })
+            )
         end
     end
-    local w = compute_width(rows)
-    local options = {}
-    for _, row in ipairs(rows) do
-        table.insert(
-            options,
-            draw_encode(row.field, row.name, row.mode, row.type, row.filetypes, w)
-        )
-    end
-    vim.ui.select(options, {
+    local w = compute_width(items)
+    vim.ui.select(items, {
         prompt = prompt or "Select task",
+        format_item = function(item)
+            return draw_encode(item.field, item.name, item.mode, item.type, item.filetypes, w)
+        end,
     }, function(choice)
-        if choice == nil or choice == "" then
+        local result = {}
+        if choice == nil then
             return
         end
-        local taskattr = draw_decode(choice)
-        assert(taskattr ~= nil)
-        local tasks = all_tasks[taskattr.field]
-        local result = {}
-        if field_option and taskattr.name == "all" then
-            result = tasks
+        if choice.all then
+            result = all_tasks[choice.field]
         else
-            result =
-                M.filter(tasks, taskattr.name, taskattr.filetypes, taskattr["type"], taskattr.mode)
-            assert(#result == 1)
+            result = M.filter(
+                all_tasks[choice.field],
+                choice.name,
+                choice.filetypes,
+                choice["type"],
+                choice.mode
+            )
         end
-        callback(taskattr, result)
+        assert(#result == 1)
+        callback(result)
     end)
 end
 M.select_and_run = function()
@@ -867,7 +872,7 @@ M.select_and_run = function()
         global = M.filter(all_tasks.globaltasks, nil, vim.bo.filetype),
         locall = M.filter(all_tasks.localtasks, nil, vim.bo.filetype),
     }
-    M.select_task(all_tasks, function(_, tasks)
+    M.select_task(all_tasks, function(tasks)
         assert(#tasks == 1)
         local task = tasks[1]
         M.macro_replace(task)

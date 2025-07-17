@@ -40,7 +40,7 @@ M.ignore_filetypes = {
 }
 
 M.localtask_path = function()
-    return vim.fs.abs(vim.fs.joinpath(vim.g.projroot or vim.fn.getcwd(), ".tasks.lua"))
+    return vim.fs.abspath(vim.fs.joinpath(vim.g.projroot or vim.fn.getcwd(), ".tasks.lua"))
 end
 
 M.default_task_template = {

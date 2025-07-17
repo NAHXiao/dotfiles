@@ -12,12 +12,13 @@ return {
             "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
             desc = "Buffer Diagnostics (Trouble)",
         },
-    },
-    commander = {
         {
-            cmd = "<cmd>Trouble symbols toggle focus=false<cr>",
+            "<leader>s",
+            "<cmd>Trouble symbols toggle focus=false<cr>",
             desc = "Symbols (Trouble)",
         },
+    },
+    commander = {
         {
             cmd = "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
             desc = "LSP Definitions / references / ... (Trouble)",

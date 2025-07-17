@@ -495,11 +495,10 @@ end
 
 -- Create a new terminal
 ---@param cmd string|string[]|nil
----@param open boolean|nil TODO:该参数无用
 ---@param focus boolean|nil nil=true
 ---@param name string|nil
 ---@param unique boolean|nil
-M.new = function(cmd, open, focus, name, unique, opts)
+M.new = function(cmd, focus, name, unique, opts)
     -- open = open == nil and true or open
     focus = focus == nil and true or focus
     local before_opened

@@ -21,6 +21,28 @@ local M = {}
 ---@alias tasktype ("file"|"project")
 ---@alias taskmode ("debug"|"release")
 
+--M.run时这些filetypes不构成过滤
+M.ignore_filetypes = {
+    "",
+    "qf",
+    "neo-tree",
+    "alpha",
+    "toggleterm",
+    "TerminalPanel",
+    "trouble",
+    "markdown",
+    "dapui_scopes",
+    "snacks_terminal",
+    "lazy",
+    "mason",
+    "TelescopePrompt",
+    "dropbar_menu",
+}
+
+M.localtask_path = function()
+    return vim.fs.abs(vim.fs.joinpath(vim.g.projroot or vim.fn.getcwd(), ".tasks.lua"))
+end
+
 M.default_task_template = {
     filetypes = {},
     mode = "debug",
@@ -570,7 +592,7 @@ local run_wrap = function(cmd, name, opts)
     if M.run_wrapper then
         cmd = { M.run_wrapper, unpack(cmd) }
     end
-    require("tools.terminal").new(cmd, true, false, name, true, opts)
+    require("tools.terminal").new(cmd, false, name, true, opts)
 end
 
 ---@param taskname string 完全匹配
@@ -579,7 +601,20 @@ end
 ---@param opts jobopts|nil
 M.run = function(taskname, type, mode, opts)
     --匹配task
-    local ft = (not vim.list_contains({ "qf" }, vim.bo.filetype)) and vim.bo.filetype or nil
+
+    ---@type string|nil
+    local ft = vim.bo.filetype or nil
+
+    if vim.list_contains(M.ignore_filetypes, vim.bo.filetype) then
+        ft = nil
+    end
+    if
+        vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
+        and vim.fs.abspath(vim.api.nvim_buf_get_name(0)) == M.localtask_path()
+    then
+        ft = nil
+    end
+
     M.refresh_local()
     local all_tasks = M.listtasks()
     local filtered_tasks = {
@@ -614,11 +649,9 @@ M.run = function(taskname, type, mode, opts)
     vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(found_task.cmd)))
 end
 
-M.localtask_path = ".tasks.lua"
-
 --刷新M.localtasks
 M.refresh_local = function()
-    local filepath = vim.g.projroot .. "/" .. M.localtask_path
+    local filepath = M.localtask_path()
     if vim.fn.filereadable(filepath) == 1 then
         localtasks = M.parsefile(filepath)
     else
@@ -743,7 +776,7 @@ M.edit_task = function()
             vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
         end, "Select task to add", true)
     end
-    local filepath = vim.g.projroot .. "/" .. M.localtask_path
+    local filepath = M.localtask_path()
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr ~= -1
     local win_exists = buf_exists and vim.fn.bufwinnr(bufnr) ~= -1
@@ -847,6 +880,40 @@ end
 M.task_mode = nil
 ---@type tasktype|nil ("project">"file")
 M.task_type = nil
+local function switch_taskmode()
+    if M.task_mode == nil then
+        M.task_mode = "debug"
+    elseif M.task_mode == "debug" then
+        M.task_mode = "release"
+    elseif M.task_mode == "release" then
+        M.task_mode = nil
+    end
+    vim.cmd(string.format(
+        [[
+				echohl Number
+				echo "Current task_mode: %s"
+				echohl None
+                ]],
+        M.task_mode
+    ))
+end
+local function switch_tasktype()
+    if M.task_type == nil then
+        M.task_type = "project"
+    elseif M.task_type == "project" then
+        M.task_type = "file"
+    elseif M.task_type == "file" then
+        M.task_type = nil
+    end
+    vim.cmd(string.format(
+        [[
+				echohl Number
+				echo "Current task_type: %s"
+				echohl None
+                ]],
+        M.task_type
+    ))
+end
 M.setkeymap = function()
     local map = require("utils").map
     map("n", "<F9>", function()
@@ -855,40 +922,8 @@ M.setkeymap = function()
     map("n", "<F10>", function()
         M.run("run", M.task_type, M.task_mode)
     end)
-    map("n", "<F11>", function()
-        if M.task_mode == nil then
-            M.task_mode = "debug"
-        elseif M.task_mode == "debug" then
-            M.task_mode = "release"
-        elseif M.task_mode == "release" then
-            M.task_mode = nil
-        end
-        vim.cmd(string.format(
-            [[
-				echohl Number
-				echo "Current task_mode: %s"
-				echohl None
-                ]],
-            M.task_mode
-        ))
-    end)
-    map("n", vim.g.is_win and "<S-F11>" or "<F23>", function()
-        if M.task_type == nil then
-            M.task_type = "project"
-        elseif M.task_type == "project" then
-            M.task_type = "file"
-        elseif M.task_type == "file" then
-            M.task_type = nil
-        end
-        vim.cmd(string.format(
-            [[
-				echohl Number
-				echo "Current task_type: %s"
-				echohl None
-                ]],
-            M.task_type
-        ))
-    end)
+    map("n", "<F11>", switch_taskmode)
+    map("n", vim.g.is_win and "<S-F11>" or "<F23>", switch_tasktype)
     map("n", "<F12>", function()
         M.select_and_run()
     end)
@@ -896,5 +931,12 @@ M.setkeymap = function()
         M.edit_task()
     end)
 end
+M.createcmds = function()
+    vim.api.nvim_create_user_command("TaskEdit", M.edit_task, {})
+    vim.api.nvim_create_user_command("TaskSelectAndRun", M.select_and_run, {})
+    vim.api.nvim_create_user_command("TaskToggleDebugRelease", switch_taskmode, {})
+    vim.api.nvim_create_user_command("TaskToggleProjFile", switch_tasktype, {})
+end
 M.setkeymap()
+M.createcmds()
 return M

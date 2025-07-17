@@ -3,7 +3,6 @@
 -- <M-;>: new a terminal
 -- <M-'>: new a terminal with specific cmd
 -- <M-q>: delete the current terminal
--- <M-c>: stop terminal's job
 -- <M-r>: rename the current terminal
 -- <M-,>: move the current terminal backwards
 -- <M-.>: move the current terminal forwards
@@ -226,9 +225,9 @@ local function set_buf_keymap(bufnr, indexfunc)
     map({ "n", "t" }, "<M-q>", function()
         require("tools.terminal").delete(indexfunc())
     end)
-    map({ "n", "t" }, "<M-c>", function()
-        vim.fn.jobstop(state.terminals[indexfunc()].jobid)
-    end)
+    -- map({ "n", "t" }, "<M-c>", function()
+    --     vim.fn.jobstop(state.terminals[indexfunc()].jobid)
+    -- end)
     -- Rename
     map({ "n", "t" }, "<M-r>", function()
         require("tools.terminal").rename(indexfunc())

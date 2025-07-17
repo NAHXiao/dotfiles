@@ -495,28 +495,10 @@ local function draw_encode(field, task, mode, type_, filetypes, w)
     end
     return table.concat(row, " | ")
 end
-local function draw_decode(str)
-    local parts = {}
-    for part in string.gmatch(str, "([^|]+)") do
-        part = vim.trim(part)
-        table.insert(parts, part)
-    end
-    if #parts ~= 5 then
-        error("code error:len(str.parts)!=5")
-    end
-    local filetypes = (parts[5] == "*" and {}) or vim.split(parts[5], ",", { plain = true })
-    return {
-        field = parts[1],
-        name = parts[2],
-        mode = parts[3],
-        ["type"] = parts[4],
-        filetypes = filetypes,
-    }
-end
 --内存储微缩tasks和其参数
 local argv_cache = {}
 ---@param task task
----@return task
+---@return task|nil
 ---for cmd,cwd,env.value
 ---modify task itself
 M.macro_replace = function(task) --TODO:interrupt
@@ -545,7 +527,7 @@ M.macro_replace = function(task) --TODO:interrupt
         ["$(VIM_PATHNOEXT)"] = function()
             return vim.fn.expand("%:p:r")
         end,
-        ["$(VIM_RELNAME)"] = function()
+        ["$(VIM_RELPATH)"] = function()
             return vim.fn.expand("%:p:.")
         end,
         ["$(VIM_FILEDIR)"] = function()
@@ -607,14 +589,32 @@ M.macro_replace = function(task) --TODO:interrupt
         return str
     end
     for i, cmd in ipairs(task.cmd) do
-        task.cmd[i] = replace_in_string(cmd)
+        local ok, result = replace_in_string(cmd)
+        if ok then
+            task.cmd[i] = result
+        else
+            vim.notify("[task]: ", result)
+            return nil
+        end
     end
     if task.opts and task.opts.cwd then
-        task.opts.cwd = replace_in_string(task.opts.cwd)
+        local ok, result = replace_in_string(task.opts.cwd)
+        if ok then
+            task.opts.cwd = result
+        else
+            vim.notify("[task]: ", result)
+            return nil
+        end
     end
     if task.opts and task.opts.env then
         for k, v in pairs(task.opts.env) do
-            task.opts.env[k] = replace_in_string(v)
+            local ok, result = replace_in_string(v)
+            if ok then
+                task.opts.env[k] = result
+            else
+                vim.notify("[task]: ", result)
+                return nil
+            end
         end
     end
     return task
@@ -664,7 +664,10 @@ M.run = function(taskname, type, mode, opts)
     end
     local exec = function(task)
         task.opts = vim.tbl_deep_extend("force", task.opts or {}, opts or {})
-        M.macro_replace(task)
+        task = M.macro_replace(task)
+        if task == nil then
+            return
+        end
         run_wrap(task.cmd, task.name, task.opts)
         vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(task.cmd)))
     end
@@ -737,7 +740,7 @@ M.template_config = [[
 
 --$(VIM_FILEPATH)  - 文件路径
 --$(VIM_PATHNOEXT) - 去扩展的文件路径
---$(VIM_RELNAME)   - 相对文件路径
+--$(VIM_RELPATH)   - 相对文件路径
 --$(VIM_FILEDIR)   - 文件所在目录路径
 --$(VIM_DIRNAME)   - 文件所在目录名
 
@@ -906,8 +909,13 @@ M.select_and_run = function()
     }
     M.select_task(all_tasks, function(tasks)
         assert(#tasks == 1)
+        ---@type task|nil
         local task = tasks[1]
-        M.macro_replace(task)
+        assert(task)
+        task = M.macro_replace(task)
+        if task == nil then
+            return
+        end
         run_wrap(task.cmd, task.name, task.opts)
         vim.notify(string.format("[task]: %s cmd:%s", task.name, vim.inspect(task.cmd)))
     end, "Select task to run", false)
@@ -974,6 +982,8 @@ M.createcmds = function()
     vim.api.nvim_create_user_command("TaskToggleDebugRelease", switch_taskmode, {})
     vim.api.nvim_create_user_command("TaskToggleProjFile", switch_tasktype, {})
 end
-M.setkeymap()
-M.createcmds()
+M.setup = function()
+    M.setkeymap()
+    M.createcmds()
+end
 return M

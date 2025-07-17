@@ -9,7 +9,7 @@ local uv = vim.loop or vim.uv
 
 ---@alias Projects table<path,Project>
 
-local proj = {
+local M = {
     _setuped = false,
     config = {
         save_on_exit = true,
@@ -81,12 +81,12 @@ local proj = {
     },
 }
 
-proj.__index = proj
-function proj:notify(msg, level, opts)
+M.__index = M
+function M:notify(msg, level, opts)
     vim.notify("proj: " .. msg, level, opts)
 end
 ---@return Projects
-function proj:projreader()
+function M:projreader()
     local projfile = self.config.projfile
     if not vim.fn.filereadable(projfile) then
         return {}
@@ -116,7 +116,7 @@ function proj:projreader()
     return projects
 end
 ---@param projects Projects
-function proj:projwriter(projects)
+function M:projwriter(projects)
     local projfile = self.config.projfile
     vim.fn.mkdir(vim.fn.fnamemodify(projfile, ":h"), "p")
     local file = io.open(projfile, "w")
@@ -130,7 +130,7 @@ function proj:projwriter(projects)
 end
 
 ---@return Project
-function proj:mksession()
+function M:mksession()
     local funcs = self.config.mksession
     local path = funcs.path()
     local project = {
@@ -142,7 +142,7 @@ function proj:mksession()
     return project
 end
 
-function proj:save()
+function M:save()
     local project = self:mksession()
     vim.notify(vim.inspect(project))
     local projects = self:projreader()
@@ -155,7 +155,7 @@ end
 
 ---@param project Project
 ---@return boolean
-function proj:load(project)
+function M:load(project)
     local layout = project.mainwindows or {}
     ----------------------------------------
     local _buffers = vim.api.nvim_list_bufs()
@@ -186,7 +186,7 @@ function proj:load(project)
     end
     vim.api.nvim_set_current_win(base_win)
     ----------------------------------------
-    local buffers = proj.filebuffers or {}
+    local buffers = M.filebuffers or {}
     --exclude mainwindows
     for _, filepaths in ipairs(layout) do
         for _, filepath in ipairs(filepaths) do
@@ -220,7 +220,7 @@ function proj:load(project)
     end
     return true
 end
-function proj:update()
+function M:update()
     local project = self:mksession()
     local projects = self:projreader()
     if projects == nil or projects[project.path] == nil then
@@ -229,7 +229,7 @@ function proj:update()
     projects[project.path] = project
     self:projwriter(projects)
 end
-function proj:delbypath(path)
+function M:delbypath(path)
     local projects = self:projreader()
     if projects == nil or projects[path] == nil then
         return
@@ -238,7 +238,7 @@ function proj:delbypath(path)
     self:projwriter(projects)
 end
 ---@param callback fun(project:Project)
-function proj:select(callback)
+function M:select(callback)
     local projects = self:projreader()
     if projects == nil then
         self:notify("No projects found", vim.log.levels.WARN)
@@ -267,8 +267,8 @@ function proj:select(callback)
 end
 -- Create Autocmds
 -- Save/Update Proj When Exit , then set _setuped true
-function proj:setup()
-    if proj._setuped == false then
+function M:setup()
+    if M._setuped == false then
         vim.api.nvim_create_augroup("proj", { clear = true })
         vim.api.nvim_create_autocmd("vimleavepre", {
             group = "proj",
@@ -292,22 +292,18 @@ function proj:setup()
         self._setuped = true
     end
 end
-vim.schedule(function()
-    proj:setup()
-end)
-
-function proj:select_and_load()
+function M:select_and_load()
     self:select(function(project)
         if project ~= nil then
             self:load(project)
         end
     end)
 end
-function proj:select_and_del()
+function M:select_and_del()
     self:select(function(project)
         if project ~= nil then
             self:delbypath(project.path)
         end
     end)
 end
-return proj
+return M

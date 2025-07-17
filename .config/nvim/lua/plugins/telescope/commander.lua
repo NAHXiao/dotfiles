@@ -70,22 +70,22 @@ return {
         })
         require("commander").add({
             {
-                cmd = "<cmd>lua require('utils').proj:save()<cr>",
+                cmd = "<cmd>lua require('tools.proj'):save()<cr>",
                 desc = "Save as Project",
                 cat = "project",
             },
             {
-                cmd = "<cmd>lua require('utils').proj:update()<cr>",
+                cmd = "<cmd>lua require('tools.proj'):update()<cr>",
                 desc = "Update Project",
                 cat = "project",
             },
             {
-                cmd = "<cmd>lua require('utils').proj:select_and_load()<cr>",
+                cmd = "<cmd>lua require('tools.proj'):select_and_load()<cr>",
                 desc = "Load Project",
                 cat = "project",
             },
             {
-                cmd = "<cmd>lua require('utils').proj:select_and_del()<cr>",
+                cmd = "<cmd>lua require('tools.proj'):select_and_del()<cr>",
                 desc = "Forget Project",
                 cat = "project",
             },

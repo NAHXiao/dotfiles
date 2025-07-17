@@ -324,6 +324,7 @@ local function set_win_minimal(winid)
         vim.wo[winid][option] = value
     end
 end
+local ns = vim.api.nvim_create_namespace("tools.terminal")
 ----------------------------------------------------------------------
 local function update_panelbuf()
     local panel_buf = state.panel_buf
@@ -334,8 +335,19 @@ local function update_panelbuf()
         table.insert(lines, line_pack(i, term.name))
     end
     vim.api.nvim_buf_set_lines(panel_buf, 0, -1, false, lines)
-    vim.api.nvim_buf_clear_namespace(panel_buf, 0, 0, -1)
-    vim.api.nvim_buf_add_highlight(panel_buf, 0, "Visual", state.cur_index - 1, 0, -1)
+    vim.api.nvim_buf_clear_namespace(panel_buf, ns, 0, -1)
+    if vim.hl.range then
+        vim.hl.range(
+            panel_buf,
+            ns,
+            "Visual",
+            { state.cur_index - 1, 0 },
+            { state.cur_index - 1, -1 },
+            { priority = 100 }
+        )
+    else
+        vim.api.nvim_buf_add_highlight(panel_buf, 0, "Visual", state.cur_index - 1, 0, -1)
+    end
     vim.bo[panel_buf].modifiable = false
 end
 local function update_cursor_panelwin(index)
@@ -658,10 +670,11 @@ M.toggle = function()
         M.open()
     end
 end
-
--- Toggle
-vim.keymap.set({ "n", "t" }, "<M-`>", function()
-    require("tools.terminal").toggle()
-end)
+M.setup = function()
+    -- Toggle
+    vim.keymap.set({ "n", "t" }, "<M-`>", function()
+        require("tools.terminal").toggle()
+    end)
+end
 
 return M

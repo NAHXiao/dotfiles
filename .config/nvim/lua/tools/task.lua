@@ -744,10 +744,6 @@ M.template_config = [[
 --$(-argvname:) 记住上次输入
 --$(-argvname:default) 以default为默认值
 
--- opt.on_exit = function(job, code, event) end,
--- opt.on_stdout = function(job, data, event) end,
--- opt.on_stderr = function(job, data, event) end,
-
 ---@type task[]
 local tasks = {}
 ---@param task task

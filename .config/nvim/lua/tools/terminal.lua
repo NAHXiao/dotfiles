@@ -223,11 +223,14 @@ local function set_buf_keymap(bufnr, indexfunc)
     end)
     -- Delete the current terminal
     map({ "n", "t" }, "<M-q>", function()
-        require("tools.terminal").delete(indexfunc())
+        local idx = indexfunc()
+        local pinned = state.unique_name[state.terminals[idx].name]
+        if pinned then
+            vim.notify("Pinned terminal cannot be delete", vim.log.levels.WARN)
+        else
+            require("tools.terminal").delete(indexfunc())
+        end
     end)
-    -- map({ "n", "t" }, "<M-c>", function()
-    --     vim.fn.jobstop(state.terminals[indexfunc()].jobid)
-    -- end)
     -- Rename
     map({ "n", "t" }, "<M-r>", function()
         require("tools.terminal").rename(indexfunc())

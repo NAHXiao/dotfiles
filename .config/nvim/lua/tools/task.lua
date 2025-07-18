@@ -844,7 +844,7 @@ end
 M.select_task = function(all_tasks, callback, prompt, field_option)
     field_option = field_option or false
     local items = {}
-    for field, tasks in pairs(all_tasks) do
+    local insert = function(field, tasks)
         if field_option then
             table.insert(items, {
                 field = field,
@@ -863,6 +863,17 @@ M.select_task = function(all_tasks, callback, prompt, field_option)
                 })
             )
         end
+    end
+    local hasglobal = false --Global置后
+    for field, tasks in pairs(all_tasks) do
+        if field == "global" then
+            hasglobal = true
+        else
+            insert(field, tasks)
+        end
+    end
+    if hasglobal then
+        insert("global", all_tasks.global)
     end
     local w = compute_width(items)
     vim.ui.select(items, {

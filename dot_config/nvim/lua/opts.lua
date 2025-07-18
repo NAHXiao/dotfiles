@@ -17,7 +17,7 @@ opt.termguicolors = true
 opt.ignorecase = true
 opt.smartcase = true
 opt.incsearch = true
-opt.hlsearch = false
+-- opt.hlsearch = false
 
 --  Whitespace
 opt.expandtab = true

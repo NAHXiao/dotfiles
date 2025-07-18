@@ -241,13 +241,6 @@ local template = {
             mode = "debug",
             filetypes = {},
         },
-        {
-            name = "run",
-            cmd = { "echo", "$(VIM_FILEPATH)" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
     },
     cmake = {
         {
@@ -589,30 +582,30 @@ M.macro_replace = function(task) --TODO:interrupt
         return str
     end
     for i, cmd in ipairs(task.cmd) do
-        local ok, result = replace_in_string(cmd)
+        local ok, result = pcall(replace_in_string, cmd)
         if ok then
             task.cmd[i] = result
         else
-            vim.notify("[task]: ", result)
+            vim.notify("[task]: " .. result, vim.log.levels.ERROR)
             return nil
         end
     end
     if task.opts and task.opts.cwd then
-        local ok, result = replace_in_string(task.opts.cwd)
+        local ok, result = pcall(replace_in_string, task.opts.cwd)
         if ok then
             task.opts.cwd = result
         else
-            vim.notify("[task]: ", result)
+            vim.notify("[task]: " .. result, vim.log.levels.ERROR)
             return nil
         end
     end
     if task.opts and task.opts.env then
         for k, v in pairs(task.opts.env) do
-            local ok, result = replace_in_string(v)
+            local ok, result = pcall(replace_in_string, v)
             if ok then
                 task.opts.env[k] = result
             else
-                vim.notify("[task]: ", result)
+                vim.notify("[task]: " .. result, vim.log.levels.ERROR)
                 return nil
             end
         end
@@ -896,7 +889,20 @@ M.select_task = function(all_tasks, callback, prompt, field_option)
                 choice["type"],
                 choice.mode
             )
-            assert(#result == 1)
+            if #result > 1 then
+                vim.notify(
+                    string.format(
+                        "[task]: %s.%s(%s:%s) for %s matched multi tasks",
+                        choice.field,
+                        choice.name,
+                        choice.mode,
+                        choice["type"],
+                        #choice.filetypes ~= 0 and table.concat(choice.filetypes, ",") or "*"
+                    ),
+                    vim.log.levels.ERROR
+                )
+                return
+            end
         end
         callback(result)
     end)
@@ -925,7 +931,7 @@ end
 M.task_mode = nil
 ---@type tasktype|nil ("project">"file")
 M.task_type = nil
-local function switch_taskmode()
+function M.switch_taskmode()
     if M.task_mode == nil then
         M.task_mode = "debug"
     elseif M.task_mode == "debug" then
@@ -942,7 +948,7 @@ local function switch_taskmode()
         M.task_mode
     ))
 end
-local function switch_tasktype()
+function M.switch_tasktype()
     if M.task_type == nil then
         M.task_type = "project"
     elseif M.task_type == "project" then
@@ -963,24 +969,29 @@ M.setkeymap = function()
     local map = require("utils").map
     map("n", "<F9>", function()
         M.run("build", M.task_type, M.task_mode)
-    end)
+    end, { desc = "Build" })
     map("n", "<F10>", function()
         M.run("run", M.task_type, M.task_mode)
-    end)
-    map("n", "<F11>", switch_taskmode)
-    map("n", vim.g.is_win and "<S-F11>" or "<F23>", switch_tasktype)
+    end, { desc = "Run" })
+    map("n", "<F11>", M.switch_taskmode, { desc = "TaskToggleDebugRelease" })
+    map(
+        "n",
+        vim.g.is_win and "<S-F11>" or "<F23>",
+        M.switch_tasktype,
+        { desc = "TaskToggleProjFile" }
+    )
     map("n", "<F12>", function()
         M.select_and_run()
-    end)
+    end, { desc = "TaskSelectAndRun" })
     map("n", vim.g.is_win and "<S-F12>" or "<F24>", function()
         M.edit_task()
-    end)
+    end, { desc = "TaskEdit" })
 end
 M.createcmds = function()
     vim.api.nvim_create_user_command("TaskEdit", M.edit_task, {})
     vim.api.nvim_create_user_command("TaskSelectAndRun", M.select_and_run, {})
-    vim.api.nvim_create_user_command("TaskToggleDebugRelease", switch_taskmode, {})
-    vim.api.nvim_create_user_command("TaskToggleProjFile", switch_tasktype, {})
+    vim.api.nvim_create_user_command("TaskToggleDebugRelease", M.switch_taskmode, {})
+    vim.api.nvim_create_user_command("TaskToggleProjFile", M.switch_tasktype, {})
 end
 M.setup = function()
     M.setkeymap()

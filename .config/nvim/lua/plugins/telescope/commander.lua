@@ -68,28 +68,6 @@ return {
                 cat = "theme(background)",
             },
         })
-        require("commander").add({
-            {
-                cmd = "<cmd>lua require('tools.proj'):save()<cr>",
-                desc = "Save as Project",
-                cat = "project",
-            },
-            {
-                cmd = "<cmd>lua require('tools.proj'):update()<cr>",
-                desc = "Update Project",
-                cat = "project",
-            },
-            {
-                cmd = "<cmd>lua require('tools.proj'):select_and_load()<cr>",
-                desc = "Load Project",
-                cat = "project",
-            },
-            {
-                cmd = "<cmd>lua require('tools.proj'):select_and_del()<cr>",
-                desc = "Forget Project",
-                cat = "project",
-            },
-        })
 
         if vim.g.neovide then
             require("commander").add({
@@ -106,6 +84,87 @@ return {
                     end,
                     desc = "Toggle InputIME",
                     cat = "neovide",
+                },
+            })
+        end
+
+        local ok, proj = pcall(require, "tools.proj")
+        if ok then
+            require("commander").add({
+                {
+                    cmd = function()
+                        proj:save()
+                    end,
+                    desc = "Save as Project",
+                    cat = "project",
+                },
+                {
+                    cmd = function()
+                        proj:update()
+                    end,
+                    desc = "Update Project",
+                    cat = "project",
+                },
+                {
+                    cmd = function()
+                        proj:select_and_load()
+                    end,
+                    desc = "Load Project",
+                    cat = "project",
+                },
+                {
+                    cmd = function()
+                        proj:select_and_del()
+                    end,
+                    desc = "Forget Project",
+                    cat = "project",
+                },
+            })
+        end
+        local ok, t = pcall(require, "tools.task")
+        if ok then
+            require("commander").add({
+                {
+                    cmd = function()
+                        t.run("build", t.task_type, t.task_mode)
+                    end,
+                    desc = "Build",
+                    cat = "Task",
+                },
+                {
+                    cmd = function()
+                        t.run("run", t.task_type, t.task_mode)
+                    end,
+                    desc = "Run",
+                    cat = "Task",
+                },
+                {
+                    cmd = function()
+                        t.switch_taskmode()
+                    end,
+                    desc = "TaskToggleDebugRelease",
+                    cat = "Task",
+                },
+                {
+                    cmd = function()
+                        t.switch_tasktype()
+                    end,
+                    desc = "TaskToggleProjFile",
+                    cat = "Task",
+                },
+                {
+                    cmd = function()
+                        t.select_and_run()
+                    end,
+                    desc = "TaskSelectAndRun",
+                    cat = "Task",
+                },
+                {
+                    cmd = function()
+                        t.edit_task()
+                    end,
+                    desc = "TaskEdit/Add",
+                    cat = "Task",
                 },
             })
         end

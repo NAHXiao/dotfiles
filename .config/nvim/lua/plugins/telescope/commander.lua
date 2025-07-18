@@ -121,8 +121,8 @@ return {
                 },
             })
         end
-        local ok, t = pcall(require, "tools.task")
-        if ok then
+        local ok1, t = pcall(require, "tools.task")
+        if ok1 then
             require("commander").add({
                 {
                     cmd = function()
@@ -165,6 +165,18 @@ return {
                     end,
                     desc = "TaskEdit/Add",
                     cat = "Task",
+                },
+            })
+        end
+        local ok2, term = pcall(require, "tools.terminal")
+        if ok2 then
+            require("commander").add({
+                {
+                    cmd = function()
+                        term.select_default_sendterm()
+                    end,
+                    desc = "select default pinned term for send",
+                    cat = "Term",
                 },
             })
         end

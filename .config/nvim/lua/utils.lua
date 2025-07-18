@@ -272,6 +272,33 @@ end
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
+function M.range(...)
+    local args = { ... }
+    local start, end_, step
+    if #args == 1 then
+        start, end_, step = 1, args[1], 1
+    elseif #args == 2 then
+        start, end_, step = args[1], args[2], 1
+    elseif #args == 3 then
+        start, end_, step = args[1], args[2], args[3]
+    else
+        error("range() takes 1-3 arguments")
+    end
+    local result = {}
+    local idx = 1
+    if step > 0 then
+        for i = start, end_ - 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    else
+        for i = start, end_ + 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    end
+    return result
+end
 function M.findfile_any(opt)
     local default_opt = {
         filelist = {},

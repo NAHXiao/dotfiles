@@ -10,9 +10,9 @@ local M = {}
 ---@field opts jobopts|nil nil=>{detach=false,cwd="$(VIM_ROOT)",clear_env=false}
 
 ---@class jobopts|nil
----@field on_exit fun(job: job, code: number, event: string)|nil
----@field on_stdout fun(job: job, data: string[], event: string)|nil
----@field on_stderr fun(job: job, data: string[], event: string)|nil
+---@field on_exit fun(job: integer, code: number, event: string,term_buf:integer)|nil
+---@field on_stdout fun(job: integer, data: string[], event: string,term_buf:integer)|nil
+---@field on_stderr fun(job: integer, data: string[], event: string,term_buf:integer)|nil
 ---@field cwd string|nil
 ---@field detach boolean|nil
 ---@field clear_env boolean|nil
@@ -494,7 +494,7 @@ local argv_cache = {}
 ---@return task|nil
 ---for cmd,cwd,env.value
 ---modify task itself
-M.macro_replace = function(task) --TODO:interrupt
+M.macro_replace = function(task)
     ---@param task1 task
     ---@param task2 task
     ---@return boolean

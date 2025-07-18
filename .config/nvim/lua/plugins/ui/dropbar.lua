@@ -12,7 +12,7 @@ return {
                     or vim.wo[win].winbar ~= ""
                     or vim.bo[buf].ft == "help"
                     or vim.bo[buf].ft == "neo-tree-preview"
-                    or vim.bo[buf].buftype == "terminal"
+                    or vim.bo[buf].buftype == "terminal" --TODO: only file? only file with name(no) 
                     or vim.bo[buf].buftype == "nofile"
                     or vim.w[win].neo_tree_preview == 1
                 then

@@ -966,6 +966,7 @@ end
 --
 ---@param node NNode
 ---@param parent? GroupNode default self.root
+---@return NNode
 function panelbufcxt:addnode(node, parent)
     parent = parent or self.root
     assert(parent ~= nil)
@@ -982,6 +983,7 @@ function panelbufcxt:addnode(node, parent)
     PanelCurHLUpdate()
     PanelCurSorHLUpdate()
     TermWinBufUpdate()
+    return node
 end
 
 --_switch_curnode,set_cursor
@@ -1068,6 +1070,7 @@ function panelbufcxt:append_term_node(parent, name, ujobinfo, unique_key)
         end
         self.unique_map[unique_key] = node
     end
+    return node
 end
 
 --alias _addnode
@@ -1080,6 +1083,7 @@ function panelbufcxt:append_taskterm_node(parent, name, ujobinfo, on_finish, uni
         end
         self.unique_map[unique_key] = node
     end
+    return node
 end
 
 --alias _addnode
@@ -1107,6 +1111,7 @@ function panelbufcxt:append_tasktermset_node(
         end
         self.unique_map[unique_key] = node
     end
+    return node
 end
 
 --alias _addnode
@@ -1117,7 +1122,7 @@ function panelbufcxt:append_default(parent)
     else
         cmds = { vim.o.shell }
     end
-    self:append_term_node(parent, vim.fs.basename(vim.o.shell), { cmds = cmds, opts = {} })
+    return self:append_term_node(parent, vim.fs.basename(vim.o.shell), { cmds = cmds, opts = {} })
 end
 
 --alias _addnode
@@ -1144,7 +1149,7 @@ function panelbufcxt:append_userinput(parent)
         end
     end
     if cmds ~= nil and #cmds ~= 0 then
-        self:append_term_node(parent, cmds[1], { cmds = cmds, opts = {} })
+        return self:append_term_node(parent, cmds[1], { cmds = cmds, opts = {} })
     end
 end
 
@@ -1548,8 +1553,11 @@ end
 ---@param focus boolean|nil
 ---default: focus=true
 ---panelbufcxt._append_term_node + M.toggle if focus
-function M.newterm(name, ujobinfo, focus, unique_key)
-    panelbufcxt:append_term_node(nil, name, ujobinfo, unique_key)
+function M.newterm(name, ujobinfo, focus, switch, unique_key)
+    local node = panelbufcxt:append_term_node(nil, name, ujobinfo, unique_key)
+    if switch then
+        panelbufcxt:switch(node)
+    end
     winmanager:open()
     if focus then
         winmanager:focus()
@@ -1563,8 +1571,12 @@ end
 ---@param unique_key string|nil
 ---default: focus=true
 ---panelbufcxt._append_taskterm_node
-function M.newtask(name, ujobinfo, focus, on_finish, unique_key)
-    panelbufcxt:append_taskterm_node(nil, name, ujobinfo, on_finish, unique_key)
+function M.newtask(name, ujobinfo, focus, switch, on_finish, unique_key)
+    local node = panelbufcxt:append_taskterm_node(nil, name, ujobinfo, on_finish, unique_key)
+
+    if switch then
+        panelbufcxt:switch(node)
+    end
     winmanager:open()
     if focus then
         winmanager:focus()
@@ -1578,8 +1590,8 @@ end
 ---@param focus boolean|nil
 ---@param on_finish_all fun()|nil
 ---@param unique_key string|nil
-function M.newtaskset(name, tasks, seq, break_on_err, focus, on_finish_all, unique_key)
-    panelbufcxt:append_tasktermset_node(
+function M.newtaskset(name, tasks, seq, break_on_err, focus, switch, on_finish_all, unique_key)
+    local node = panelbufcxt:append_tasktermset_node(
         nil,
         name,
         tasks,
@@ -1588,6 +1600,9 @@ function M.newtaskset(name, tasks, seq, break_on_err, focus, on_finish_all, uniq
         break_on_err,
         on_finish_all
     )
+    if switch then
+        panelbufcxt:switch(node)
+    end
     winmanager:open()
     if focus then
         winmanager:focus()

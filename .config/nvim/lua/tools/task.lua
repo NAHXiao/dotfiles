@@ -1008,6 +1008,7 @@ local run_task = function(task, jobopts)
         T:task2keys({ name = task.name, mode = task.mode, type = task.type, filetypes = {} }),
         { cmds = task.cmds, opts = vim.tbl_deep_extend("force", task.opts, jobopts or {}) },
         false,
+        true,
         nil,
         "task." .. T:task2keys(task)
     )
@@ -1043,6 +1044,7 @@ local run_taskset = function(taskset)
         taskset.seq,
         taskset.break_on_err,
         false,
+        true,
         nil,
         "taskset." .. taskset.name
     )

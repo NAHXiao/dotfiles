@@ -1122,7 +1122,7 @@ function panelbufcxt:append_default(parent)
     else
         cmds = { vim.o.shell }
     end
-    return self:append_term_node(parent, vim.fs.basename(vim.o.shell), { cmds = cmds, opts = {} })
+    return self:append_term_node(parent, vim.fs.basename(cmds[1]), { cmds = cmds, opts = {} })
 end
 
 --alias _addnode

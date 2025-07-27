@@ -7,24 +7,36 @@ function M.map(mode, lhs, rhs, opts)
     end
     vim.keymap.set(mode, lhs, rhs, options)
 end
-M.log = function(log)
-    if log == nil then
-        return
-    end
-    local file = io.open(
-        (os.getenv("HOME") or os.getenv("USERPROFILE"):gsub([[\]], [[\\]])) .. "/nvim.log",
-        "a"
-    )
-    if file ~= nil then
-        file:write(os.date("%Y-%m-%d %H:%M:%S", os.time()) .. " " .. tostring(log) .. "\n")
-        file:close()
+M.log = function(...)
+    local args = { ... }
+    local info = debug.getinfo(2, "nSl")
+    local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
+    if info then
+        pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
     else
-        vim.notify(
-            "DebugToFile:" .. "Failed to open log file (" .. file .. "),\nlog:[" .. log .. "]",
-            vim.log.levels.ERROR
-        )
+        pretext = pretext .. ": "
+    end
+    local lines = { pretext }
+    local i = 1
+    for k, arg in pairs(args) do
+        if i ~= k then
+            for j = i, k - 1 do
+                lines[#lines + 1] = ("[%d]:"):format(j)
+            end
+        end
+        lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
+        i = k + 1
+    end
+    lines = vim.split(table.concat(lines, "\n"), "\r?\n")
+    if #lines == 2 then
+        lines[1] = lines[1] .. lines[2]
+        lines[2] = nil
+    end
+    if -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa") then
+        error("write log failed")
     end
 end
+local log = M.log
 function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     opt = vim.tbl_extend("force", {
@@ -299,6 +311,74 @@ function M.range(...)
     end
     return result
 end
+
+---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
+---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
+---nullkeys将含有这些键的item去除
+---valuetype_cond, table_cond保证了这些键出现时必须满足条件或与给定值相等
+---nullkeys保证了这些键不能出现
+---@generic T
+---@param list T[]
+---@param valuetype_cond table<(number|string|boolean),(number|string|boolean)|(number|string|boolean)[]|fun(value:(number|string|boolean),item:table):boolean>|nil
+---@param table_cond table<(number|string|boolean),fun(value:table,item:table):boolean>|nil
+---@param nullkeys (number|string|boolean)[]|nil
+---@return T[]
+function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
+    -- log("called", list, valuetype_cond, table_cond, nullkeys)
+    local filtered = {}
+    for _, item in ipairs(list) do
+        -- log("valuetype_cond")
+        if valuetype_cond then
+            for k, v in pairs(valuetype_cond) do
+                if item[k] then
+                    if type(v) == "table" then
+                        local bypass = false
+                        for _, bypassv in ipairs(v) do
+                            if bypassv == item[k] then
+                                bypass = true
+                                break
+                            end
+                        end
+                        if not bypass then
+                            goto next
+                        end
+                    elseif type(v) == "function" then
+                        if not v(item[k], item) then
+                            goto next
+                        end
+                    else
+                        if v ~= item[k] then
+                            goto next
+                        end
+                    end
+                end
+            end
+        end
+        -- log("table_cond")
+        if table_cond then
+            for k, f in pairs(table_cond) do
+                local x = f(item[k], item)
+                -- log("item", item, "valid:", x)
+                if true ~= x then
+                    goto next
+                end
+            end
+        end
+        -- log("nullkeys")
+        if nullkeys then
+            for _, k in ipairs(nullkeys) do
+                if item[k] then
+                    goto next
+                end
+            end
+        end
+        -- log("ok")
+        table.insert(filtered, item)
+        ::next::
+    end
+    -- log("return:", filtered)
+    return filtered
+end
 function M.findfile_any(opt)
     local default_opt = {
         filelist = {},
@@ -461,5 +541,4 @@ function M.transparent_bg_test()
     process_next()
 end
 -------------------------------------------
-
 return M

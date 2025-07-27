@@ -1,7 +1,6 @@
 --[[ init.lua ]]
 -- LEADER
 vim.g.mapleader = " "
-vim.g.localleader = " "
 vim.o.timeoutlen = 800
 vim.cmd([[
 ]])
@@ -15,7 +14,7 @@ require("etc")
 require("lazyinit")
 
 vim.schedule(function()
-    require("tools.terminal").setup()
+    require("tools.term").setup()
     require("tools.task").setup()
     require("tools.proj"):setup()
 end)

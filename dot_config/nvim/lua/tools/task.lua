@@ -1,494 +1,882 @@
-local M = {}
----@alias tasks task[]
-
----@class task
----@field name string
----@field cmd string[]
----@field type tasktype
----@field filetypes string[]|nil nil=>{}
----@field mode taskmode|nil  nil=>"debug"
----@field opts jobopts|nil nil=>{detach=false,cwd="$(VIM_ROOT)",clear_env=false}
-
----@class jobopts|nil
----@field on_exit fun(job: integer, code: number, event: string,term_buf:integer)|nil
----@field on_stdout fun(job: integer, data: string[], event: string,term_buf:integer)|nil
----@field on_stderr fun(job: integer, data: string[], event: string,term_buf:integer)|nil
----@field cwd string|nil
----@field detach boolean|nil
----@field clear_env boolean|nil
----@field env table<string, string>|nil
-
----@alias tasktype ("file"|"project")
----@alias taskmode ("debug"|"release")
-
---M.run时这些filetypes不构成过滤
-M.ignore_filetypes = {
-    "",
-    "qf",
-    "neo-tree",
-    "alpha",
-    "toggleterm",
-    "TerminalPanel",
-    "trouble",
-    "markdown",
-    "dapui_scopes",
-    "snacks_terminal",
-    "lazy",
-    "mason",
-    "TelescopePrompt",
-    "dropbar_menu",
-}
-
-M.localtask_path = function()
-    return vim.fs.abspath(vim.fs.joinpath(vim.g.projroot or vim.fn.getcwd(), ".tasks.lua"))
-end
-
-M.default_task_template = {
-    filetypes = {},
-    mode = "debug",
-    opts = {
-        detach = false,
-        cwd = "$(VIM_ROOT)",
-        clear_env = false,
-    },
-}
-M.run_wrapper = "cmd_wrapper"
---只存储file task和所有文件通用task
----@type tasks
-local globaltasks = {
-    --general
-    {
-        name = "run",
-        cmd = { "$(VIM_FILEPATH)" },
-        filetypes = {},
-        type = "file",
-    },
-    --project-create
-    {
-        name = "mvn-create",
-        cmd = {
-            "mvn",
-            "archetype:generate",
-            "-DgroupId=$(-group:com.example)",
-            "-DartifactId=$(-artifactname:hello-world)",
-            "-DarchetypeArtifactId=maven-archetype-quickstart",
-            "-DinteractiveMode=false",
+local log = require("utils").log
+local list_filter = require("utils").list_filter
+---@type table<"global"|string,{tasks:utask[],tasksets:utaskset[]}>
+local config = {
+    global = {
+        tasks = {
+            --project-create
+            {
+                name = "mvn-create",
+                cmds = {
+                    "mvn",
+                    "archetype:generate",
+                    "-DgroupId=$(-group:com.example)",
+                    "-DartifactId=$(-artifactname:hello-world)",
+                    "-DarchetypeArtifactId=maven-archetype-quickstart",
+                    "-DinteractiveMode=false",
+                },
+                type = "project",
+            },
+            {
+                name = "cargo-create",
+                cmds = { "cargo", "new", "$(-name)", "--bin" },
+                type = "project",
+            },
+            {
+                name = "cmake-create",
+                cmds = { "cmake_create", "$(-name:)" },
+                type = "project",
+            },
+            --c/cpp
+            {
+                name = "build",
+                cmds = {
+                    "gcc",
+                    "-O3",
+                    "--std=c23",
+                    "$(VIM_FILEPATH)",
+                    "-o",
+                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                },
+                filetypes = { "c" },
+                type = "file",
+                mode = "release",
+            },
+            {
+                name = "build",
+                cmds = {
+                    "gcc",
+                    "-O3",
+                    "--std=c23",
+                    "$(VIM_FILEPATH)",
+                    "-o",
+                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "--debug",
+                },
+                filetypes = { "c" },
+                type = "file",
+                mode = "debug",
+            },
+            {
+                name = "build",
+                cmds = {
+                    "g++",
+                    "-O3",
+                    "--std=c++23",
+                    "$(VIM_FILEPATH)",
+                    "-o",
+                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                },
+                filetypes = { "cpp" },
+                type = "file",
+                mode = "release",
+            },
+            {
+                name = "build",
+                cmds = {
+                    "g++",
+                    "-O3",
+                    "--std=c++23",
+                    "$(VIM_FILEPATH)",
+                    "-o",
+                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "--debug",
+                },
+                filetypes = { "cpp" },
+                type = "file",
+                mode = "debug",
+            },
+            {
+                name = "run",
+                cmds = {
+                    "$(VIM_PATHNOEXT)" .. (vim.g.is_win and ".exe" or ""),
+                },
+                filetypes = { "c", "cpp" },
+                type = "file",
+            },
+            --java
+            {
+                name = "build",
+                cmds = {
+                    "javac",
+                    "-d",
+                    "$(VIM_ROOT)/.build",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "java" },
+                type = "file",
+            },
+            {
+                name = "run",
+                cmds = {
+                    "java",
+                    "-cp",
+                    "$(VIM_ROOT)/.build",
+                    "$(VIM_FILENOEXT)",
+                },
+                filetypes = { "java" },
+                type = "file",
+            },
+            --scripts
+            {
+                name = "run",
+                cmds = {
+                    "lua",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "lua" },
+                type = "file",
+            },
+            {
+                name = "run",
+                cmds = {
+                    "python",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "python" },
+                type = "file",
+            },
+            {
+                name = "run",
+                cmds = {
+                    "node",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "javascript" },
+                type = "file",
+            },
+            {
+                name = "run",
+                cmds = {
+                    "powershell",
+                    "-file",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "ps1" },
+                type = "file",
+            },
         },
-        filetypes = {},
-        type = "project",
-    },
-    {
-        name = "cargo-create",
-        cmd = { "cargo", "new", "$(-name)", "--bin" },
-        filetypes = {},
-        type = "project",
-    },
-    {
-        name = "cmake-create",
-        cmd = { "cmake_create", "$(-name:)" },
-        filetypes = {},
-        type = "project",
-    },
-    --c/cpp
-    {
-        name = "build",
-        cmd = {
-            "gcc",
-            "-O3",
-            "--std=c23",
-            "$(VIM_FILEPATH)",
-            "-o",
-            "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+        tasksets = {
+            {
+                name = "build_and_run(cpp release)",
+                break_on_err = true,
+                seq = true,
+                "build(file:release)[cpp]",
+                "run(file)[cpp,c]",
+            },
+            {
+                name = "build_and_run(cpp debug)",
+                break_on_err = true,
+                seq = true,
+                { "build(file:debug)[cpp]" },
+                "run(file)[cpp,c]",
+            },
         },
-        filetypes = { "c" },
-        type = "file",
-        mode = "release",
     },
-    {
-        name = "build",
-        cmd = {
-            "gcc",
-            "-O3",
-            "--std=c23",
-            "$(VIM_FILEPATH)",
-            "-o",
-            "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-            "--debug",
+    template = {
+        tasks = {
+            {
+                name = "build",
+                cmds = { "echo", "${CC}" },
+                type = "project",
+                mode = "debug",
+                opts = {
+                    clear_env = false,
+                    cwd = "$(VIM_ROOT)",
+                    env = {
+                        CC = "clang",
+                    },
+                },
+            },
+            {
+                name = "run",
+                cmds = { "echo", "${CC}" },
+                type = "project",
+                mode = "debug",
+                opts = {
+                    clear_env = false,
+                    cwd = "$(VIM_ROOT)",
+                    env = {
+                        CC = "clang",
+                    },
+                },
+            },
         },
-        filetypes = { "c" },
-        type = "file",
-        mode = "debug",
-    },
-    {
-        name = "build",
-        cmd = {
-            "g++",
-            "-O3",
-            "--std=c++23",
-            "$(VIM_FILEPATH)",
-            "-o",
-            "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-        },
-        filetypes = { "cpp" },
-        type = "file",
-        mode = "release",
-    },
-    {
-        name = "build",
-        cmd = {
-            "g++",
-            "-O3",
-            "--std=c++23",
-            "$(VIM_FILEPATH)",
-            "-o",
-            "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-            "--debug",
-        },
-        filetypes = { "cpp" },
-        type = "file",
-        mode = "debug",
-    },
-    {
-        name = "run",
-        cmd = {
-            "$(VIM_PATHNOEXT)" .. (vim.g.is_win and ".exe" or ""),
-        },
-        filetypes = { "c", "cpp" },
-        type = "file",
-    },
-    --java
-    {
-        name = "build",
-        cmd = {
-            "javac",
-            "-d",
-            "$(VIM_ROOT)/.build",
-            "$(VIM_FILEPATH)",
-        },
-        filetypes = { "java" },
-        type = "file",
-    },
-    {
-        name = "run",
-        cmd = {
-            "java",
-            "-cp",
-            "$(VIM_ROOT)/.build",
-            "$(VIM_FILENOEXT)",
-        },
-        filetypes = { "java" },
-        type = "file",
-    },
-    --scripts
-    {
-        name = "run",
-        cmd = {
-            "lua",
-            "$(VIM_FILEPATH)",
-        },
-        filetypes = { "lua" },
-        type = "file",
-    },
-    {
-        name = "run",
-        cmd = {
-            "python",
-            "$(VIM_FILEPATH)",
-        },
-        filetypes = { "python" },
-        type = "file",
-    },
-    {
-        name = "run",
-        cmd = {
-            "node",
-            "$(VIM_FILEPATH)",
-        },
-        filetypes = { "javascript" },
-        type = "file",
-    },
-    {
-        name = "run",
-        cmd = {
-            "powershell",
-            "-file",
-            "$(VIM_FILEPATH)",
-        },
-        filetypes = { "ps1" },
-        type = "file",
-    },
-}
-local template = {
-    shell = {
-        {
-            name = "build",
-            cmd = { "echo", "$(VIM_FILEPATH)" },
-            type = "file",
-            mode = "debug",
-            filetypes = {},
-        },
-        {
-            name = "run",
-            cmd = { "echo", "$(VIM_FILEPATH)" },
-            type = "file",
-            mode = "debug",
-            filetypes = {},
-        },
-        {
-            name = "run",
-            cmd = { "echo", "$(VIM_FILEPATH)" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
+        tasksets = {
+            {
+                { "build(debug:project)" },
+                "run(project:debug)",
+                break_on_err = true,
+                seq = true,
+                name = "build and run",
+            },
         },
     },
     cmake = {
-        {
-            name = "project-refresh-config",
-            cmd = { "cmake", "--fresh", "-B", "build", "-S", "." },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
+        tasks = {
+            {
+                name = "project-refresh-config",
+                cmds = { "cmake", "--fresh", "-B", "build", "-S", "." },
+            },
+            {
+                name = "build",
+                cmds = { "cmake", "--build", "build" },
+            },
+            {
+                name = "run",
+                cmds = { "build/$(VIM_PRONAME)" },
+            },
         },
-        {
-            name = "build",
-            cmd = { "cmake", "--build", "build" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
-        {
-            name = "run",
-            cmd = { "build/$(VIM_PRONAME)" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
+        tasksets = {},
     },
     cargo = {
-        {
-            name = "build",
-            cmd = { "cargo", "build" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
+        tasks = {
+            {
+                name = "build",
+                cmds = { "cargo", "build" },
+            },
+            {
+                name = "run",
+                cmds = { "cargo", "run" },
+            },
+            {
+                name = "project-test",
+                cmds = { "cargo", "test" },
+            },
         },
-        {
-            name = "run",
-            cmd = { "cargo", "run" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
-        {
-            name = "project-test",
-            cmd = { "cargo", "test" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
+        tasksets = {},
     },
     mvn = {
-        {
-            name = "build",
-            cmd = { "mvn", "compile" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
+        tasks = {
+            {
+                name = "build",
+                cmds = { "mvn", "compile" },
+            },
+            {
+                name = "project-test",
+                cmds = { "mvn", "test" },
+            },
+            {
+                name = "run",
+                cmds = { "mvn", "exec:java", "-Dexec.mainClass=$(-mainClass:)" },
+            },
         },
-        {
-            name = "project-test",
-            cmd = { "mvn", "test" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
-        {
-            name = "run",
-            cmd = { "mvn", "exec:java", "-Dexec.mainClass=$(-mainClass:)" },
-            type = "project",
-            mode = "debug",
-            filetypes = {},
-        },
+        tasksets = {},
     },
 }
-local localtasks = nil
-M.globaltasks = function()
-    local ret = {}
-    for _, task in ipairs(globaltasks) do
-        table.insert(ret, vim.tbl_deep_extend("force", M.default_task_template, task))
-    end
-    return ret
+
+local T = {
+    ---@type table<"global"|"locall"|string,{tasks:task[],tasksets:taskset[],str2taskmap:{[string]:task},str2setmap:{[string]:taskset}}>
+    data = {
+        global = {
+            tasks = {},
+            tasksets = {},
+            str2taskmap = {},
+            str2setmap = {},
+        },
+        locall = {
+            tasks = {},
+            tasksets = {},
+            str2taskmap = {},
+            str2setmap = {},
+        },
+    },
+    task_base = {
+        mode = "",
+        type = "",
+        filetypes = {},
+        opts = {
+            cwd = "$(VIM_ROOT)",
+        },
+    },
+    taskset_base = { break_on_err = true, seq = true },
+}
+---@param utask utask
+---@return task
+function T:utask2task(utask, field)
+    return vim.tbl_deep_extend("force", self.task_base, utask, { field = field })
 end
-M.localtasks = function()
-    if localtasks == nil then
-        return {}
-    end
-    local ret = {}
-    for _, task in ipairs(localtasks) do
-        table.insert(ret, vim.tbl_deep_extend("force", M.default_task_template, task))
-    end
-    return ret
-end
-M.template_tasks = function()
-    local ret = {}
-    for field, tasks in pairs(template) do
-        ret[field] = {}
-        for _, task in ipairs(tasks) do
-            table.insert(ret[field], vim.tbl_deep_extend("force", M.default_task_template, task))
-        end
-    end
-    return ret
-end
-
-----------------------------------------------------------------------
-
----@return tasks
-M.parsefile = function(filepath)
-    local ok, result = pcall(dofile, filepath)
-    if not ok then
-        return {}
-    end
-    return result or {}
-end
-
----@param tasks tasks
----@param name string|nil
----@param filetype string|string[]|nil string=> =/{} string[]=> =
----@param tasktype tasktype|nil
----@param mode taskmode|nil
----@return tasks
-M.filter = function(tasks, name, filetype, tasktype, mode)
-    local newtasks = {}
-    for _, task in ipairs(tasks) do
-        (function()
-            if name ~= nil and task.name ~= name then
-                return
-            end
-            if
-                filetype ~= nil
-                and type(filetype) == "string"
-                and (next(task.filetypes) ~= nil or not getmetatable(task.filetypes) == getmetatable(
-                    vim.empty_dict()
-                ))
-                and (not vim.list_contains(task.filetypes, filetype))
-            then
-                return
-            end
-            if
-                filetype ~= nil
-                and type(filetype) == "table"
-                and not vim.deep_equal(filetype, task.filetypes)
-            then
-                return
-            end
-            if tasktype ~= nil and task.type ~= tasktype then
-                return
-            end
-            if mode ~= nil and task.mode ~= mode then
-                return
-            end
-            table.insert(newtasks, vim.deepcopy(task))
-        end)()
-    end
-    return newtasks
-end
-
----@param globaltaskss tasks|nil
----@param localtaskss tasks|nil
----@return  { global: boolean, index: number }[]
-M.findmax = function(globaltaskss, localtaskss)
-    globaltaskss = globaltaskss or {}
-    localtaskss = localtaskss or {}
-    if next(globaltaskss) == nil and next(localtaskss) == nil then
-        return {}
-    end
-
-    local keylist = {}
-    for i = 1, #globaltaskss do
-        table.insert(keylist, { global = true, index = i })
-    end
-    for i = 1, #localtaskss do
-        table.insert(keylist, { global = false, index = i })
-    end
-    if #keylist == 1 then
-        return { keylist[1] }
-    end
-
-    local function get(key)
-        if key.global == true then
-            return globaltaskss[key.index]
+---@param utaskset utaskset
+---@return taskset
+function T:utaskset2taskset(utaskset, field)
+    ---@type utaskset
+    local taskset = vim.tbl_deep_extend("force", self.taskset_base, utaskset, { field = field })
+    for i, item in ipairs(taskset) do
+        local taskname
+        local bg = false --DEFAULT
+        local ignore_err = false --DEFAULT
+        if type(item) == "string" then
+            taskname = item
         else
-            return localtaskss[key.index]
+            taskname = item[1]
+            bg = item.bg or bg
+            ignore_err = item.ignore_err or ignore_err
         end
+        assert(type(taskname) == "string")
+        taskname = T:task2keys(T:keys2task(taskname))
+        if
+            T.data[field].str2taskmap[taskname] == nil
+            and T.data.global.str2taskmap[taskname] == nil
+        then
+            assert(
+                false,
+                ("Your taskset %s called a not exist task %s"):format(taskset.name, taskname)
+            )
+        end
+        taskset[i] = {
+            [1] = taskname,
+            bg = bg,
+            ignore_err = ignore_err,
+        }
     end
-    local eq = function(a, b)
-        local x, y = get(a), get(b)
-        local xmode = x.mode or "debug"
-        local ymode = y.mode or "debug"
-        return x.type == y.type
-            and a.global == b.global
-            and xmode == ymode
-            and vim.deep_equal(x.filetypes, y.filetypes)
+    ---return-type-mismatch
+    return taskset
+end
+---@param utask utask
+---@param field string
+---@return task
+function T:addtask(utask, field)
+    assert(utask.name and utask.name ~= "" and utask.cmds and 0 ~= #utask.cmds)
+    ---@type task
+    local task = T:utask2task(utask, field)
+    local str = self:task2keys(task)
+    if self.data[field] == nil then
+        self.data[field] = {
+            tasks = {},
+            tasksets = {},
+            str2taskmap = {},
+            str2setmap = {},
+        }
     end
-    local gt = function(a, b)
-        local x, y = get(a), get(b)
-        if x.type ~= y.type then
-            return x.type == "project"
-        end
-        if a.global ~= b.global then
-            return a.global == false
-        end
-        if x.mode ~= y.mode then
-            local xmode = x.mode or "debug"
-            local ymode = y.mode or "debug"
-            if xmode ~= ymode then
-                return xmode == "debug"
+    if self.data[field].str2taskmap[str] then
+        assert(false, ("The task %s has been defined"):format(task.name))
+    end
+    table.insert(self.data[field].tasks, task)
+    self.data[field].str2taskmap[str] = task
+    return task
+end
+---@param utaskset utaskset
+---@param field string
+function T:addtaskset(utaskset, field)
+    local taskset = T:utaskset2taskset(utaskset, field)
+    if self.data[field] == nil then
+        self.data[field] = {
+            tasks = {},
+            tasksets = {},
+            str2taskmap = {},
+            str2setmap = {},
+        }
+    end
+    if self.data[field].str2taskmap[taskset.name] then
+        assert(false, ("The task %s has been defined"):format(taskset.name))
+    end
+    table.insert(self.data[field].tasksets, taskset)
+    self.data[field].str2setmap[taskset.name] = taskset
+    return taskset
+end
+---@param item task|taskset
+---@param fts string[]
+function T:item_valid_on_ft(item, fts)
+    assert(fts)
+    if self:istask(item) then
+        if #item.filetypes == 0 then
+            return true
+        else
+            for _, ft in ipairs(fts) do
+                if vim.list_contains(item.filetypes, ft) then
+                    return true
+                end
             end
         end
-        if not vim.deep_equal(x.filetypes, y.filetypes) then
-            return (next(y.filetypes) == nil)
+    elseif self:istaskset(item) then
+        return true
+    end
+end
+---@param items items
+function T:items2lines(items)
+    ---@type string[]
+    local lines = {}
+    for _, item in ipairs(items) do
+        if T:istask(item) then
+            ---@cast item task
+            lines[#lines + 1] = "new({"
+            lines[#lines + 1] = ("    name = %s,"):format(vim.inspect(item.name))
+            lines[#lines + 1] = ("    cmds = %s,"):format(vim.inspect(item.cmds))
+            if item.mode ~= "" then
+                lines[#lines + 1] = ("    mode = %s,"):format(vim.inspect(item.mode))
+            end
+            if item.type ~= "" then
+                lines[#lines + 1] = ("    type = %s,"):format(vim.inspect(item.type))
+            end
+            if #item.filetypes ~= 0 then
+                lines[#lines + 1] = ("    filetypes = %s,"):format(vim.inspect(item.filetypes))
+            end
+            local clear_env = item.opts.clear_env
+            local cwd = item.opts.cwd ~= "$(VIM_ROOT)" and item.opts.cwd or nil
+            local env = item.opts.env and next(item.opts.env) and item.opts.env or nil
+            if cwd or env or clear_env then
+                local optstr = "opts="
+                    .. vim.inspect({
+                        cwd = cwd,
+                        clear_env = clear_env,
+                        env = env,
+                    })
+                for _, line in ipairs(vim.split(optstr, "[\r\n]+")) do
+                    lines[#lines + 1] = "    " .. line
+                end
+            end
+            lines[#lines + 1] = "})"
+        elseif T:istaskset(item) then
+            ---@cast item taskset
+            lines[#lines + 1] = "new({"
+            lines[#lines + 1] = ("    name = %s,"):format(vim.inspect(item.name))
+            lines[#lines + 1] = ("    break_on_err = %s,"):format(tostring(item.break_on_err))
+            lines[#lines + 1] = ("    seq = %s,"):format(tostring(item.seq))
+            for _, task in ipairs(item) do
+                lines[#lines + 1] = ("    { %s, bg = %s, ignore_err = %s },"):format(
+                    vim.inspect(task[1]),
+                    tostring(task.bg),
+                    tostring(task.ignore_err)
+                )
+            end
+            lines[#lines + 1] = "})"
+        else
+            assert(false)
+        end
+    end
+    return lines
+end
+---@param task task|keys_tbl
+---@return task_keys
+function T:task2keys(task)
+    local result = task.name
+    if task.mode ~= "" then
+        result = result .. "(" .. task.mode
+    end
+    if task.type ~= "" then
+        result = result .. (task.mode ~= "" and ":" or "(") .. task.type
+    end
+    if task.mode ~= "" or task.type ~= "" then
+        result = result .. ")"
+    end
+    table.sort(task.filetypes)
+    if #task.filetypes > 0 then
+        result = result .. "[" .. table.concat(task.filetypes, ",") .. "]"
+    end
+    return result
+end
+---@param str task_keys
+---@return keys_tbl
+function T:keys2task(str)
+    local result = {
+        name = "",
+        mode = "",
+        type = "",
+        filetypes = {},
+    }
+    if not str or str == "" then
+        return result
+    end
+    local working_str = str
+    local bracket_start = working_str:match(".*()%[")
+    if bracket_start then
+        local bracket_content = working_str:match("%[(.*)%]$")
+        if bracket_content then
+            if bracket_content:match("^[%w#;+%-, ]*$") then
+                local parts = {}
+                for part in (bracket_content .. ","):gmatch("([^,]*),") do
+                    table.insert(parts, part:match("^%s*(.-)%s*$"))
+                end
+                local has_empty = false
+                for _, part in ipairs(parts) do
+                    if part == "" then
+                        has_empty = true
+                        break
+                    end
+                end
+                if #parts == 0 or has_empty then
+                    result.name = str
+                    return result
+                else
+                    result.filetypes = parts
+                    table.sort(result.filetypes)
+                    working_str = working_str:sub(1, bracket_start - 1)
+                end
+            end
+        end
+    end
+    local paren_start = working_str:match(".*()%(")
+    if paren_start then
+        local paren_content = working_str:match("%((.*)%)$")
+        if paren_content then
+            local parts = {}
+            for part in (paren_content .. ":"):gmatch("([^:]*):") do
+                table.insert(parts, part)
+            end
+            local has_empty = false
+            for _, part in ipairs(parts) do
+                if part == "" then
+                    has_empty = true
+                    break
+                end
+            end
+            if #parts == 0 or has_empty then
+                result.name = working_str
+                return result
+            elseif #parts == 1 then
+                local part = parts[1]
+                if part == "debug" or part == "release" then
+                    result.mode = part
+                    working_str = working_str:sub(1, paren_start - 1)
+                elseif part == "project" or part == "file" then
+                    result.type = part
+                    working_str = working_str:sub(1, paren_start - 1)
+                else
+                    result.name = working_str
+                    return result
+                end
+            elseif #parts == 2 then
+                local part1, part2 = parts[1], parts[2]
+                local mode_found, type_found = false, false
+                if part1 == "debug" or part1 == "release" then
+                    result.mode = part1
+                    mode_found = true
+                elseif part1 == "project" or part1 == "file" then
+                    result.type = part1
+                    type_found = true
+                end
+                if part2 == "debug" or part2 == "release" then
+                    if not mode_found then
+                        result.mode = part2
+                        mode_found = true
+                    else
+                        result.name = working_str
+                        result.mode = ""
+                        return result
+                    end
+                elseif part2 == "project" or part2 == "file" then
+                    if not type_found then
+                        result.type = part2
+                        type_found = true
+                    else
+                        result.name = working_str
+                        result.type = ""
+                        return result
+                    end
+                end
+                if mode_found and type_found then
+                    working_str = working_str:sub(1, paren_start - 1)
+                else
+                    result.name = working_str
+                    result.mode = ""
+                    result.type = ""
+                    return result
+                end
+            else
+                result.name = working_str
+                return result
+            end
+        end
+    end
+    result.name = working_str
+    return result
+end
+function T:isutask(task)
+    return task and #task == 0 and task.name and task.cmds
+end
+function T:isutaskset(taskset)
+    return taskset and #taskset ~= 0 and taskset.name
+end
+function T:istask(task)
+    return task
+        and #task == 0
+        and task.name
+        and task.cmds
+        and task.mode
+        and task.type
+        and task.filetypes
+        and task.opts
+end
+function T:istaskset(taskset)
+    return taskset
+        and #taskset ~= 0
+        and taskset.name
+        and taskset.break_on_err ~= nil
+        and taskset.seq ~= nil
+        and taskset.field
+end
+function T:localtask_path()
+    return vim.fs.abspath(vim.fs.joinpath(vim.g.projroot, ".tasks.lua"))
+end
+---@type task|taskset
+local default_build
+---@type task|taskset
+local default_run
+function T:refresh_local()
+    self.data.locall = {
+        tasks = {},
+        tasksets = {},
+        str2setmap = {},
+        str2taskmap = {},
+    }
+    local filepath = self:localtask_path()
+    if vim.fn.filereadable(filepath) == 1 then
+        local ok, result = pcall(dofile, filepath)
+        if not ok then
+            vim.notify("[task]: load tasks failed: " .. vim.inspect(result), vim.log.levels.INFO)
+            return
+        end
+        for _, it in ipairs(result) do
+            if self:isutask(it) then
+                local it = self:addtask(it, "locall")
+                if it.default_build then
+                    default_build = it
+                end
+                if it.default_run then
+                    default_run = it
+                end
+            elseif self:isutaskset(it) then
+                local it = self:addtaskset(it, "locall")
+                if it.default_build then
+                    default_build = it
+                end
+                if it.default_run then
+                    default_run = it
+                end
+            end
+        end
+    end
+end
+
+-- stylua: ignore
+---@type comp
+local comp = {
+    order = { "field", "isset", "tasktype", "taskmode" },
+    field = function(a, _) return a == "locall" end,
+    isset= function(a, _) return a == true end,
+    taskmode = function(a, b) return a == "" or b == "release" end,
+    tasktype = function(a, b) return a == "" or b == "file" end,
+}
+---locall>global
+---taskset>task
+---"">project>file
+---"">debug>release
+---@param items {tasks:task[],tasksets:taskset[]}|(task|taskset)[]
+---@param _comp comp|nil
+function T:findmax(items, _comp)
+    if items == {} then
+        return {}
+    end
+    _comp = _comp or comp
+    local isset = {}
+    local list
+    if #items ~= 0 then
+        for _, it in ipairs(items) do
+            if self:istask(it) then
+            elseif self:istaskset(it) then
+                isset[it] = true
+            else
+                assert(false)
+            end
+        end
+        list = items
+    else
+        list = {}
+        for _, it in ipairs(items.tasks) do
+            list[#list + 1] = it
+        end
+        for _, it in ipairs(items.tasksets) do
+            isset[it] = true
+            list[#list + 1] = it
+        end
+    end
+
+    local gt = function(a, b)
+        for _, cur in ipairs(comp.order) do
+            if cur == "field" then
+                if a.field ~= b.field then
+                    return comp.field(a, b)
+                end
+            elseif cur == "isset" then
+                if isset[a] ~= isset[b] then
+                    return comp.isset(isset[a], isset[b])
+                end
+            elseif cur == "tasktype" then
+                if a.type ~= b.type then
+                    return comp.tasktype(a.type, b.type)
+                end
+            elseif cur == "taskmode" then
+                if a.mode ~= b.mode then
+                    return comp.taskmode(a.mode, b.mode)
+                end
+            end
         end
         return false
     end
-    table.sort(keylist, gt)
-
+    table.sort(list, gt)
+    local eq = function(a, b)
+        return a.field == b.field and isset[a] == isset[b] and a.type == b.type and a.mode == b.mode
+    end
     local last = 1
-    for i = 2, #keylist do
-        if eq(keylist[i], keylist[i - 1]) then
+    for i = 2, #list do
+        if eq(list[i], list[i - 1]) then
             last = i
         else
             break
         end
     end
-    return { unpack(keylist, 1, last) }
+    return { unpack(list, 1, last) }
 end
-
----@param rows taskattr[]
-local function compute_width(rows)
-    local w = { 8, 8, 8, 8, 8 }
-    for _, row in ipairs(rows) do
-        w[1] = math.max(w[1], #row.field)
-        w[2] = math.max(w[2], #row.name)
-        w[3] = math.max(w[3], #row.mode)
-        w[4] = math.max(w[4], #row.type)
-        local ft = table.concat(row.filetypes, ",")
-        if ft == "" then
-            ft = "*"
+---@param data {[string]:{tasks:task[],tasksets:taskset[]}}
+---@param prompt string
+---@param callback fun(items:(task|taskset)[]|(task|taskset)|nil)
+---@param field_option boolean
+---@return nil
+---items's type == [] only when field_option==true
+function T:select(data, prompt, callback, field_option)
+    field_option = field_option or false
+    ---@alias field_options {field:string,below:("tasksets"|"tasks"|"all")}
+    ---@type (field_options|task|taskset)[]
+    local options = {}
+    local draw = { 8, 8, 8, 0, 0, colnum = 5 }
+    ---@param item task|taskset
+    function draw:update(item)
+        draw[1] = math.max(draw[1], #item.field)
+        draw[3] = math.max(draw[3], #item.name)
+        if T:istask(item) then
+            draw[4] = math.max(draw[4], #item.mode + #item.type + 1)
+            draw[5] =
+                math.max(draw[5], #item.filetypes ~= 0 and #table.concat(item.filetypes, ",") or 1)
         end
-        w[5] = math.max(w[5], #ft)
     end
-    return w
-end
-local function draw_encode(field, task, mode, type_, filetypes, w)
-    local ft = (#filetypes == 0) and "*" or table.concat(filetypes, ",")
-    local row = { field, task, mode, type_, ft }
-    for i = 1, 5 do
-        row[i] = row[i] .. string.rep(" ", w[i] - #row[i])
+    function draw:calcute_rownum()
+        if self[4] == 0 and self[5] == 0 then
+            self.colnum = 3
+        else
+            self.colnum = 5
+        end
     end
-    return table.concat(row, " | ")
+    function draw:draw(item)
+        local row
+        if item.below then
+            if self.colnum == 5 then
+                row = { item.field, item.below, "", "", "" }
+            elseif self.colnum == 3 then
+                row = { item.field, item.below, "" }
+            end
+        elseif T:istask(item) then
+            assert(self.colnum == 5)
+            row = {
+                item.field,
+                "task",
+                item.name,
+                table.concat(
+                    { item.type ~= "" and item.type or nil, item.mode ~= "" and item.mode or nil },
+                    ","
+                ),
+                #item.filetypes ~= 0 and table.concat(item.filetypes, ",") or "*",
+            }
+        elseif T:istaskset(item) then
+            row = {
+                item.field,
+                "taskset",
+                item.name,
+            }
+            if self.colnum == 5 then
+                row[#row + 1] = ""
+                row[#row + 1] = ""
+            end
+        end
+        for i = 1, self.colnum do
+            row[i] = row[i] .. string.rep(" ", self[i] - #row[i])
+        end
+        return table.concat(row, " | ")
+    end
+    local function process_tbl(field, tbl)
+        if not tbl then
+            return
+        end
+        if tbl.tasksets and #tbl.tasksets ~= 0 then
+            if field_option then
+                options[#options + 1] = { field = field, below = "tasksets" }
+            end
+            for _, taskset in ipairs(tbl.tasksets) do
+                options[#options + 1] = taskset
+                draw:update(taskset)
+            end
+        end
+        if tbl.tasks and #tbl.tasks ~= 0 then
+            if field_option then
+                options[#options + 1] = { field = field, below = "tasks" }
+            end
+            for _, task in ipairs(tbl.tasks) do
+                options[#options + 1] = task
+                draw:update(task)
+            end
+        end
+    end
+    process_tbl("locall", data.locall)
+    process_tbl("global", data.global)
+    for field, tbl in pairs(data) do
+        if field ~= "global" and field ~= "locall" then
+            process_tbl(field, tbl)
+        end
+    end
+    draw:calcute_rownum()
+    vim.ui.select(options, {
+        prompt = prompt,
+        format_item = function(item)
+            local ret = draw:draw(item)
+            return ret
+        end,
+    }, function(choice)
+        if not choice then
+            callback(nil)
+            return
+        end
+        if field_option then
+            if choice.below then
+                callback(data[choice.field][choice.below])
+            else
+                callback({ choice })
+            end
+        else
+            callback(choice)
+        end
+    end)
 end
---内存储微缩tasks和其参数
+local M = {
+    ignore_filetypes = {
+        "",
+        "qf",
+        "neo-tree",
+        "alpha",
+        "toggleterm",
+        "TerminalPanel",
+        "trouble",
+        "markdown",
+        "dapui_scopes",
+        "snacks_terminal",
+        "lazy",
+        "mason",
+        "TelescopePrompt",
+        "dropbar_menu",
+    },
+}
+local function get_cur_ft()
+    ---@type string|nil
+    local ft = vim.bo.filetype or nil
+    if vim.list_contains(M.ignore_filetypes, vim.bo.filetype) then
+        ft = nil
+    end
+    if
+        vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
+        and vim.fs.abspath(vim.api.nvim_buf_get_name(0)) == T:localtask_path()
+    then
+        ft = nil
+    end
+    return ft
+end
 local argv_cache = {}
 ---@param task task
 ---@return task|nil
@@ -502,7 +890,7 @@ M.macro_replace = function(task)
         return task1.name == task2.name
             and task1.type == task2.type
             and task1.mode == task2.mode
-            and vim.deep_equal(task1.cmd, task2.cmd)
+            and vim.deep_equal(task1.cmds, task2.cmds) --更改cmd重置输入
     end
     local map = {
         ["$(VIM_FILENAME)"] = function()
@@ -581,10 +969,10 @@ M.macro_replace = function(task)
         end)
         return str
     end
-    for i, cmd in ipairs(task.cmd) do
+    for i, cmd in ipairs(task.cmds) do
         local ok, result = pcall(replace_in_string, cmd)
         if ok then
-            task.cmd[i] = result
+            task.cmds[i] = result
         else
             vim.notify("[task]: " .. result, vim.log.levels.ERROR)
             return nil
@@ -612,202 +1000,282 @@ M.macro_replace = function(task)
     end
     return task
 end
-
-local run_wrap = function(cmd, name, opts)
-    if M.run_wrapper then
-        cmd = { M.run_wrapper, unpack(cmd) }
-    end
-    require("tools.terminal").new(cmd, false, name, true, opts)
-end
-
----@param taskname string 完全匹配
----@param type tasktype|nil nil=project>file
----@param mode taskmode|nil nil=debug>release
----@param opts jobopts|nil
-M.run = function(taskname, type, mode, opts)
-    --匹配task
-
-    ---@type string|nil
-    local ft = vim.bo.filetype or nil
-
-    if vim.list_contains(M.ignore_filetypes, vim.bo.filetype) then
-        ft = nil
-    end
-    if
-        vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
-        and vim.fs.abspath(vim.api.nvim_buf_get_name(0)) == M.localtask_path()
-    then
-        ft = nil
-    end
-
-    M.refresh_local()
-    local all_tasks = M.listtasks()
-    local filtered_tasks = {
-        globaltasks = M.filter(all_tasks.globaltasks, taskname, ft, type, mode),
-        localtasks = M.filter(all_tasks.localtasks, taskname, ft, type, mode),
-    }
-
-    local found_tasks_index = M.findmax(filtered_tasks.globaltasks, filtered_tasks.localtasks)
-    local found_tasks = {}
-    for _, idx in ipairs(found_tasks_index) do
-        table.insert(
-            found_tasks,
-            filtered_tasks[idx.global == true and "globaltasks" or "localtasks"][idx.index]
-        )
-    end
-    local exec = function(task)
-        task.opts = vim.tbl_deep_extend("force", task.opts or {}, opts or {})
-        task = M.macro_replace(task)
-        if task == nil then
-            return
-        end
-        run_wrap(task.cmd, task.name, task.opts)
-        vim.notify(string.format("[task]: %s cmd:%s", taskname, vim.inspect(task.cmd)))
-    end
-    if #found_tasks == 0 then
-        vim.notify("[task]: Task not found: " .. taskname, vim.log.levels.ERROR)
-        return
-    elseif #found_tasks == 1 then
-        exec(found_tasks[1])
-    elseif #found_tasks > 1 then
-        vim.ui.select(found_tasks, {
-            prompt = "Select task:",
-            format_item = function(item)
-                return table.concat(item.cmd, " ")
-            end,
-        }, function(choice)
-            if choice == nil then
-                return
-            end
-            exec(choice)
-        end)
-    end
-end
-
---刷新M.localtasks
-M.refresh_local = function()
-    local filepath = M.localtask_path()
-    if vim.fn.filereadable(filepath) == 1 then
-        localtasks = M.parsefile(filepath)
-    else
-        localtasks = nil
-    end
-end
-
----@return {globaltasks:tasks[],localtasks:tasks[]}
----return a new table
-M.listtasks = function()
-    M.refresh_local()
-    return {
-        globaltasks = M.globaltasks(),
-        localtasks = M.localtasks(),
-    }
-end
-
-M.template_config = [[
----@alias tasks task[]
-
----@class task
----@field name string
----@field cmd string[]
----@field type tasktype
----@field filetypes string[]|nil nil=>{}
----@field mode taskmode|nil  nil=>"debug"
----@field opts jobopts|nil nil=>{detach=false,cwd="$(VIM_ROOT)",clear_env=false}
-
----@class jobopts|nil
----@field on_exit fun(job: job, code: number, event: string)|nil
----@field on_stdout fun(job: job, data: string[], event: string)|nil
----@field on_stderr fun(job: job, data: string[], event: string)|nil
----@field cwd string|nil
----@field detach boolean|nil
----@field clear_env boolean|nil
----@field env table<string, string>|nil
-
----@alias tasktype ("file"|"project")
----@alias taskmode ("debug"|"release")
-
---$(VIM_FILENAME)  - 文件名
---$(VIM_FILENOEXT) - 文件去扩展名
---$(VIM_FILEEXT)   - 文件扩展名
-
---$(VIM_FILEPATH)  - 文件路径
---$(VIM_PATHNOEXT) - 去扩展的文件路径
---$(VIM_RELPATH)   - 相对文件路径
---$(VIM_FILEDIR)   - 文件所在目录路径
---$(VIM_DIRNAME)   - 文件所在目录名
-
---$(VIM_ROOT)  - 项目路径
---$(VIM_PRONAME)   - 项目名
-
---$(-argvname)
---$(-argvname:) 记住上次输入
---$(-argvname:default) 以default为默认值
-
----@type task[]
-local tasks = {}
 ---@param task task
-local function new(task)
-    table.insert(tasks,task)
+local run_task = function(task, jobopts)
+    local task = vim.deepcopy(task)
+    M.macro_replace(task)
+    require("tools.term").newtask(
+        T:task2keys({ name = task.name, mode = task.mode, type = task.type, filetypes = {} }),
+        { cmds = task.cmds, opts = vim.tbl_deep_extend("force", task.opts, jobopts or {}) },
+        false,
+        true,
+        nil,
+        "task." .. T:task2keys(task)
+    )
 end
-return tasks
-]]
-
----@return string
-M.template_appendtask = function(str, task)
-    local return_pos = str:find("return tasks")
-    if not return_pos then
-        vim.notify("[task]: 'return tasks' not found", vim.log.levels.ERROR)
-        return str
+---@param taskset taskset
+local run_taskset = function(taskset)
+    --vim.notify("run_taskset" .. vim.inspect(taskset))
+    local tasks = {}
+    for _, task_property in ipairs(taskset) do
+        local task_key = task_property[1]
+        local task = T.data.locall.str2taskmap[task_key] or T.data.global.str2taskmap[task_key]
+        assert(task ~= nil)
+        local task = vim.deepcopy(task)
+        M.macro_replace(task)
+        ---@cast task task
+        tasks[#tasks + 1] = {
+            name = T:task2keys({
+                name = task.name,
+                mode = task.mode,
+                type = task.type,
+                filetypes = {},
+            }),
+            jobinfo = {
+                cmds = task.cmds,
+                opts = task.opts,
+            },
+            bg = task_property.bg,
+            ignore_err = task_property.ignore_err,
+        }
     end
-    local line_start = str:sub(1, return_pos):find("\n[^\n]*$")
-    if not line_start then
-        line_start = 1
+    require("tools.term").newtaskset(
+        taskset.name,
+        tasks,
+        taskset.seq,
+        taskset.break_on_err,
+        false,
+        true,
+        nil,
+        "taskset." .. taskset.name
+    )
+end
+local function taskfilter(tasks, task_composite_keys)
+    local eqmap = vim.deepcopy(task_composite_keys)
+    eqmap.filetypes = nil
+    local ret = list_filter(tasks, eqmap, {
+        filetypes = task_composite_keys.filetypes and function(_, item)
+            return T:item_valid_on_ft(item, task_composite_keys.filetypes)
+        end or nil,
+    })
+    -- vim.notify("taskfilter ret:" .. vim.inspect(ret))
+    return ret
+end
+
+M.run_name = function(name, ui_select)
+    local fts = { get_cur_ft() }
+    if #fts == 0 then
+        fts = nil
+    end
+    local matches = {
+        locall = {
+            tasks = taskfilter(
+                T.data.locall.tasks,
+                { name = name, type = M.task_type, mode = M.task_mode, filetypes = fts }
+            ),
+            tasksets = list_filter(T.data.locall.tasksets, { name = name }),
+        },
+        global = {
+            tasks = taskfilter(
+                T.data.global.tasks,
+                { name = name, type = M.task_type, mode = M.task_mode, filetypes = fts }
+            ),
+            tasksets = list_filter(T.data.global.tasksets, { name = name }),
+        },
+    }
+    local matchnum = 0
+    matchnum = matchnum + #matches.locall.tasks
+    matchnum = matchnum + #matches.locall.tasksets
+    matchnum = matchnum + #matches.global.tasks
+    matchnum = matchnum + #matches.global.tasksets
+    if matchnum == 0 then
+        vim.notify("[task]: Task/TaskSet not found: " .. name, vim.log.levels.ERROR)
+        return
+    end
+    local select_and_run = function(items)
+        T:select(items, "Select And Run", function(item)
+            if item ~= nil then
+                if T:istask(item) then
+                    run_task(item)
+                elseif T:istaskset(item) then
+                    run_taskset(item)
+                end
+            end
+        end, false)
+    end
+    if matchnum ~= 1 and ui_select then
+        select_and_run(matches)
     else
-        line_start = line_start + 1
+        local items = {}
+        for _, tbl in pairs(matches) do
+            for _, task in ipairs(tbl.tasks) do
+                items[#items + 1] = task
+            end
+            for _, taskset in ipairs(tbl.tasksets) do
+                items[#items + 1] = taskset
+            end
+        end
+        local matchitems = T:findmax(items)
+        if #matchitems ~= 1 then
+            select_and_run(matches)
+        else
+            if T:istask(matchitems[1]) then
+                run_task(matchitems[1])
+            else
+                run_taskset(matchitems[1])
+            end
+        end
     end
-    local clean_task = vim.deepcopy(task)
-    if clean_task.opts then
-        clean_task.opts.on_exit = nil
-        clean_task.opts.on_stdout = nil
-        clean_task.opts.on_stderr = nil
-    end
-    local insert_code = string.format("new(%s)\n", vim.inspect(clean_task))
-    return str:sub(1, line_start - 1) .. insert_code .. str:sub(line_start)
 end
-
-M.edit_task = function()
-    local all_tasks = vim.tbl_extend("error", { global = M.globaltasks() }, M.template_tasks())
+M.runtask = function(composite_keys, jobopts, uselect)
+    local matches = {
+        locall = {
+            tasks = taskfilter(T.data.locall.tasks, composite_keys),
+        },
+        global = {
+            tasks = taskfilter(T.data.global.tasks, composite_keys),
+        },
+    }
+    if #matches == 0 then
+        vim.notify("[task]: Task not found: " .. T:task2keys(composite_keys), vim.log.levels.ERROR)
+        return
+    end
+    local select_and_run = function(items)
+        T:select(items, "Select Task And Run", function(item)
+            if item ~= nil then
+                run_task(item, jobopts)
+            end
+        end, false)
+    end
+    if #matches ~= 1 and uselect then
+        select_and_run(matches)
+    else
+        matches = T:findmax(matches)
+        if #matches ~= 1 then
+            select_and_run(matches)
+        else
+            run_task(matches[1], jobopts)
+        end
+    end
+end
+M.runtaskset = function(name, ui_select)
+    local l = T.data.locall.str2setmap[name]
+    local g = T.data.global.str2setmap[name]
+    local matches = {
+        locall = { tasksets = { l } },
+        global = { tasksets = { g } },
+    }
+    if not l and not g then
+        vim.notify("[task]: TaskSet not found: " .. name, vim.log.levels.ERROR)
+        return
+    end
+    if l and g and ui_select then
+        T:select(matches, "Select TaskSet And Run", function(item)
+            if item ~= nil then
+                run_taskset(item)
+            end
+        end, false)
+    else
+        run_taskset(l)
+    end
+end
+M.run_select = function(fts)
+    -- log()
+    local items = {
+        locall = {
+            tasks = taskfilter(T.data.locall.tasks, { filetypes = fts }),
+            tasksets = T.data.locall.tasksets,
+        },
+        global = {
+            tasks = taskfilter(T.data.global.tasks, { filetypes = fts }),
+            tasksets = T.data.global.tasksets,
+        },
+    }
+    T:select(items, "Select And Run", function(item)
+        if item then
+            if T:istask(item) then
+                run_task(item)
+            elseif T:istaskset(item) then
+                run_taskset(item)
+            end
+        end
+    end, false)
+end
+M.edittask = function()
+    local append_items = function(lines, items)
+        local insert_before
+        for i = #lines, 1, -1 do
+            if lines[i]:match("^%s*return%s+tasks%s*$") then
+                insert_before = i
+                break
+            end
+        end
+        if not insert_before then
+            vim.notify("[task]: 'return tasks' not found", vim.log.levels.ERROR)
+            return
+        else
+            for i, line in ipairs(T:items2lines(items)) do
+                table.insert(lines, insert_before + i - 1, line)
+            end
+        end
+    end
     local function is_empty_buffer(bufnrr)
         local byte_size = vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
         return byte_size == 0 or byte_size == 1
     end
+    local tmpl = [[
+---@class task
+---@field name string
+---@field cmds string[]
+---@field mode? ("debug"|"release"|"") default ""
+---@field type? ("project"|"file"|"") default ""
+---@field filetypes? string[]|{} default {}
+---@field opts? table default opts.cwd="$(VIM_ROOT)"
+---@class taskset
+---@field name string
+---@field break_on_err? boolean default true
+---@field seq? boolean default true
+---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
+---MACRO: $(MACRO_NAME)
+---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
+---VIM_FILEDIR VIM_DIRNAME
+---VIM_ROOT VIM_PRONAME
+---ARG: $(-argname:default)
+---ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
+
+---@type (task|taskset)[]
+local items = {}
+---@param it task|taskset
+local function new(it)
+    table.insert(items,it)
+end
+return tasks
+]]
     ---@param args {bufnr:integer,filepath:string}
-    local select_and_write = function(args)
+    local function select_and_write(args)
         assert(args.bufnr ~= nil or args.filepath ~= nil)
-        M.select_task(all_tasks, function(result)
+        local data =
+            vim.tbl_deep_extend("force", T.data, { locall = { tasks = {}, tasksets = {} } })
+        T:select(data, "Select To Add", function(items)
+            if not items then
+                return
+            end
             local bufnr = args.bufnr
                 or (function()
                     vim.cmd("edit " .. args.filepath)
                     return vim.api.nvim_get_current_buf()
                 end)()
-
-            local content
+            local lines
             if is_empty_buffer(bufnr) then
-                content = M.template_config
+                lines = vim.split(tmpl, "[\r\n]+")
             else
-                local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-                content = table.concat(lines, "\n")
+                lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
             end
-
-            for _, task in ipairs(result) do
-                content = M.template_appendtask(content, task)
-            end
-            local lines = vim.split(content, "\n")
+            append_items(lines, items)
             vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-        end, "Select task to add", true)
+        end, true)
     end
-    local filepath = M.localtask_path()
+    local filepath = T:localtask_path()
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr ~= -1
     local win_exists = buf_exists and vim.fn.bufwinnr(bufnr) ~= -1
@@ -825,160 +1293,94 @@ M.edit_task = function()
     elseif not buf_exists and file_exists then
         vim.cmd("edit " .. filepath)
     end
-    M.refresh_local()
 end
 
----@alias field string
+---new file:  global + template
+---edit file: global + template
+---run : global + locall
 
----@class taskattr
----@field field field
----@field name string
----@field mode taskmode
----@field type tasktype
----@field filetypes string[]
-
----@param all_tasks table<field,tasks>
----@param callback fun(task:tasks)
----@param prompt string|nil
----@param field_option boolean default false
-M.select_task = function(all_tasks, callback, prompt, field_option)
-    field_option = field_option or false
-    local items = {}
-    local insert = function(field, tasks)
-        if field_option then
-            table.insert(items, {
-                field = field,
-                name = "all",
-                mode = "",
-                type = "",
-                filetypes = {},
-                all = true,
-            })
-        end
-        for _, task in ipairs(tasks) do
-            table.insert(
-                items,
-                vim.tbl_deep_extend("force", task, {
-                    field = field,
-                })
-            )
-        end
-    end
-    local hasglobal = false --Global置后
-    for field, tasks in pairs(all_tasks) do
-        if field == "global" then
-            hasglobal = true
-        else
-            insert(field, tasks)
-        end
-    end
-    if hasglobal then
-        insert("global", all_tasks.global)
-    end
-    local w = compute_width(items)
-    vim.ui.select(items, {
-        prompt = prompt or "Select task",
-        format_item = function(item)
-            return draw_encode(item.field, item.name, item.mode, item.type, item.filetypes, w)
-        end,
-    }, function(choice)
-        local result = {}
-        if choice == nil then
-            return
-        end
-        if choice.all then
-            result = all_tasks[choice.field]
-        else
-            result = M.filter(
-                all_tasks[choice.field],
-                choice.name,
-                choice.filetypes,
-                choice["type"],
-                choice.mode
-            )
-            if #result > 1 then
-                vim.notify(
-                    string.format(
-                        "[task]: %s.%s(%s:%s) for %s matched multi tasks",
-                        choice.field,
-                        choice.name,
-                        choice.mode,
-                        choice["type"],
-                        #choice.filetypes ~= 0 and table.concat(choice.filetypes, ",") or "*"
-                    ),
-                    vim.log.levels.ERROR
-                )
-                return
-            end
-        end
-        callback(result)
-    end)
-end
-M.select_and_run = function()
-    local all_tasks = M.listtasks()
-    all_tasks = { --FILTER
-        global = M.filter(all_tasks.globaltasks, nil, vim.bo.filetype),
-        locall = M.filter(all_tasks.localtasks, nil, vim.bo.filetype),
-    }
-    M.select_task(all_tasks, function(tasks)
-        assert(#tasks == 1)
-        ---@type task|nil
-        local task = tasks[1]
-        assert(task)
-        task = M.macro_replace(task)
-        if task == nil then
-            return
-        end
-        run_wrap(task.cmd, task.name, task.opts)
-        vim.notify(string.format("[task]: %s cmd:%s", task.name, vim.inspect(task.cmd)))
-    end, "Select task to run", false)
-end
-
----@type taskmode|nil ("debug">"release")
+---@type ("debug"|"release"|""|nil)
 M.task_mode = nil
----@type tasktype|nil ("project">"file")
+---@type ("project"|"file"|""|nil)
 M.task_type = nil
 function M.switch_taskmode()
+    local display
     if M.task_mode == nil then
         M.task_mode = "debug"
+        display = "debug"
     elseif M.task_mode == "debug" then
         M.task_mode = "release"
+        display = "release"
     elseif M.task_mode == "release" then
+        M.task_mode = ""
+        display = "common"
+    elseif M.task_mode == "" then
         M.task_mode = nil
+        display = "auto(common>debug>release)"
     end
-    vim.cmd(string.format(
-        [[
+-- stylua: ignore
+    vim.cmd(string.format([[
 				echohl Number
 				echo "Current task_mode: %s"
 				echohl None
-                ]],
-        M.task_mode
-    ))
+        ]],display))
 end
 function M.switch_tasktype()
+    local display
     if M.task_type == nil then
         M.task_type = "project"
+        display = "project"
     elseif M.task_type == "project" then
         M.task_type = "file"
+        display = "file"
     elseif M.task_type == "file" then
+        M.task_type = ""
+        display = "common"
+    elseif M.task_type == "" then
         M.task_type = nil
+        display = "auto(common>project>file)"
     end
-    vim.cmd(string.format(
-        [[
+-- stylua: ignore
+    vim.cmd(string.format([[
 				echohl Number
 				echo "Current task_type: %s"
 				echohl None
-                ]],
-        M.task_type
-    ))
+        ]],display))
 end
-M.setkeymap = function()
+M.setup = function()
+    for field, tbl in pairs(config) do
+        for _, task in ipairs(tbl.tasks) do
+            T:addtask(task, field)
+        end
+        for _, taskset in ipairs(tbl.tasksets) do
+            T:addtaskset(taskset, field)
+        end
+    end
+    -- log(T.data)
     local map = require("utils").map
     map("n", "<F9>", function()
-        M.run("build", M.task_type, M.task_mode)
+        T:refresh_local()
+        if default_build then
+            if T:istask(default_build) then
+                run_task(default_build)
+            elseif T:istaskset(default_build) then
+                run_taskset(default_build)
+            end
+        else
+            M.run_name("build", true)
+        end
     end, { desc = "Build" })
     map("n", "<F10>", function()
-        M.run("run", M.task_type, M.task_mode)
+        T:refresh_local()
+        if default_run then
+            if T:istask(default_run) then
+                run_task(default_run)
+            elseif T:istaskset(default_run) then
+                run_taskset(default_run)
+            end
+        else
+            M.run_name("run", true)
+        end
     end, { desc = "Run" })
     map("n", "<F11>", M.switch_taskmode, { desc = "TaskToggleDebugRelease" })
     map(
@@ -988,20 +1390,11 @@ M.setkeymap = function()
         { desc = "TaskToggleProjFile" }
     )
     map("n", "<F12>", function()
-        M.select_and_run()
+        T:refresh_local()
+        M.run_select({ get_cur_ft() })
     end, { desc = "TaskSelectAndRun" })
     map("n", vim.g.is_win and "<S-F12>" or "<F24>", function()
-        M.edit_task()
+        M.edittask()
     end, { desc = "TaskEdit" })
-end
-M.createcmds = function()
-    vim.api.nvim_create_user_command("TaskEdit", M.edit_task, {})
-    vim.api.nvim_create_user_command("TaskSelectAndRun", M.select_and_run, {})
-    vim.api.nvim_create_user_command("TaskToggleDebugRelease", M.switch_taskmode, {})
-    vim.api.nvim_create_user_command("TaskToggleProjFile", M.switch_tasktype, {})
-end
-M.setup = function()
-    M.setkeymap()
-    M.createcmds()
 end
 return M

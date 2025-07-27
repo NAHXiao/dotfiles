@@ -218,6 +218,10 @@ function M:load(project)
     for _, buf in ipairs(_buffers) do
         vim.api.nvim_buf_delete(buf, { force = false })
     end
+    local ok, mod = pcall(require, "tools.term")
+    if ok then
+        mod:reset()
+    end
     return true
 end
 function M:update()

@@ -225,3 +225,38 @@ autocmd BufEnter * if expand('%:p') !=# '' |
       \ endif
 ]])
 end
+
+local fts = {
+    "qf",
+    "toggleterm",
+    "TerminalPanel",
+    "trouble",
+    "dapui_scopes",
+    "snacks_terminal",
+    "lazy",
+    "mason",
+    "TelescopePrompt",
+    "dropbar_menu",
+    "TerminalBuf",
+    "noice",
+}
+vim.api.nvim_create_autocmd("WinEnter", {
+    callback = function()
+        for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            local bufnr = vim.api.nvim_win_get_buf(win)
+            local ft = vim.fn.getbufvar(bufnr, "&ft")
+            local bt = vim.fn.getbufvar(bufnr, "&bt")
+            if
+                not (
+                    vim.list_contains(fts, ft)
+                    or (ft == "" and bt == "")
+                    or (ft == "" and bt == "nofile")
+                )
+            then
+                require("utils").log("ft:", ft, "bt:", bt)
+                return
+            end
+        end
+        vim.cmd("qa!")
+    end,
+})

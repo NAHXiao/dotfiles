@@ -1321,7 +1321,7 @@ function panelbufcxt:update_panelbuf_curnode_hl()
     local curnodedata = self.displayed_data[curnode]
     if curnodedata then --curnode不被折叠时高亮
         local curindex = curnodedata.index
-        local curnode_clearfunc = hlline(self.bufnr, curindex, "CursorLine")
+        local curnode_clearfunc = hlline(self.bufnr, curindex, "TermCurIndex")
         self.panel_buf_hl_curnode_clearfunc = curnode_clearfunc
     end
 end
@@ -1332,7 +1332,7 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
     end
     if vim.api.nvim_get_current_buf() == self.bufnr and self._cursornode ~= self._curnode then
         local cursor_index = self.displayed_data[self._cursornode].index
-        local cursornode_clearfunc = hlline(self.bufnr, cursor_index, "Visual")
+        local cursornode_clearfunc = hlline(self.bufnr, cursor_index, "TermCursorLine")
         self.panel_buf_hl_cursornode_clearfunc = cursornode_clearfunc
     end
 end

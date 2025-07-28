@@ -1002,7 +1002,6 @@ M.macro_replace = function(task)
 end
 ---@param task task
 local run_task = function(task, jobopts)
-    --vim.notify("run_task" .. vim.inspect(task))
     local task = vim.deepcopy(task)
     M.macro_replace(task)
     require("tools.term").newtask(
@@ -1023,7 +1022,7 @@ local run_taskset = function(taskset)
         local task = T.data.locall.str2taskmap[task_key] or T.data.global.str2taskmap[task_key]
         assert(task ~= nil)
         local task = vim.deepcopy(task)
-        M.macro_replace(vim.deepcopy(task))
+        M.macro_replace(task)
         ---@cast task task
         tasks[#tasks + 1] = {
             name = T:task2keys({

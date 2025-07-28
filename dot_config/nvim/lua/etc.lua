@@ -239,6 +239,17 @@ local fts = {
     "dropbar_menu",
     "TerminalBuf",
     "noice",
+    "neo-tree",
+    "neo-tree-popup",
+    "notify",
+
+    "netrw",
+    "qf",
+    "help",
+    "man",
+    "preview",
+    "loclist",
+    "popup",
 }
 vim.api.nvim_create_autocmd("WinEnter", {
     callback = function()
@@ -246,17 +257,17 @@ vim.api.nvim_create_autocmd("WinEnter", {
             local bufnr = vim.api.nvim_win_get_buf(win)
             local ft = vim.fn.getbufvar(bufnr, "&ft")
             local bt = vim.fn.getbufvar(bufnr, "&bt")
-            if
-                not (
-                    vim.list_contains(fts, ft)
-                    or (ft == "" and bt == "")
-                    or (ft == "" and bt == "nofile")
-                )
-            then
-                require("utils").log("ft:", ft, "bt:", bt)
+            -- require("utils").log("ft:", ft, "bt:", bt, "name:", vim.api.nvim_buf_get_name(bufnr))
+            if not vim.list_contains(fts, ft) then
                 return
             end
         end
         vim.cmd("qa!")
+    end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = fts,
+    callback = function(ev)
+        vim.bo[ev.buf].buflisted = false
     end,
 })

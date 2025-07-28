@@ -134,7 +134,8 @@ local function PanelCurSorHLUpdate()
     end
 end
 local function setup_termbuf(bufnr)
-    vim.bo[bufnr].ft = "TerminalBuf"
+    vim.bo[bufnr].filetype = "TerminalBuf"
+    vim.bo[bufnr].buflisted = false
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
@@ -1320,7 +1321,7 @@ function panelbufcxt:update_panelbuf_curnode_hl()
     local curnodedata = self.displayed_data[curnode]
     if curnodedata then --curnode不被折叠时高亮
         local curindex = curnodedata.index
-        local curnode_clearfunc = hlline(self.bufnr, curindex, "CursorLine")
+        local curnode_clearfunc = hlline(self.bufnr, curindex, "TermCurIndex")
         self.panel_buf_hl_curnode_clearfunc = curnode_clearfunc
     end
 end
@@ -1331,29 +1332,32 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
     end
     if vim.api.nvim_get_current_buf() == self.bufnr and self._cursornode ~= self._curnode then
         local cursor_index = self.displayed_data[self._cursornode].index
-        local cursornode_clearfunc = hlline(self.bufnr, cursor_index, "Visual")
+        local cursornode_clearfunc = hlline(self.bufnr, cursor_index, "TermCursorLine")
         self.panel_buf_hl_cursornode_clearfunc = cursornode_clearfunc
     end
 end
 local function create_fallback_termbuf()
-    local fallback_term_bufnr = vim.api.nvim_create_buf(false, true)
+    local bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(
-        fallback_term_bufnr,
+        bufnr,
         0,
         -1,
         false,
         { "Fallback Term Bufnr", "You Should Create A TermBuf Now" }
     )
-    vim.bo[fallback_term_bufnr].ft = "TerminalBuf"
-    vim.bo[fallback_term_bufnr].modifiable = false
-    return fallback_term_bufnr
+    vim.bo[bufnr].filetype = "TerminalBuf"
+    vim.bo[bufnr].modifiable = false
+    vim.bo[bufnr].buflisted = false
+    return bufnr
 end
 local function create_panelbuf()
     local bufnr = vim.api.nvim_create_buf(false, true)
     vim.bo[bufnr].modifiable = false
+    vim.bo[bufnr].buflisted = false
     assert(bufnr and vim.api.nvim_buf_is_valid(bufnr))
     vim.bo[bufnr].modifiable = false
-    vim.b[bufnr].buftype = "nofile"
+    vim.bo[bufnr].buftype = "nofile"
+    vim.bo[bufnr].filetype = "TerminalPanel"
     vim.api.nvim_buf_set_name(bufnr, "TerminalPanel")
     setup_keymap_panel(bufnr)
     return bufnr

@@ -264,6 +264,11 @@ return {
             desc = "Find colorscheme",
         },
         {
+            "<leader>fj",
+            "<cmd>lua require('telescope.builtin').jumplist()<cr>",
+            desc = "Find Jumplist",
+        },
+        {
             "<leader>fmp",
             "<cmd>lua require('telescope.builtin').man_pages()<cr>",
             desc = "Find man pages",

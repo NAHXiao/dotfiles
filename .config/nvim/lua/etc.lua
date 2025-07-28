@@ -247,7 +247,7 @@ vim.api.nvim_create_autocmd("WinEnter", {
             if not vim.list_contains(fts, vim.fn.getbufvar(bufnr, "&ft")) then
                 return
             end
-            vim.cmd("qa!")
         end
+        vim.cmd("qa!")
     end,
 })

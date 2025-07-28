@@ -2,8 +2,7 @@
 -- LEADER
 vim.g.mapleader = " "
 vim.o.timeoutlen = 800
-vim.cmd([[
-]])
+vim.cmd([[clearjumps]])
 vim.api.nvim_set_hl(0, "TRANSPARENT", { bg = "NONE" })
 -- IMPORTS
 require("vars")

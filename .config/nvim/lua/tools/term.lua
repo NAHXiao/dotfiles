@@ -135,6 +135,7 @@ local function PanelCurSorHLUpdate()
 end
 local function setup_termbuf(bufnr)
     vim.bo[bufnr].filetype = "TerminalBuf"
+    vim.bo[bufnr].buflisted = false
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
@@ -1336,25 +1337,27 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
     end
 end
 local function create_fallback_termbuf()
-    local fallback_term_bufnr = vim.api.nvim_create_buf(false, true)
+    local bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(
-        fallback_term_bufnr,
+        bufnr,
         0,
         -1,
         false,
         { "Fallback Term Bufnr", "You Should Create A TermBuf Now" }
     )
-    vim.bo[fallback_term_bufnr].filetype = "TerminalBuf"
-    vim.bo[fallback_term_bufnr].modifiable = false
-    return fallback_term_bufnr
+    vim.bo[bufnr].filetype = "TerminalBuf"
+    vim.bo[bufnr].modifiable = false
+    vim.bo[bufnr].buflisted = false
+    return bufnr
 end
 local function create_panelbuf()
     local bufnr = vim.api.nvim_create_buf(false, true)
     vim.bo[bufnr].modifiable = false
+    vim.bo[bufnr].buflisted = false
     assert(bufnr and vim.api.nvim_buf_is_valid(bufnr))
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].buftype = "nofile"
-    vim.bo[bufnr].filetype= "TerminalPanel"
+    vim.bo[bufnr].filetype = "TerminalPanel"
     vim.api.nvim_buf_set_name(bufnr, "TerminalPanel")
     setup_keymap_panel(bufnr)
     return bufnr

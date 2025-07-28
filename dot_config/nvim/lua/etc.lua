@@ -258,7 +258,8 @@ vim.api.nvim_create_autocmd("WinEnter", {
             local ft = vim.fn.getbufvar(bufnr, "&ft")
             local bt = vim.fn.getbufvar(bufnr, "&bt")
             -- require("utils").log("ft:", ft, "bt:", bt, "name:", vim.api.nvim_buf_get_name(bufnr))
-            if not (vim.list_contains(fts, ft) or bt == "nofile") then
+            -- if not (vim.list_contains(fts, ft) or bt == "nofile") then
+            if not vim.list_contains(fts, ft) then
                 return
             end
         end

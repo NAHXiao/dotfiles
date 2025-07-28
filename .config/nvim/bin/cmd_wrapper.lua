@@ -3,6 +3,8 @@ local is_windows = ffi.os == "Windows"
 local is_unix = not is_windows
 local print_cmds = false
 local convert_env = false
+local exepath
+local cmd1
 if is_windows then
     vim.cmd("language en_us.UTF-8")
     ffi.cdef([[
@@ -237,6 +239,12 @@ local function execute_windows(cmdline)
     if convert_env then
         cmdline = expand_env_vars(cmdline)
     end
+    local function replace_prefix(str, prefix, repl)
+        local p = "^" .. (prefix:gsub("([^%w])", "%%%1"))
+        local safe_repl = repl:gsub("%%", "%%%%")
+        return str:gsub(p, safe_repl, 1)
+    end
+    cmdline = replace_prefix(cmdline, cmd1, exepath)
     if print_cmds then
         print("[" .. cmdline .. "]")
         print()
@@ -312,7 +320,9 @@ local function execute_unix(cmds)
 end
 local function main()
     local cmds = parse_flags()
-    if "" == vim.fn.exepath(cmds[1]) then
+    cmd1 = cmds[1]
+    exepath = vim.fn.exepath(cmds[1])
+    if "" == exepath then
         os.exit(1)
     end
     local exit_code

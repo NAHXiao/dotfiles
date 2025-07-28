@@ -52,7 +52,7 @@ end
 ---@field unique_map table<string,NNode> node(ref)
 ---@field _curnode TaskTermNode|TermNode
 ---@field _cursornode NNode(ref)
-local panelbufcxt = { lines = {}, unique_map = {} }
+local panelbufcxt = { unique_map = {} }
 
 ---@param curnode NNode
 local function verify_valid_curnode(curnode)
@@ -134,6 +134,7 @@ local function PanelCurSorHLUpdate()
     end
 end
 local function setup_termbuf(bufnr)
+    vim.bo[bufnr].ft = "TerminalBuf"
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
@@ -184,13 +185,15 @@ local function setup_termbuf(bufnr)
     map({ "n", "t" }, "<M-;>", function()
         local apnode = append_node()
         if apnode then
-            panelbufcxt:append_default(apnode)
+            local node = panelbufcxt:append_default(apnode)
+            panelbufcxt:switch(node)
         end
     end)
     map({ "n", "t" }, "<M-'>", function()
         local apnode = append_node()
         if apnode then
-            panelbufcxt:append_userinput(apnode)
+            local node = panelbufcxt:append_userinput(apnode)
+            panelbufcxt:switch(node)
         end
     end)
     map({ "n", "t" }, "<M-q>", function()
@@ -258,13 +261,15 @@ local function setup_keymap_panel(bufnr)
     map("n", { "<M-;>", "a" }, function()
         local apnode = append_node()
         if apnode then
-            panelbufcxt:append_default(apnode)
+            local node = panelbufcxt:append_default(apnode)
+            panelbufcxt:switch(node)
         end
     end)
     map("n", { "<M-'>", "A" }, function()
         local apnode = append_node()
         if apnode then
-            panelbufcxt:append_userinput(apnode)
+            local node = panelbufcxt:append_userinput(apnode)
+            panelbufcxt:switch(node)
         end
     end)
     map("n", { "<M-q>", "d" }, function()
@@ -1330,34 +1335,40 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
         self.panel_buf_hl_cursornode_clearfunc = cursornode_clearfunc
     end
 end
-
---Root,Panelbuf,[CursorMoved->setcursor],[WinLeave->clearCursorHL]
-function panelbufcxt:init()
-    if self.__inited then
-        return
-        -- assert(false, "You can not init a panelbuf twice")
-    end
-    self.__inited = true
-    --Root
-    self.root = GroupNode:new({ name = "Root" })
-    --PanelBuf
-    self.fallback_term_bufnr = vim.api.nvim_create_buf(false, true)
+local function create_fallback_termbuf()
+    local fallback_term_bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(
-        self.fallback_term_bufnr,
+        fallback_term_bufnr,
         0,
         -1,
         false,
         { "Fallback Term Bufnr", "You Should Create A TermBuf Now" }
     )
-    vim.bo[self.fallback_term_bufnr].modifiable = false
-
-    self.bufnr = vim.api.nvim_create_buf(false, true)
-    vim.bo[self.bufnr].modifiable = false
-    assert(self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr))
-    vim.bo[self.bufnr].modifiable = false
-    vim.b[self.bufnr].buftype = "nofile"
-    vim.api.nvim_buf_set_name(self.bufnr, "TerminalPanel")
-    setup_keymap_panel(self.bufnr)
+    vim.bo[fallback_term_bufnr].ft = "TerminalBuf"
+    vim.bo[fallback_term_bufnr].modifiable = false
+    return fallback_term_bufnr
+end
+local function create_panelbuf()
+    local bufnr = vim.api.nvim_create_buf(false, true)
+    vim.bo[bufnr].modifiable = false
+    assert(bufnr and vim.api.nvim_buf_is_valid(bufnr))
+    vim.bo[bufnr].modifiable = false
+    vim.b[bufnr].buftype = "nofile"
+    vim.api.nvim_buf_set_name(bufnr, "TerminalPanel")
+    setup_keymap_panel(bufnr)
+    return bufnr
+end
+--Root,Panelbuf,[CursorMoved->setcursor],[WinLeave->clearCursorHL]
+function panelbufcxt:init()
+    if self.__inited then
+        return
+    end
+    self.__inited = true
+    --Root
+    self.root = GroupNode:new({ name = "Root" })
+    self.fallback_term_bufnr = create_fallback_termbuf()
+    --PanelBuf
+    self.bufnr = create_panelbuf()
     --AutoCmd
     vim.api.nvim_create_augroup("tools.terminal.panelbufcxt", { clear = true })
     --CursorMoved->setcursor
@@ -1689,5 +1700,36 @@ function M.setup()
     end)
     panelbufcxt:init()
 end
-
+function M.reset()
+    if winmanager:_is_opened() then
+        winmanager:close()
+    end
+    if panelbufcxt.root then
+        panelbufcxt.root:clean()
+    end
+    panelbufcxt.root = nil
+    panelbufcxt._curnode = nil
+    panelbufcxt._cursornode = nil
+    panelbufcxt.displayed_data = nil
+    if panelbufcxt.panel_buf_hl_curnode_clearfunc then
+        panelbufcxt.panel_buf_hl_curnode_clearfunc()
+    end
+    panelbufcxt.panel_buf_hl_curnode_clearfunc = nil
+    if panelbufcxt.panel_buf_hl_cursornode_clearfunc then
+        panelbufcxt.panel_buf_hl_cursornode_clearfunc()
+    end
+    panelbufcxt.panel_buf_hl_cursornode_clearfunc = nil
+    panelbufcxt.unique_map = {}
+    local bufnr = panelbufcxt.bufnr
+    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+    bufnr = panelbufcxt.fallback_term_bufnr
+    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+    vim.api.nvim_create_augroup("tools.terminal.panelbufcxt", { clear = true })
+    panelbufcxt.__inited = false
+    M.setup()
+end
 return M

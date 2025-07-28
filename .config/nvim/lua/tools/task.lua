@@ -1352,7 +1352,7 @@ M.setup = function()
             T:addtaskset(taskset, field)
         end
     end
-    log(T.data)
+    -- log(T.data)
     local map = require("utils").map
     map("n", "<F9>", function()
         T:refresh_local()

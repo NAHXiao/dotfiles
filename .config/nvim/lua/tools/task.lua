@@ -1117,7 +1117,7 @@ M.run_name = function(name, ui_select)
         end
         local matchitems = T:findmax(items)
         if matchitems ~= 1 then
-            select_and_run(matchitems)
+            select_and_run(matches)
         else
             run_taskset(matchitems[1])
         end

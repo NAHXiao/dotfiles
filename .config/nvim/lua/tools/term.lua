@@ -716,7 +716,7 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow, on_finish)
             end,
         }, TaskTermNode.jobinfo.opts, ujobinfo.opts, { on_exit = on_finish }),
     })
-    local obj = TermNode.new(self, newnode_opts, jobinfo, startnow, true)
+    local obj = TermNode.new(self, newnode_opts, jobinfo, false, true)
     setmetatable(obj, self)
     obj.new = unreachable
     obj.status = "waitting"

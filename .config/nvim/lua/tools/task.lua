@@ -1119,7 +1119,11 @@ M.run_name = function(name, ui_select)
         if #matchitems ~= 1 then
             select_and_run(matches)
         else
-            run_taskset(matchitems[1])
+            if T:istask(matchitems[1]) then
+                run_task(matchitems[1])
+            else
+                run_taskset(matchitems[1])
+            end
         end
     end
 end

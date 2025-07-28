@@ -162,8 +162,13 @@ local function setup_termbuf(bufnr)
             end
         end,
     })
-    local function map(mode, lhs, rhs)
-        vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, noremap = true, silent = true })
+    local function map(mode, lhs, rhs, desc)
+        vim.keymap.set(
+            mode,
+            lhs,
+            rhs,
+            { desc = desc, buffer = bufnr, noremap = true, silent = true }
+        )
     end
     local curnode = function()
         return panelbufcxt._curnode
@@ -189,52 +194,57 @@ local function setup_termbuf(bufnr)
             local node = panelbufcxt:append_default(apnode)
             panelbufcxt:switch(node)
         end
-    end)
+    end, "append default node")
     map({ "n", "t" }, "<M-'>", function()
         local apnode = append_node()
         if apnode then
             local node = panelbufcxt:append_userinput(apnode)
             panelbufcxt:switch(node)
         end
-    end)
+    end, "append node by input")
     map({ "n", "t" }, "<M-q>", function()
         panelbufcxt:delnode(curnode())
-    end)
+    end, "delete node")
     map({ "n", "t" }, "<M-n>", function()
         local next = curnode().next
         if next then
             panelbufcxt:switch(next)
         end
-    end)
+    end, "switch to next node")
     map({ "n", "t" }, "<M-p>", function()
         local prev = curnode().prev
         if prev then
             panelbufcxt:switch(prev)
         end
-    end)
+    end, "switch to prev node")
     map({ "n", "t" }, "<M-,>", function()
         panelbufcxt:swap(-1, curnode())
-    end)
+    end, "swap node with prev")
     map({ "n", "t" }, "<M-.>", function()
         panelbufcxt:swap(1, curnode())
-    end)
+    end, "swap node with next")
     map({ "n", "t" }, "<M-r>", function()
         panelbufcxt:rename(curnode())
-    end)
+    end, "rename node")
     map({ "n", "t" }, "<M-R>", function()
         panelbufcxt:restart(curnode())
-    end)
+    end, "restart node")
     map({ "n", "t" }, "<M-P>", function()
         panelbufcxt:toggle_pin(curnode())
-    end)
+    end, "toggle node's pinned option")
 end
 local function setup_keymap_panel(bufnr)
-    local function map(mode, lhs, rhs)
+    local function map(mode, lhs, rhs, desc)
         if type(lhs) == "string" then
             lhs = { lhs }
         end
         for _, l in ipairs(lhs) do
-            vim.keymap.set(mode, l, rhs, { buffer = bufnr, noremap = true, silent = true })
+            vim.keymap.set(
+                mode,
+                l,
+                rhs,
+                { buffer = bufnr, noremap = true, silent = true, desc = desc }
+            )
         end
     end
     local cursor_node = function()
@@ -265,47 +275,47 @@ local function setup_keymap_panel(bufnr)
             local node = panelbufcxt:append_default(apnode)
             panelbufcxt:switch(node)
         end
-    end)
+    end, "append default node")
     map("n", { "<M-'>", "A" }, function()
         local apnode = append_node()
         if apnode then
             local node = panelbufcxt:append_userinput(apnode)
             panelbufcxt:switch(node)
         end
-    end)
+    end, "append node by input")
     map("n", { "<M-q>", "d" }, function()
         panelbufcxt:delnode(cursor_node())
-    end)
+    end, "delete node")
     map("n", { "<M-n>", "n" }, function()
         local next = curnode().next
         if next then
             panelbufcxt:switch(next)
         end
-    end)
+    end, "switch to next node")
     map("n", { "<M-p>", "p" }, function()
         local prev = curnode().prev
         if prev then
             panelbufcxt:switch(prev)
         end
-    end)
+    end, "switch to prev node")
     map("n", { "<M-,>", "h" }, function()
         panelbufcxt:swap(-1, cursor_node())
-    end)
+    end, "swap node with prev")
     map("n", { "<M-.>", "l" }, function()
         panelbufcxt:swap(1, cursor_node())
-    end)
+    end, "swap node with next")
     map("n", { "<M-r>", "r" }, function()
         panelbufcxt:rename(cursor_node())
-    end)
+    end, "rename node")
     map("n", { "<M-R>", "R" }, function()
         panelbufcxt:restart(cursor_node())
-    end)
+    end, "restart node")
     map("n", { "<M-P>", "P" }, function()
         panelbufcxt:toggle_pin(cursor_node())
-    end)
+    end, "toggle node's pinned option")
     map("n", { "<M-/>" }, function()
         vim.notify(vim.inspect(cursor_node()))
-    end)
+    end, "inspect node")
     map("n", { "<CR>", "<2-LeftMouse>" }, function()
         local cursornode = cursor_node()
         if cursornode.classname == "GroupNode" or cursornode.classname == "TaskSetNode" then
@@ -314,7 +324,7 @@ local function setup_keymap_panel(bufnr)
         else
             panelbufcxt:switch(cursornode)
         end
-    end)
+    end, "switch/expand")
 end
 ---@alias jobfuncopts {on_exit:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil,on_stdout:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil,on_stderr:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil}
 ---@param ... jobfuncopts

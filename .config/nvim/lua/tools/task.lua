@@ -1003,6 +1003,7 @@ end
 ---@param task task
 local run_task = function(task, jobopts)
     --vim.notify("run_task" .. vim.inspect(task))
+    local task = vim.deepcopy(task)
     M.macro_replace(task)
     require("tools.term").newtask(
         T:task2keys({ name = task.name, mode = task.mode, type = task.type, filetypes = {} }),
@@ -1021,7 +1022,8 @@ local run_taskset = function(taskset)
         local task_key = task_property[1]
         local task = T.data.locall.str2taskmap[task_key] or T.data.global.str2taskmap[task_key]
         assert(task ~= nil)
-        M.macro_replace(task)
+        local task = vim.deepcopy(task)
+        M.macro_replace(vim.deepcopy(task))
         ---@cast task task
         tasks[#tasks + 1] = {
             name = T:task2keys({

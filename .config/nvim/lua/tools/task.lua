@@ -1083,12 +1083,12 @@ M.run_name = function(name, ui_select)
             tasksets = list_filter(T.data.global.tasksets, { name = name }),
         },
     }
-    if
-        #matches.locall.tasks == 0
-        and #matches.locall.tasksets == 0
-        and #matches.global.tasks == 0
-        and #matches.global.tasksets == 0
-    then
+    local matchnum = 0
+    matchnum = matchnum + #matches.locall.tasks
+    matchnum = matchnum + #matches.locall.tasksets
+    matchnum = matchnum + #matches.global.tasks
+    matchnum = matchnum + #matches.global.tasksets
+    if matchnum == 0 then
         vim.notify("[task]: Task/TaskSet not found: " .. name, vim.log.levels.ERROR)
         return
     end
@@ -1103,7 +1103,7 @@ M.run_name = function(name, ui_select)
             end
         end, false)
     end
-    if #matches ~= 1 and ui_select then
+    if matchnum ~= 1 and ui_select then
         select_and_run(matches)
     else
         local items = {}
@@ -1115,11 +1115,11 @@ M.run_name = function(name, ui_select)
                 items[#items + 1] = taskset
             end
         end
-        matches = T:findmax(items)
-        if #matches ~= 1 then
-            select_and_run(matches)
+        local matchitems = T:findmax(items)
+        if matchitems ~= 1 then
+            select_and_run(matchitems)
         else
-            run_taskset(matches[1])
+            run_taskset(matchitems[1])
         end
     end
 end

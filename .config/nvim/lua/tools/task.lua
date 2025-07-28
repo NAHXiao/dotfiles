@@ -1,9 +1,5 @@
 local log = require("utils").log
--- local log = function(...) end
-local trim = require("utils").trim
 local list_filter = require("utils").list_filter
----Debug/Release输入
----RunWrapper移动到term
 ---@type table<"global"|string,{tasks:utask[],tasksets:utaskset[]}>
 local config = {
     global = {
@@ -185,7 +181,7 @@ local config = {
                 type = "project",
                 mode = "debug",
                 opts = {
-                    clear_env = true,
+                    clear_env = false,
                     cwd = "$(VIM_ROOT)",
                     env = {
                         CC = "clang",
@@ -198,7 +194,7 @@ local config = {
                 type = "project",
                 mode = "debug",
                 opts = {
-                    clear_env = true,
+                    clear_env = false,
                     cwd = "$(VIM_ROOT)",
                     env = {
                         CC = "clang",
@@ -289,7 +285,9 @@ local T = {
         mode = "",
         type = "",
         filetypes = {},
-        opts = {},
+        opts = {
+            cwd = "$(VIM_ROOT)",
+        },
     },
     taskset_base = { break_on_err = true, seq = true },
 }
@@ -417,13 +415,14 @@ function T:items2lines(items)
             local cwd = item.opts.cwd ~= "$(VIM_ROOT)" and item.opts.cwd or nil
             local env = item.opts.env and next(item.opts.env) and item.opts.env or nil
             if cwd or env or clear_env then
-                local optstr = vim.inspect({
-                    cwd = cwd,
-                    clear_env = clear_env,
-                    env = env,
-                })
+                local optstr = "opts="
+                    .. vim.inspect({
+                        cwd = cwd,
+                        clear_env = clear_env,
+                        env = env,
+                    })
                 for _, line in ipairs(vim.split(optstr, "[\r\n]+")) do
-                    lines[#lines + 1] = line
+                    lines[#lines + 1] = "    " .. line
                 end
             end
             lines[#lines + 1] = "})"
@@ -729,11 +728,12 @@ function T:findmax(items, _comp)
     return { unpack(list, 1, last) }
 end
 ---@param data {[string]:{tasks:task[],tasksets:taskset[]}}
+---@param prompt string
 ---@param callback fun(items:(task|taskset)[]|(task|taskset)|nil)
 ---@param field_option boolean
 ---@return nil
 ---items's type == [] only when field_option==true
-function T:select(data, callback, field_option)
+function T:select(data, prompt, callback, field_option)
     field_option = field_option or false
     ---@alias field_options {field:string,below:("tasksets"|"tasks"|"all")}
     ---@type (field_options|task|taskset)[]
@@ -824,7 +824,7 @@ function T:select(data, callback, field_option)
     end
     draw:calcute_rownum()
     vim.ui.select(options, {
-        prompt = "select task",
+        prompt = prompt,
         format_item = function(item)
             local ret = draw:draw(item)
             return ret
@@ -1092,7 +1092,7 @@ M.run_name = function(name, ui_select)
         return
     end
     local select_and_run = function(items)
-        T:select(items, function(item)
+        T:select(items, "Select And Run", function(item)
             if item ~= nil then
                 if T:istask(item) then
                     run_task(item)
@@ -1136,7 +1136,7 @@ M.runtask = function(composite_keys, jobopts, uselect)
         return
     end
     local select_and_run = function(items)
-        T:select(items, function(item)
+        T:select(items, "Select Task And Run", function(item)
             if item ~= nil then
                 run_task(item, jobopts)
             end
@@ -1165,7 +1165,7 @@ M.runtaskset = function(name, ui_select)
         return
     end
     if l and g and ui_select then
-        T:select(matches, function(item)
+        T:select(matches, "Select TaskSet And Run", function(item)
             if item ~= nil then
                 run_taskset(item)
             end
@@ -1186,7 +1186,7 @@ M.run_select = function(fts)
             tasksets = T.data.global.tasksets,
         },
     }
-    T:select(items, function(item)
+    T:select(items, "Select And Run", function(item)
         if item then
             if T:istask(item) then
                 run_task(item)
@@ -1219,27 +1219,47 @@ M.edittask = function()
         return byte_size == 0 or byte_size == 1
     end
     local tmpl = [[
----@type task[]
-local tasks = {}
----@param task task
-local function new(task)
-table.insert(tasks,task)
+---@class task
+---@field name string
+---@field cmds string[]
+---@field mode? ("debug"|"release"|"") default ""
+---@field type? ("project"|"file"|"") default ""
+---@field filetypes? string[]|{} default {}
+---@field opts? table default opts.cwd="$(VIM_ROOT)"
+---@class taskset
+---@field name string
+---@field break_on_err? boolean default true
+---@field seq? boolean default true
+---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
+---MACRO: $(MACRO_NAME)
+---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
+---VIM_FILEDIR VIM_DIRNAME
+---VIM_ROOT VIM_PRONAME
+---ARG: $(-argname:default)
+---ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
+
+---@type (task|taskset)[]
+local items = {}
+---@param it task|taskset
+local function new(it)
+    table.insert(items,it)
 end
 return tasks
 ]]
     ---@param args {bufnr:integer,filepath:string}
     local function select_and_write(args)
         assert(args.bufnr ~= nil or args.filepath ~= nil)
-        local bufnr = args.bufnr
-            or (function()
-                vim.cmd("edit " .. args.filepath)
-                return vim.api.nvim_get_current_buf()
-            end)()
-        local data = vim.tbl_extend("force", T.data, { locall = { tasks = {}, tasksets = {} } })
-        T:select(data, function(items)
+        local data =
+            vim.tbl_deep_extend("force", T.data, { locall = { tasks = {}, tasksets = {} } })
+        T:select(data, "Select To Add", function(items)
             if not items then
                 return
             end
+            local bufnr = args.bufnr
+                or (function()
+                    vim.cmd("edit " .. args.filepath)
+                    return vim.api.nvim_get_current_buf()
+                end)()
             local lines
             if is_empty_buffer(bufnr) then
                 lines = vim.split(tmpl, "[\r\n]+")

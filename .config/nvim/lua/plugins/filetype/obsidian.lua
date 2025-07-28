@@ -229,14 +229,6 @@ return {
                 vim.notify("Obsidian: follow_img_func(): Unsupported OS")
             end
         end,
-
-        -- Optional, set to true if you use the Obsidian Advanced URI plugin.
-        -- https://github.com/Vinzent03/obsidian-advanced-uri
-        use_advanced_uri = true,
-
-        -- Optional, set to true to force ':ObsidianOpen' to bring the app to the foreground.
-        open_app_foreground = true,
-
         picker = {
             -- Set your preferred picker. Can be one of 'telescope.nvim', 'fzf-lua', or 'mini.pick'.
             name = "telescope.nvim",

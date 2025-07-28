@@ -796,7 +796,7 @@ function T:select(data, prompt, callback, field_option)
         if not tbl then
             return
         end
-        if #tbl.tasksets ~= 0 then
+        if tbl.tasksets and #tbl.tasksets ~= 0 then
             if field_option then
                 options[#options + 1] = { field = field, below = "tasksets" }
             end
@@ -805,7 +805,7 @@ function T:select(data, prompt, callback, field_option)
                 draw:update(taskset)
             end
         end
-        if #tbl.tasks ~= 0 then
+        if tbl.tasks and #tbl.tasks ~= 0 then
             if field_option then
                 options[#options + 1] = { field = field, below = "tasks" }
             end

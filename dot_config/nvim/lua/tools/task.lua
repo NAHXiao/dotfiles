@@ -1261,7 +1261,7 @@ local items = {}
 local function new(it)
     table.insert(items,it)
 end
-return tasks
+return items
 ]]
     ---@param args {bufnr:integer,filepath:string}
     local function select_and_write(args)

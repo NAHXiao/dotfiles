@@ -1274,7 +1274,7 @@ return items
             end
             local bufnr = args.bufnr
                 or (function()
-                    vim.cmd("edit " .. args.filepath)
+                    vim.cmd("botright vsplit " .. args.filepath)
                     return vim.api.nvim_get_current_buf()
                 end)()
             local lines
@@ -1295,15 +1295,15 @@ return items
     local file_exists = vim.fn.filereadable(filepath) == 1
 
     if buf_exists and win_exists and not is_focused then
-        vim.cmd("buffer " .. bufnr)
+        vim.cmd("botright vsplit #" .. bufnr)
     elseif buf_exists and not win_exists and not is_focused then
-        vim.cmd("edit " .. filepath)
+        vim.cmd("botright vsplit " .. filepath)
     elseif buf_exists and win_exists and is_focused then
         select_and_write({ bufnr = bufnr })
     elseif not buf_exists and not file_exists then
         select_and_write({ filepath = filepath })
     elseif not buf_exists and file_exists then
-        vim.cmd("edit " .. filepath)
+        vim.cmd("botright vsplit " .. filepath)
     end
 end
 

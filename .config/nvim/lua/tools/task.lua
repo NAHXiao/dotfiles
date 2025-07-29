@@ -1243,14 +1243,14 @@ M.edittask = function()
 ---@field type? ("project"|"file"|"") default ""
 ---@field filetypes? string[]|{} default {}
 ---@field opts? table default opts.cwd="$(VIM_ROOT)"
----@field default_build boolean
----@field default_run boolean
+---@field default_build? boolean
+---@field default_run? boolean
 ---@class taskset
 ---@field name string
 ---@field break_on_err? boolean default true
 ---@field seq? boolean default true
----@field default_build boolean
----@field default_run boolean
+---@field default_build? boolean
+---@field default_run? boolean
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
 
 ---@MACRO: $(MACRO_NAME)

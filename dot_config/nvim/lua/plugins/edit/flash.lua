@@ -1,7 +1,7 @@
 --TODO: disable for binary file
 return {
     "folke/flash.nvim",
-    cond=false,
+    cond = false,
     opts = {
         modes = {
             search = {
@@ -39,10 +39,9 @@ return {
             end,
             desc = "Search Treesitter Node",
         },
-    },
-    commander = {
         {
-            cmd = "<cmd>lua require('flash').toggle()<cr>",
+            "<leader>\\f",
+            "<cmd>lua require('flash').toggle()<cr>",
             desc = "Toggle Flash Search",
         },
     },

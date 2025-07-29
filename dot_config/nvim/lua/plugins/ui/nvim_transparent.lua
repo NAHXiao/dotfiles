@@ -4,7 +4,13 @@ return {
     lazy = false,
     cmd = { "TransparentToggle" },
     keys = {
-        { "<leader>\\", ":TransparentToggle<CR>", mode = "n", silent = true },
+        {
+            "<leader>\\\\",
+            "<cmd>TransparentToggle<CR>",
+            mode = "n",
+            silent = true,
+            desc = "Toggle Transparent",
+        },
     },
     init = function()
         vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {

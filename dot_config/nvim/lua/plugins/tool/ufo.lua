@@ -1,3 +1,4 @@
+local vim_echo = require("utils").vim_echo
 return {
     "kevinhwang91/nvim-ufo",
     dependencies = {
@@ -11,6 +12,20 @@ return {
         vim.o.foldlevelstart = 99
         vim.o.foldenable = true
     end,
+    keys = {
+        {
+            "<leader>\\u",
+            function()
+                if require("ufo.main").disable() then
+                    vim_echo("UFO: Disabled")
+                else
+                    assert(require("ufo.main").enable())
+                    vim_echo("UFO: Enabled")
+                end
+            end,
+            desc = "Toggle UfO Fold",
+        },
+    },
     config = function()
         require("ufo").setup({
             provider_selector = function(bufnr, filetype, buftype)
@@ -18,15 +33,14 @@ return {
             end,
             disabled = { "neo-tree" },
         })
-
         -- vim.o.foldmethod = "expr"
         -- vim.o.foldexpr = "nvim_treesitter#foldexpr()"
         vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:]]
         -- vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep:│,foldclose:]]
         -- vim.o.fillchars = [[eob: ,fold: ,foldopen:󰛲,foldsep:│,foldclose:󰜄]]
 
-        vim.keymap.set("n", "zR", require("ufo").openAllFolds)
-        vim.keymap.set("n", "zM", require("ufo").closeAllFolds)
+        vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Folds: OpenAll" })
+        vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Folds: CloseAll" })
 
         vim.api.nvim_create_autocmd("FileType", {
             pattern = { "neo-tree" },

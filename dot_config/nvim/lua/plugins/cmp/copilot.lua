@@ -12,7 +12,9 @@ return {
     event = "InsertEnter",
     version = "*",
     lazy = true,
-    dependencies = {},
+    keys = {
+        { "<leader>\\c", "<cmr>Copilot toggle<cr>", desc = "Toggle Copilot" },
+    },
     init = function() end,
     config = function()
         local _select = vim.ui.select

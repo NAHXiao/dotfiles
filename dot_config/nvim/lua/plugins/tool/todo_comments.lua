@@ -13,7 +13,7 @@ return {
     event = "VeryLazy",
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
-        { "<leader>qf", ":TodoQuickFix<cr>", mode = "n" },
+        { "<leader>td", ":TodoQuickFix<cr>", mode = "n" },
         {
             "]t",
             function()

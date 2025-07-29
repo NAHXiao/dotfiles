@@ -36,6 +36,17 @@ M.log = function(...)
         error("write log failed")
     end
 end
+function M.vim_echo(str, hlgroup)
+    vim.cmd(string.format(
+        [[
+				echohl %s
+				echo "%s"
+				echohl None
+        ]],
+        hlgroup or "Number",
+        str
+    ))
+end
 local log = M.log
 function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()

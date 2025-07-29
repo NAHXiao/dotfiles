@@ -1,3 +1,4 @@
+local enable
 return {
     "folke/noice.nvim",
     event = "VeryLazy",
@@ -46,6 +47,46 @@ return {
             signature = {
                 enabled = false,
             },
+        },
+    },
+    config = function(_, opts)
+        local mod = require("noice")
+        local vim_echo = require("utils").vim_echo
+        mod.setup(opts)
+        vim.schedule(function()
+            enable = true
+            local _enable = mod.enable
+            local _disable = mod.disable
+            mod.enable = function()
+                if not enable then
+                    _enable()
+                    enable = true
+                    vim_echo("Noice: Enabled")
+                end
+            end
+            mod.disable = function()
+                if enable then
+                    _disable()
+                    enable = false
+                    vim_echo("Noice: Disabled")
+                end
+            end
+            mod.toggle = function()
+                if enable then
+                    mod.disable()
+                else
+                    mod.enable()
+                end
+            end
+        end)
+    end,
+    keys = {
+        {
+            "<leader>\\n",
+            function()
+                require("noice").toggle()
+            end,
+            desc = "Toggle Noice",
         },
     },
 }

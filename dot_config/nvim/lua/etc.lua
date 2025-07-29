@@ -86,88 +86,223 @@ do
 end
 
 -- keyboard
+--VIMEnter/InsertLeave: getmode savemode PY.EN
+--InsertEnter/VimLeavePre: resume mode
+--CmdLineEnter:PY.EN
 if vim.g.is_wsl or vim.g.is_win then
+    vim.api.nvim_create_augroup("IME_Control", { clear = true })
     local im_select = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select.exe")
     local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
-    local pending_process = {
+    ---@type "英语"|"英语模式"|"中文模式"
+    local insert_mode
+    local inited
+    vim.api.nvim_create_autocmd("VimEnter", {
+        group = "IME_Control",
+        callback = function()
+            vim.schedule(function()
+                local after_mode
+                vim.fn.jobstart({ im_select_mspy, "英语模式" }, {
+                    on_stdout = function(_, data, _)
+                        for _, line in ipairs(data) do
+                            line = require("utils").trim(line)
+                            if #line ~= 0 then
+                                insert_mode, after_mode = line:match("^(.-)%-%>(.-)$")
+                                assert(
+                                    insert_mode == "英语"
+                                        or insert_mode == "英语模式"
+                                        or insert_mode == "中文模式"
+                                )
+                                assert(after_mode == "英语" or after_mode == "英语模式")
+                            end
+                        end
+                    end,
+                    on_exit = function()
+                        assert(after_mode == "英语" or after_mode == "英语模式")
+                        if after_mode == "英语" then
+                            vim.fn.jobstart({ im_select, "2052" }, {
+                                on_exit = function()
+                                    vim.fn.jobstart({ im_select_mspy, "英语模式" }, {
+                                        on_exit = function()
+                                            inited = true
+                                        end,
+                                    })
+                                end,
+                            })
+                        else
+                            inited = true
+                        end
+                    end,
+                })
+            end)
+        end,
+    })
+    local pending_jobid = {
         insert_enter = nil,
         insert_leave = nil,
+        cmdline_enter = nil,
     }
-
-    -- 带超时检查的进程终止器
-    local function safe_terminate(process, timeout)
-        if not process or process:is_closing() then
-            return
+    local function stop(jobids)
+        for _, jobid in ipairs(jobids) do
+            if jobid and vim.fn.jobwait({ jobid }, 0)[1] == -1 then
+                vim.fn.jobstop(jobid)
+            end
         end
-
-        local timer = vim.loop.new_timer()
-        timer:start(timeout or 50, 0, function()
-            timer:stop()
-            timer:close()
-            if not process:is_closing() then
-                process:kill(15) -- SIGTERM
-                vim.defer_fn(function()
-                    if not process:is_closing() then
-                        process:kill(9) -- SIGKILL
-                    end
-                end, 10)
-            end
-        end)
     end
-
-    vim.schedule(function()
-        vim.system({ im_select, "1033" }, { text = true })
-    end)
-    vim.api.nvim_create_augroup("IME_Control", { clear = true })
-    vim.api.nvim_create_autocmd("InsertLeavePre", { --En
-        group = "IME_Control",
-        pattern = "*",
+    --PY.EN
+    vim.api.nvim_create_autocmd("CmdLineEnter", {
         callback = function()
-            if pending_process.insert_enter and not pending_process.insert_enter:is_closing() then
-                safe_terminate(pending_process.insert_enter)
+            if inited then
+                vim.schedule(function()
+                    local other_jobids = {}
+                    other_jobids[#other_jobids + 1] = pending_jobid.insert_enter
+                    other_jobids[#other_jobids + 1] = pending_jobid.insert_leave
+                    stop(other_jobids)
+                    local after_mode
+                    pending_jobid.cmdline_enter = vim.fn.jobstart(
+                        { im_select_mspy, "英语模式" },
+                        {
+                            on_stdout = function(_, data, _)
+                                for _, line in ipairs(data) do
+                                    line = require("utils").trim(line)
+                                    if #line ~= 0 then
+                                        _, after_mode = line:match("^(.-)%-%>(.-)$")
+                                        assert(
+                                            _ == "英语"
+                                                or _ == "英语模式"
+                                                or _ == "中文模式"
+                                        )
+                                        assert(
+                                            after_mode == "英语" or after_mode == "英语模式"
+                                        )
+                                    end
+                                end
+                            end,
+                            on_exit = function()
+                                pending_jobid.cmdline_enter = nil
+                                assert(after_mode == "英语" or after_mode == "英语模式")
+                                if after_mode == "英语" then
+                                    pending_jobid.cmdline_enter = vim.fn.jobstart(
+                                        { im_select, "2052" },
+                                        {
+                                            on_exit = function()
+                                                pending_jobid.cmdline_enter = vim.fn.jobstart({
+                                                    im_select_mspy,
+                                                    "英语模式",
+                                                }, {
+                                                    on_exit = function()
+                                                        pending_jobid.cmdline_enter = nil
+                                                    end,
+                                                })
+                                            end,
+                                        }
+                                    )
+                                end
+                            end,
+                        }
+                    )
+                end)
             end
-            vim.defer_fn(function()
-                pending_process.insert_leave = vim.system(
-                    { im_select, "1033" },
-                    { text = true },
-                    function()
-                        pending_process.insert_leave = nil
-                    end
-                )
-            end, 1)
         end,
     })
-
-    vim.api.nvim_create_autocmd("InsertEnter", { -- Py.En
+    --SAVE,PY.EN
+    vim.api.nvim_create_autocmd("InsertLeavePre", {
         group = "IME_Control",
-        pattern = "*",
         callback = function()
-            if pending_process.insert_leave and not pending_process.insert_leave:is_closing() then
-                safe_terminate(pending_process.insert_leave)
-            end
-            vim.defer_fn(function()
-                pending_process.insert_enter = vim.system(
-                    { im_select, "2052" },
-                    { text = true },
-                    function()
-                        pending_process.insert_enter = vim.system(
-                            { im_select_mspy, "英语模式" },
-                            { text = true },
-                            function()
-                                pending_process.insert_enter = nil
-                            end
+            vim.schedule(function()
+                if inited then
+                    local other_jobids = {}
+                    other_jobids[#other_jobids + 1] = pending_jobid.insert_enter
+                    other_jobids[#other_jobids + 1] = pending_jobid.cmdline_enter
+                    stop(other_jobids)
+                    local after_mode
+                    vim.notify("InsertLeavePre->PY.EN")
+                    pending_jobid.insert_leave = vim.fn.jobstart(
+                        { im_select_mspy, "英语模式" },
+                        {
+                            on_stdout = function(_, data, _)
+                                for _, line in ipairs(data) do
+                                    line = require("utils").trim(line)
+                                    if #line ~= 0 then
+                                        insert_mode, after_mode = line:match("^(.-)%-%>(.-)$")
+                                        assert(
+                                            insert_mode == "英语"
+                                                or insert_mode == "英语模式"
+                                                or insert_mode == "中文模式"
+                                        )
+                                        assert(
+                                            after_mode == "英语" or after_mode == "英语模式"
+                                        )
+                                    end
+                                end
+                            end,
+                            on_exit = function()
+                                assert(after_mode == "英语" or after_mode == "英语模式")
+                                pending_jobid.insert_leave = nil --NOTE:此处可能出现并发问题
+                                if after_mode == "英语" then
+                                    pending_jobid.insert_leave = vim.fn.jobstart(
+                                        { im_select, "2052" },
+                                        {
+                                            on_exit = function()
+                                                --NOTE:此处可能出现并发问题
+                                                pending_jobid.insert_leave = vim.fn.jobstart(
+                                                    { im_select_mspy, "英语模式" },
+                                                    {
+                                                        on_exit = function()
+                                                            pending_jobid.insert_leave = nil
+                                                        end,
+                                                    }
+                                                )
+                                            end,
+                                        }
+                                    )
+                                end
+                            end,
+                        }
+                    )
+                end
+            end)
+        end,
+    })
+    --RESUME
+    vim.api.nvim_create_autocmd("InsertEnter", {
+        group = "IME_Control",
+        callback = function()
+            vim.schedule(function()
+                if inited then
+                    local other_jobids = {}
+                    other_jobids[#other_jobids + 1] = pending_jobid.insert_leave
+                    other_jobids[#other_jobids + 1] = pending_jobid.cmdline_enter
+                    stop(other_jobids)
+                    if insert_mode == "英语" then
+                        pending_jobid.insert_enter = vim.fn.jobstart({ im_select, "1033" }, {
+                            on_exit = function()
+                                pending_jobid.insert_enter = nil
+                            end,
+                        })
+                    else
+                        pending_jobid.insert_enter = vim.fn.jobstart(
+                            { im_select_mspy, insert_mode },
+                            {
+                                on_exit = function()
+                                    pending_jobid.insert_enter = nil
+                                end,
+                            }
                         )
                     end
-                )
-            end, 1)
+                end
+            end)
         end,
     })
-
+--RESUME(WAIT)
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = "IME_Control",
         pattern = "*",
         callback = function()
-            vim.system({ im_select, "2052" }, { text = true }):wait()
+            if insert_mode == "英语" then
+                vim.system({ im_select, "1033" }):wait()
+            else
+                vim.system({ im_select_mspy, insert_mode }):wait()
+            end
         end,
     })
 end

@@ -84,18 +84,48 @@ do
         g.obsidianPath = obsidianpath
     end
 end
-
+-- stylua: ignore
+local english = {
+    --start with n
+  "n","no","nov","noV","noCTRL‑V","niI","niR","niV","nt","ntT",
+  "v","vs","V","Vs","CTRL‑V","CTRL‑Vs",
+  "s","S","CTRL‑S",
+  "c","cr","cv","cvr",
+  "r","rm","r?","!"
+}
+-- stylua: ignore
+local multilingual = {
+  "i","ic","ix",
+  "R","Rc","Rx","Rv","Rvc","Rvx",
+  "t"
+}
 -- keyboard
---VIMEnter/InsertLeave: getmode savemode PY.EN
---InsertEnter/VimLeavePre: resume mode
---CmdLineEnter:PY.EN
+--VIMEnter/zh->en: getmode savemode PY.EN
+--en->zh/VimLeavePre: resume mode
 if vim.g.is_wsl or vim.g.is_win then
     vim.api.nvim_create_augroup("IME_Control", { clear = true })
     local im_select = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select.exe")
     local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
     ---@type "英语"|"英语模式"|"中文模式"
-    local insert_mode
+    local insert_imemode
     local inited
+    local pending_jobid = {
+        en_leave = nil,
+        en_enter = nil,
+    }
+    local function stop(jobid)
+        if jobid and vim.fn.jobwait({ jobid }, 0)[1] == -1 then
+            vim.fn.jobstop(jobid)
+        end
+    end
+    local function assert_in(str, list)
+        for _, it in ipairs(list) do
+            if it == str then
+                return
+            end
+        end
+        assert(false, str .. "not in" .. vim.inspect(list))
+    end
     vim.api.nvim_create_autocmd("VimEnter", {
         group = "IME_Control",
         callback = function()
@@ -106,19 +136,20 @@ if vim.g.is_wsl or vim.g.is_win then
                         for _, line in ipairs(data) do
                             line = require("utils").trim(line)
                             if #line ~= 0 then
-                                insert_mode, after_mode = line:match("^(.-)%-%>(.-)$")
-                                assert(
-                                    insert_mode == "英语"
-                                        or insert_mode == "英语模式"
-                                        or insert_mode == "中文模式"
-                                )
-                                assert(after_mode == "英语" or after_mode == "英语模式")
+                                insert_imemode, after_mode = line:match("^(.-)%-%>(.-)$")
+                                assert_in(insert_imemode, {
+                                    "英语",
+                                    "英语模式",
+                                    "中文模式",
+                                })
+                                assert_in(after_mode, { "英语", "英语模式" })
+                                return
                             end
                         end
                     end,
                     on_exit = function(_, code, _)
                         assert(code == 0)
-                        assert(after_mode == "英语" or after_mode == "英语模式")
+                        assert_in(after_mode, { "英语", "英语模式" })
                         if after_mode == "英语" then
                             vim.fn.jobstart({ im_select, "2052" }, {
                                 on_exit = function(_, code, _)
@@ -139,176 +170,136 @@ if vim.g.is_wsl or vim.g.is_win then
             end)
         end,
     })
-    local pending_jobid = {
-        insert_enter = nil,
-        insert_leave = nil,
-        cmdline_enter = nil,
-    }
-    local function stop(jobids)
-        for _, jobid in ipairs(jobids) do
-            if jobid and vim.fn.jobwait({ jobid }, 0)[1] == -1 then
-                vim.fn.jobstop(jobid)
-            end
-        end
-    end
-    --PY.EN
-    vim.api.nvim_create_autocmd("CmdLineEnter", {
-        callback = function()
+    vim.api.nvim_create_autocmd("ModeChanged", {
+        callback = function(ev)
             if inited then
                 vim.schedule(function()
-                    local other_jobids = {}
-                    other_jobids[#other_jobids + 1] = pending_jobid.insert_enter
-                    other_jobids[#other_jobids + 1] = pending_jobid.insert_leave
-                    stop(other_jobids)
-                    local after_mode
-                    pending_jobid.cmdline_enter = vim.fn.jobstart(
-                        { im_select_mspy, "英语模式" },
-                        {
-                            on_stdout = function(_, data, _)
-                                for _, line in ipairs(data) do
-                                    line = require("utils").trim(line)
-                                    if #line ~= 0 then
-                                        _, after_mode = line:match("^(.-)%-%>(.-)$")
-                                        assert(
-                                            _ == "英语"
-                                                or _ == "英语模式"
-                                                or _ == "中文模式"
-                                        )
-                                        assert(
-                                            after_mode == "英语" or after_mode == "英语模式"
-                                        )
-                                    end
-                                end
-                            end,
-                            on_exit = function(_, code, _)
-                                pending_jobid.cmdline_enter = nil
-                                if code ~= 0 then
-                                    return
-                                end
-                                assert(after_mode == "英语" or after_mode == "英语模式")
-                                if after_mode == "英语" then
-                                    pending_jobid.cmdline_enter = vim.fn.jobstart(
-                                        { im_select, "2052" },
-                                        {
-                                            on_exit = function(_, code, _)
-                                                pending_jobid.cmdline_enter = nil
-                                                if code ~= 0 then
+                    local o, n = ev.match:match("^([^:]+):([^:]+)$")
+                    assert(type(o) == "string" and type(n) == "string")
+                    local o_en = not o:match("^[iRt]")
+                    local n_en = not n:match("^[iRt]")
+                    if o_en ~= n_en then
+                        if o_en then --en->cn: Resume(?->EN/PY.?)
+                            stop(pending_jobid.en_enter)
+                            if insert_imemode == "英语" then --?->EN
+                                pending_jobid.en_leave = vim.fn.jobstart({ im_select, "1033" }, {
+                                    on_exit = function()
+                                        pending_jobid.en_leave = nil
+                                    end,
+                                })
+                            else --?->PY.?
+                                local after_mode
+                                pending_jobid.en_leave = vim.fn.jobstart( --Assume ?=PY.?
+                                    { im_select_mspy, insert_imemode },
+                                    {
+                                        on_stdout = function(_, data, _)
+                                            for _, line in ipairs(data) do
+                                                line = require("utils").trim(line)
+                                                if #line ~= 0 then
+                                                    _, after_mode = line:match("^(.-)%-%>(.-)$")
+                                                    assert_in(
+                                                        _,
+                                                        { "英语", "英语模式", "中文模式" }
+                                                    )
+                                                    assert_in(
+                                                        after_mode,
+                                                        { "英语", "英语模式", "中文模式" }
+                                                    )
                                                     return
                                                 end
-                                                pending_jobid.cmdline_enter = vim.fn.jobstart({
-                                                    im_select_mspy,
-                                                    "英语模式",
-                                                }, {
-                                                    on_exit = function()
-                                                        pending_jobid.cmdline_enter = nil
-                                                    end,
-                                                })
-                                            end,
-                                        }
-                                    )
-                                end
-                            end,
-                        }
-                    )
-                end)
-            end
-        end,
-    })
-    --SAVE,PY.EN
-    vim.api.nvim_create_autocmd("InsertLeavePre", {
-        group = "IME_Control",
-        callback = function()
-            vim.schedule(function()
-                if inited then
-                    local other_jobids = {}
-                    other_jobids[#other_jobids + 1] = pending_jobid.insert_enter
-                    other_jobids[#other_jobids + 1] = pending_jobid.cmdline_enter
-                    stop(other_jobids)
-                    local after_mode
-                    -- vim.notify("InsertLeavePre->PY.EN")
-                    pending_jobid.insert_leave = vim.fn.jobstart(
-                        { im_select_mspy, "英语模式" },
-                        {
-                            on_stdout = function(_, data, _)
-                                for _, line in ipairs(data) do
-                                    line = require("utils").trim(line)
-                                    if #line ~= 0 then
-                                        insert_mode, after_mode = line:match("^(.-)%-%>(.-)$")
-                                        assert(
-                                            insert_mode == "英语"
-                                                or insert_mode == "英语模式"
-                                                or insert_mode == "中文模式"
-                                        )
-                                        assert(
-                                            after_mode == "英语" or after_mode == "英语模式"
-                                        )
-                                        return
-                                    end
-                                end
-                            end,
-                            on_exit = function(_, code, _)
-                                pending_jobid.insert_leave = nil --NOTE:此处可能出现并发问题
-                                if code ~= 0 then
-                                    return
-                                end
-                                assert(after_mode == "英语" or after_mode == "英语模式")
-                                if after_mode == "英语" then
-                                    pending_jobid.insert_leave = vim.fn.jobstart(
-                                        { im_select, "2052" },
-                                        {
-                                            on_exit = function(_, code, _)
-                                                 pending_jobid.insert_leave=nil
-                                                if code ~= 0 then
-                                                    return
-                                                end
-                                                --NOTE:此处可能出现并发问题
-                                                pending_jobid.insert_leave = vim.fn.jobstart(
-                                                    { im_select_mspy, "英语模式" },
+                                            end
+                                        end,
+                                        on_exit = function(_, code, _)
+                                            pending_jobid.en_leave = nil
+                                            if code ~= 0 then --stop->stop
+                                                return
+                                            end
+                                            assert_in(
+                                                after_mode,
+                                                { "英语", "英语模式", "中文模式" }
+                                            )
+                                            if after_mode == "英语" then --Assume ?=PY.? Failed, ?=EN
+                                                pending_jobid.en_leave = vim.fn.jobstart(
+                                                    { im_select, "2052" },
                                                     {
-                                                        on_exit = function()
-                                                            pending_jobid.insert_leave = nil
+                                                        on_exit = function(_, code, _)
+                                                            pending_jobid.en_leave = nil
+                                                            if code ~= 0 then
+                                                                return
+                                                            end
+                                                            --NOTE:此处可能出现并发问题
+                                                            pending_jobid.en_leave = vim.fn.jobstart(
+                                                                { im_select_mspy, insert_imemode },
+                                                                {
+                                                                    on_exit = function()
+                                                                        pending_jobid.en_leave = nil
+                                                                    end,
+                                                                }
+                                                            )
                                                         end,
                                                     }
                                                 )
-                                            end,
-                                        }
-                                    )
-                                end
-                            end,
-                        }
-                    )
-                end
-            end)
-        end,
-    })
-    --RESUME
-    vim.api.nvim_create_autocmd("InsertEnter", {
-        group = "IME_Control",
-        callback = function()
-            vim.schedule(function()
-                if inited then
-                    local other_jobids = {}
-                    other_jobids[#other_jobids + 1] = pending_jobid.insert_leave
-                    other_jobids[#other_jobids + 1] = pending_jobid.cmdline_enter
-                    stop(other_jobids)
-                    if insert_mode == "英语" then
-                        pending_jobid.insert_enter = vim.fn.jobstart({ im_select, "1033" }, {
-                            on_exit = function()
-                                pending_jobid.insert_enter = nil
-                            end,
-                        })
-                    else
-                        pending_jobid.insert_enter = vim.fn.jobstart(
-                            { im_select_mspy, insert_mode },
-                            {
-                                on_exit = function()
-                                    pending_jobid.insert_enter = nil
-                                end,
-                            }
-                        )
+                                            end
+                                        end,
+                                    }
+                                )
+                            end
+                        elseif n_en then --cn->en: Save->(PY.?->PY.EN)/(EN->PY.EN)
+                            stop(pending_jobid.en_leave)
+                            local after_mode
+                            pending_jobid.en_enter = vim.fn.jobstart( --Try PY.?->PY.EN
+                                { im_select_mspy, "英语模式" },
+                                {
+                                    on_stdout = function(_, data, _)
+                                        for _, line in ipairs(data) do
+                                            line = require("utils").trim(line)
+                                            if #line ~= 0 then
+                                                insert_imemode, after_mode =
+                                                    line:match("^(.-)%-%>(.-)$")
+                                                assert_in(
+                                                    insert_imemode,
+                                                    { "英语", "英语模式", "中文模式" }
+                                                )
+                                                assert_in(after_mode, { "英语", "英语模式" })
+                                                return
+                                            end
+                                        end
+                                    end,
+                                    on_exit = function(_, code, _)
+                                        pending_jobid.en_enter = nil --NOTE:此处可能出现并发问题
+                                        if code ~= 0 then --stop->stop
+                                            return
+                                        end
+                                        assert_in(after_mode, { "英语", "英语模式" })
+                                        if after_mode == "英语" then --PY.?->PY.EN Failed,Try ?->EN->PY.EN
+                                            pending_jobid.en_enter = vim.fn.jobstart(
+                                                { im_select, "2052" },
+                                                {
+                                                    on_exit = function(_, code, _)
+                                                        pending_jobid.en_enter = nil
+                                                        if code ~= 0 then
+                                                            return
+                                                        end
+                                                        --NOTE:此处可能出现并发问题
+                                                        pending_jobid.en_enter = vim.fn.jobstart(
+                                                            { im_select_mspy, "英语模式" },
+                                                            {
+                                                                on_exit = function()
+                                                                    pending_jobid.en_enter = nil
+                                                                end,
+                                                            }
+                                                        )
+                                                    end,
+                                                }
+                                            )
+                                        end
+                                    end,
+                                }
+                            )
+                        end
                     end
-                end
-            end)
+                end)
+            end
         end,
     })
     --RESUME(WAIT)
@@ -316,10 +307,10 @@ if vim.g.is_wsl or vim.g.is_win then
         group = "IME_Control",
         pattern = "*",
         callback = function()
-            if insert_mode == "英语" then
+            if insert_imemode == "英语" then
                 vim.system({ im_select, "1033" }):wait()
             else
-                vim.system({ im_select_mspy, insert_mode }):wait()
+                vim.system({ im_select_mspy, insert_imemode }):wait()
             end
         end,
     })

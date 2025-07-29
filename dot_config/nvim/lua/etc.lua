@@ -215,7 +215,7 @@ if vim.g.is_wsl or vim.g.is_win then
                     other_jobids[#other_jobids + 1] = pending_jobid.cmdline_enter
                     stop(other_jobids)
                     local after_mode
-                    vim.notify("InsertLeavePre->PY.EN")
+                    -- vim.notify("InsertLeavePre->PY.EN")
                     pending_jobid.insert_leave = vim.fn.jobstart(
                         { im_select_mspy, "英语模式" },
                         {

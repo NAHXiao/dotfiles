@@ -1,4 +1,3 @@
-local enable
 return {
     "lukas-reineke/indent-blankline.nvim",
     version = "*",
@@ -58,6 +57,7 @@ return {
                 require("ibl").update({ enabled = not enabled })
                 require("utils").vim_echo("IBL: " .. (enabled and "Disabled" or "Enabled"))
             end,
+            desc = "Toggle IBL",
         },
     },
 }

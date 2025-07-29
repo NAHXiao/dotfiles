@@ -126,20 +126,6 @@ return {
             require("commander").add({
                 {
                     cmd = function()
-                        t.run("build", t.task_type, t.task_mode)
-                    end,
-                    desc = "Build",
-                    cat = "Task",
-                },
-                {
-                    cmd = function()
-                        t.run("run", t.task_type, t.task_mode)
-                    end,
-                    desc = "Run",
-                    cat = "Task",
-                },
-                {
-                    cmd = function()
                         t.switch_taskmode()
                     end,
                     desc = "TaskToggleDebugRelease",
@@ -154,7 +140,7 @@ return {
                 },
                 {
                     cmd = function()
-                        t.select_and_run()
+                        t.run_select()
                     end,
                     desc = "TaskSelectAndRun",
                     cat = "Task",
@@ -165,18 +151,6 @@ return {
                     end,
                     desc = "TaskEdit/Add",
                     cat = "Task",
-                },
-            })
-        end
-        local ok2, term = pcall(require, "tools.terminal")
-        if ok2 then
-            require("commander").add({
-                {
-                    cmd = function()
-                        term.select_default_sendterm()
-                    end,
-                    desc = "select default pinned term for send",
-                    cat = "Term",
                 },
             })
         end

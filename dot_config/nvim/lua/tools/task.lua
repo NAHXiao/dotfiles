@@ -433,7 +433,7 @@ function T:items2lines(items)
                         clear_env = clear_env,
                         env = env,
                     })
-                for _, line in ipairs(vim.split(optstr, "[\r\n]+")) do
+                for _, line in ipairs(vim.split(optstr, "[\r\n]")) do
                     lines[#lines + 1] = "    " .. line
                 end
             end
@@ -1217,13 +1217,13 @@ M.edittask = function()
     local append_items = function(lines, items)
         local insert_before
         for i = #lines, 1, -1 do
-            if lines[i]:match("^%s*return%s+tasks%s*$") then
+            if lines[i]:match("^%s*return%s+items%s*$") then
                 insert_before = i
                 break
             end
         end
         if not insert_before then
-            vim.notify("[task]: 'return tasks' not found", vim.log.levels.ERROR)
+            vim.notify("[task]: 'return items' not found", vim.log.levels.ERROR)
             return
         else
             for i, line in ipairs(T:items2lines(items)) do
@@ -1243,17 +1243,22 @@ M.edittask = function()
 ---@field type? ("project"|"file"|"") default ""
 ---@field filetypes? string[]|{} default {}
 ---@field opts? table default opts.cwd="$(VIM_ROOT)"
+---@field default_build? boolean
+---@field default_run? boolean
 ---@class taskset
 ---@field name string
 ---@field break_on_err? boolean default true
 ---@field seq? boolean default true
+---@field default_build? boolean
+---@field default_run? boolean
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
----MACRO: $(MACRO_NAME)
+
+---@MACRO: $(MACRO_NAME)
 ---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
 ---VIM_FILEDIR VIM_DIRNAME
 ---VIM_ROOT VIM_PRONAME
----ARG: $(-argname:default)
----ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
+---@ARG: $(-argname:default)
+---@ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
 
 ---@type (task|taskset)[]
 local items = {}
@@ -1274,12 +1279,12 @@ return items
             end
             local bufnr = args.bufnr
                 or (function()
-                    vim.cmd("edit " .. args.filepath)
+                    vim.cmd("botright vsplit " .. args.filepath)
                     return vim.api.nvim_get_current_buf()
                 end)()
             local lines
             if is_empty_buffer(bufnr) then
-                lines = vim.split(tmpl, "[\r\n]+")
+                lines = vim.split(tmpl, "[\r\n]")
             else
                 lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
             end
@@ -1295,15 +1300,15 @@ return items
     local file_exists = vim.fn.filereadable(filepath) == 1
 
     if buf_exists and win_exists and not is_focused then
-        vim.cmd("buffer " .. bufnr)
+        vim.api.nvim_set_current_win(vim.fn.bufwinnr(bufnr))
     elseif buf_exists and not win_exists and not is_focused then
-        vim.cmd("edit " .. filepath)
+        vim.cmd("botright vsplit #" .. bufnr)
     elseif buf_exists and win_exists and is_focused then
         select_and_write({ bufnr = bufnr })
     elseif not buf_exists and not file_exists then
         select_and_write({ filepath = filepath })
     elseif not buf_exists and file_exists then
-        vim.cmd("edit " .. filepath)
+        vim.cmd("botright vsplit " .. filepath)
     end
 end
 

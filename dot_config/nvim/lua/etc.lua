@@ -116,13 +116,16 @@ if vim.g.is_wsl or vim.g.is_win then
                             end
                         end
                     end,
-                    on_exit = function()
+                    on_exit = function(_, code, _)
+                        assert(code == 0)
                         assert(after_mode == "英语" or after_mode == "英语模式")
                         if after_mode == "英语" then
                             vim.fn.jobstart({ im_select, "2052" }, {
-                                on_exit = function()
+                                on_exit = function(_, code, _)
+                                    assert(code == 0)
                                     vim.fn.jobstart({ im_select_mspy, "英语模式" }, {
-                                        on_exit = function()
+                                        on_exit = function(_, code, _)
+                                            assert(code == 0)
                                             inited = true
                                         end,
                                     })
@@ -177,14 +180,21 @@ if vim.g.is_wsl or vim.g.is_win then
                                     end
                                 end
                             end,
-                            on_exit = function()
+                            on_exit = function(_, code, _)
                                 pending_jobid.cmdline_enter = nil
+                                if code ~= 0 then
+                                    return
+                                end
                                 assert(after_mode == "英语" or after_mode == "英语模式")
                                 if after_mode == "英语" then
                                     pending_jobid.cmdline_enter = vim.fn.jobstart(
                                         { im_select, "2052" },
                                         {
-                                            on_exit = function()
+                                            on_exit = function(_, code, _)
+                                                pending_jobid.cmdline_enter = nil
+                                                if code ~= 0 then
+                                                    return
+                                                end
                                                 pending_jobid.cmdline_enter = vim.fn.jobstart({
                                                     im_select_mspy,
                                                     "英语模式",
@@ -232,17 +242,25 @@ if vim.g.is_wsl or vim.g.is_win then
                                         assert(
                                             after_mode == "英语" or after_mode == "英语模式"
                                         )
+                                        return
                                     end
                                 end
                             end,
-                            on_exit = function()
-                                assert(after_mode == "英语" or after_mode == "英语模式")
+                            on_exit = function(_, code, _)
                                 pending_jobid.insert_leave = nil --NOTE:此处可能出现并发问题
+                                if code ~= 0 then
+                                    return
+                                end
+                                assert(after_mode == "英语" or after_mode == "英语模式")
                                 if after_mode == "英语" then
                                     pending_jobid.insert_leave = vim.fn.jobstart(
                                         { im_select, "2052" },
                                         {
-                                            on_exit = function()
+                                            on_exit = function(_, code, _)
+                                                 pending_jobid.insert_leave=nil
+                                                if code ~= 0 then
+                                                    return
+                                                end
                                                 --NOTE:此处可能出现并发问题
                                                 pending_jobid.insert_leave = vim.fn.jobstart(
                                                     { im_select_mspy, "英语模式" },
@@ -293,7 +311,7 @@ if vim.g.is_wsl or vim.g.is_win then
             end)
         end,
     })
---RESUME(WAIT)
+    --RESUME(WAIT)
     vim.api.nvim_create_autocmd("VimLeavePre", {
         group = "IME_Control",
         pattern = "*",

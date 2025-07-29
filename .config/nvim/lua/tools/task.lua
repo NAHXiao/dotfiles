@@ -433,7 +433,7 @@ function T:items2lines(items)
                         clear_env = clear_env,
                         env = env,
                     })
-                for _, line in ipairs(vim.split(optstr, "[\r\n]+")) do
+                for _, line in ipairs(vim.split(optstr, "[\r\n]")) do
                     lines[#lines + 1] = "    " .. line
                 end
             end
@@ -1243,19 +1243,23 @@ M.edittask = function()
 ---@field type? ("project"|"file"|"") default ""
 ---@field filetypes? string[]|{} default {}
 ---@field opts? table default opts.cwd="$(VIM_ROOT)"
+---@field default_build boolean
+---@field default_run boolean
 ---@class taskset
 ---@field name string
 ---@field break_on_err? boolean default true
 ---@field seq? boolean default true
+---@field default_build boolean
+---@field default_run boolean
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
- 
----MACRO: $(MACRO_NAME)
+
+---@MACRO: $(MACRO_NAME)
 ---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
 ---VIM_FILEDIR VIM_DIRNAME
 ---VIM_ROOT VIM_PRONAME
----ARG: $(-argname:default)
----ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
- 
+---@ARG: $(-argname:default)
+---@ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
+
 ---@type (task|taskset)[]
 local items = {}
 ---@param it task|taskset
@@ -1280,7 +1284,7 @@ return items
                 end)()
             local lines
             if is_empty_buffer(bufnr) then
-                lines = vim.split(tmpl, "[\r\n]+")
+                lines = vim.split(tmpl, "[\r\n]")
             else
                 lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
             end

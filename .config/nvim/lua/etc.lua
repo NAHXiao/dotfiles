@@ -233,8 +233,6 @@ if vim.g.is_wsl or vim.g.is_win then
                                                                 {
                                                                     on_exit = function()
                                                                         pending_jobid.en_leave = nil
-
-                                                                            insert_imemode
                                                                     end,
                                                                 }
                                                             )

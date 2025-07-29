@@ -1217,13 +1217,13 @@ M.edittask = function()
     local append_items = function(lines, items)
         local insert_before
         for i = #lines, 1, -1 do
-            if lines[i]:match("^%s*return%s+tasks%s*$") then
+            if lines[i]:match("^%s*return%s+items%s*$") then
                 insert_before = i
                 break
             end
         end
         if not insert_before then
-            vim.notify("[task]: 'return tasks' not found", vim.log.levels.ERROR)
+            vim.notify("[task]: 'return items' not found", vim.log.levels.ERROR)
             return
         else
             for i, line in ipairs(T:items2lines(items)) do
@@ -1248,13 +1248,14 @@ M.edittask = function()
 ---@field break_on_err? boolean default true
 ---@field seq? boolean default true
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
+ 
 ---MACRO: $(MACRO_NAME)
 ---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
 ---VIM_FILEDIR VIM_DIRNAME
 ---VIM_ROOT VIM_PRONAME
 ---ARG: $(-argname:default)
 ---ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
-
+ 
 ---@type (task|taskset)[]
 local items = {}
 ---@param it task|taskset
@@ -1295,9 +1296,9 @@ return items
     local file_exists = vim.fn.filereadable(filepath) == 1
 
     if buf_exists and win_exists and not is_focused then
-        vim.cmd("botright vsplit #" .. bufnr)
+        vim.api.nvim_set_current_win(vim.fn.bufwinnr(bufnr))
     elseif buf_exists and not win_exists and not is_focused then
-        vim.cmd("botright vsplit " .. filepath)
+        vim.cmd("botright vsplit #" .. bufnr)
     elseif buf_exists and win_exists and is_focused then
         select_and_write({ bufnr = bufnr })
     elseif not buf_exists and not file_exists then

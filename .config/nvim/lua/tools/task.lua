@@ -128,6 +128,18 @@ local config = {
                 type = "file",
             },
             {
+                name = "run(nvim)",
+                cmds = {
+                    "nvim",
+                    "-u",
+                    "NONE",
+                    "-l",
+                    "$(VIM_FILEPATH)",
+                },
+                filetypes = { "lua" },
+                type = "file",
+            },
+            {
                 name = "run",
                 cmds = {
                     "python",

@@ -5,9 +5,10 @@ return {
     dependencies = {
         "nvim-lua/plenary.nvim",
     },
+    init=function()
+    end,
     config = function()
         local actions = require("diffview.actions")
-
         require("diffview").setup({
             require("transparent").setup({ -- Optional, you don't have to run setup.
                 groups = { -- table: default groups

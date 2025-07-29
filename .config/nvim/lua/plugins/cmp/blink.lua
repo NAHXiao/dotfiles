@@ -27,7 +27,7 @@ return {
                 end
             end,
             mode = "i",
-            desc = "Toggle BlinkCmp",
+            desc = "Toggle BlinkCmp Completion",
         },
     },
     version = "*",

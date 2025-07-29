@@ -13,6 +13,9 @@ return {
         { cmd = "<cmd>LspLog<cr>", desc = "Lsp Log" },
     },
     keys = {
+        --( [|] ) + (w|e|i|h)
+        --g ( [|]|c|s|w|d|D|r )
+        --ca K <leader>rn <leader>ca <leader>i
         {
             "[w",
             function()

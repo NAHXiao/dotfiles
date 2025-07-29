@@ -1,3 +1,4 @@
+local enable
 return {
     "lukas-reineke/indent-blankline.nvim",
     version = "*",
@@ -42,7 +43,6 @@ return {
         "toml",
         "dockerfile",
     },
-
     config = function()
         local hooks = require("ibl.hooks")
         hooks.register(hooks.type.ACTIVE, function(bufnr)
@@ -50,4 +50,14 @@ return {
         end)
         require("ibl").setup()
     end,
+    keys = {
+        {
+            "<leader>\\ib",
+            function()
+                local enabled = require("ibl.config").get_config(-1).enabled
+                require("ibl").update({ enabled = not enabled })
+                require("utils").vim_echo("IBL: " .. (enabled and "Disabled" or "Enabled"))
+            end,
+        },
+    },
 }

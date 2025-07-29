@@ -4,6 +4,9 @@ return {
     version = "*",
     lazy = true,
     event = "VeryLazy",
+    keys = {
+        { "<leader>\\il", "<cmd>IlluminateToggle<cr>", desc = "Toggle Illuminate" },
+    },
     init = function()
         vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {
             IlluminatedWordWrite = { underline = true },

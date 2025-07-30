@@ -114,7 +114,7 @@ return {
         sources = {
             default = { "lsp", "path", "snippets", "buffer", "copilot" },
             providers = {
-                path = {
+                path = {-- ./
                     opts = {
                         get_cwd = function(_)
                             return vim.b.projroot

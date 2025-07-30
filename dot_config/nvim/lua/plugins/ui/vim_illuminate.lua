@@ -5,7 +5,7 @@ return {
     lazy = true,
     event = "VeryLazy",
     keys = {
-        { "<leader>\\il", "<cmd>IlluminateToggle<cr>", desc = "Toggle Illuminate" },
+        { "<leader>\\w", "<cmd>IlluminateToggle<cr>", desc = "Toggle Illuminate(Same Word Highlight)" },
     },
     init = function()
         vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {

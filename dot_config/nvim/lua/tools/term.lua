@@ -1356,6 +1356,7 @@ local function create_fallback_termbuf()
         { "Fallback Term Bufnr", "You Should Create A TermBuf Now" }
     )
     vim.bo[bufnr].filetype = "TerminalBuf"
+    vim.bo[bufnr].buftype= "nofile"
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].buflisted = false
     return bufnr

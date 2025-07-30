@@ -51,7 +51,7 @@ return {
     end,
     keys = {
         {
-            "<leader>\\ib",
+            "<leader>\\b",
             function()
                 local enabled = require("ibl.config").get_config(-1).enabled
                 require("ibl").update({ enabled = not enabled })

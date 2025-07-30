@@ -2,7 +2,7 @@ return {
     "MysticalDevil/inlay-hints.nvim",
     event = "LspAttach",
     keys = {
-        { "<leader>\\in", "<cmd>InlayHintsToggle<cr>", desc = "Toggle inlayhints" },
+        { "<leader>\\i", "<cmd>InlayHintsToggle<cr>", desc = "Toggle inlayhints" },
     },
     dependencies = { "neovim/nvim-lspconfig" },
     config = function()

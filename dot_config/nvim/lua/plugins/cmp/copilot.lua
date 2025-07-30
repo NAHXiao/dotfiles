@@ -13,7 +13,7 @@ return {
     version = "*",
     lazy = true,
     keys = {
-        { "<leader>\\c", "<cmr>Copilot toggle<cr>", desc = "Toggle Copilot" },
+        { "<leader>\\a", "<cmr>Copilot toggle<cr>", desc = "Toggle Copilot(AI Completion)" },
     },
     init = function() end,
     config = function()

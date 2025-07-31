@@ -27,6 +27,7 @@ function Is_plugin_loaded(plugin_name)
     local plugin = require("lazy.core.config").plugins[plugin_name]
     return plugin ~= nil and plugin._.loaded ~= nil
 end
+require("tools.hl").setup()
 require("lazy").setup(
     (function(dir)
         local result = {}
@@ -54,3 +55,11 @@ require("lazy").setup(
         },
     }
 )
+vim.api.nvim_create_autocmd("User", {
+    pattern = "VeryLazy",
+    callback = function()
+        require("tools.term").setup()
+        require("tools.task").setup()
+        require("tools.proj"):setup()
+    end,
+})

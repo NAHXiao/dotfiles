@@ -35,9 +35,7 @@ return {
     cmd = "Trouble",
     lazy = true,
     init = function()
-        vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {
-            TroubleNormal = { link = "Normal" },
-        })
+        require("tools.hl").regist({ TroubleNormal = { link = "Normal" } })
     end,
     config = function()
         require("trouble").setup()

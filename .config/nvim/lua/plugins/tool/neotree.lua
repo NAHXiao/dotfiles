@@ -40,7 +40,7 @@ return {
         vim.g.loaded_netrwPlugin = 1
         vim.g.loaded_netrwSettings = 1
         vim.g.loaded_netrwFileHandlers = 1
-        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+        require("tools.hl").add_transparent_groups({
             "NeoTreeNormalNC",
             "NeoTreeNormal",
             "NeoTreeTabActive",

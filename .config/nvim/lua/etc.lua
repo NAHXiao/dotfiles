@@ -2,6 +2,11 @@ local utils = require("utils")
 local g = vim.g
 local uv = vim.uv or vim.loop
 local osname = uv.os_uname().sysname
+local group = vim.api.nvim_create_augroup("user.config", { clear = true })
+---@param opts vim.api.keyset.create_autocmd
+local aucmd = function(event, opts)
+    vim.api.nvim_create_autocmd(event, vim.tbl_extend("force", opts, { group = group }))
+end
 -- projroot TODO: Bind To LspAttach workspace_folders[1].name
 g.projroot = nil
 g.root_marker = {
@@ -37,26 +42,26 @@ g.root_marker = {
     ".gitignore",
 }
 local function set_global_project_root()
-    g.projroot = utils.findfile_any({
-        filelist = g.root_marker,
+    ---@type vim.fs.find.Opts
+    
+    g.projroot = utils.GetRoot(g.root_marker,{
         startpath = vim.fn.getcwd(),
         use_first_found = false,
         return_dirname = true,
     }) or vim.fn.getcwd()
 end
 set_global_project_root()
-vim.api.nvim_create_autocmd("DirChanged", {
+aucmd("DirChanged", {
     callback = function()
         set_global_project_root()
     end,
 })
-vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
+aucmd({ "BufReadPre", "BufNewFile" }, {
     callback = function()
         local buftype = vim.bo.buftype
         local name = vim.api.nvim_buf_get_name(0)
         if buftype == "" and name ~= "" then
-            vim.b.projroot = utils.findfile_any({ -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
-                filelist = vim.g.root_marker,
+            vim.b.projroot = utils.GetRoot(vim.g.root_marker,{ -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
                 startpath = vim.fn.fnamemodify(name, ":p:h"),
                 use_first_found = false,
                 return_dirname = true,
@@ -115,7 +120,7 @@ if vim.g.is_wsl or vim.g.is_win then
         end
     end
     local function get_lock_and_then(do_something)
-        local this_call = { func = do_something }
+        local this_call = {} -- Get Unique id
         latest_call = this_call
         local function try_get_lock()
             if this_call ~= latest_call then --这将保证不会有两个getlock同时执行
@@ -157,7 +162,7 @@ if vim.g.is_wsl or vim.g.is_win then
             end,
         })
     end
-    vim.api.nvim_create_autocmd("VimEnter", {
+    aucmd("VimEnter", {
         group = "IME_Control",
         callback = function()
             vim.schedule(function()
@@ -165,7 +170,7 @@ if vim.g.is_wsl or vim.g.is_win then
             end)
         end,
     })
-    vim.api.nvim_create_autocmd("ModeChanged", {
+    aucmd("ModeChanged", {
         callback = function(ev)
             -- if inited then
             vim.schedule(function()
@@ -185,21 +190,17 @@ if vim.g.is_wsl or vim.g.is_win then
         end,
     })
     --RESUME(WAIT)
-    vim.api.nvim_create_autocmd("VimLeavePre", {
+    aucmd("VimLeavePre", {
         group = "IME_Control",
         pattern = "*",
         callback = function()
-            if insert_imemode == "英语" then
-                vim.system({ im_select, "1033" }):wait()
-            else
-                vim.system({ im_select_mspy, insert_imemode }):wait()
-            end
+            vim.system({ im_select_mspy, insert_imemode }):wait()
         end,
     })
 end
 
 -- 终端终止时自动进入normal模式
-vim.api.nvim_create_autocmd("TermClose", {
+aucmd("TermClose", {
     callback = function(ctx)
         if vim.api.nvim_get_current_buf() == ctx.buf then
             vim.cmd("stopinsert")
@@ -207,9 +208,9 @@ vim.api.nvim_create_autocmd("TermClose", {
     end,
 })
 --对于已终止的term禁止进入term-insert模式
-vim.api.nvim_create_autocmd("TermOpen", {
+aucmd("TermOpen", {
     callback = function()
-        vim.api.nvim_create_autocmd("ModeChanged", {
+        aucmd("ModeChanged", {
             buffer = 0,
             callback = function()
                 local mode = vim.fn.mode()
@@ -251,7 +252,7 @@ autocmd BufEnter * if expand('%:p') !=# '' |
       \ endif
 ]])
 end
-
+---仅剩这些window时将尝试:wqa
 local fts = {
     "qf",
     "toggleterm",
@@ -277,24 +278,49 @@ local fts = {
     "loclist",
     "popup",
 }
-vim.api.nvim_create_autocmd("WinEnter", {
+aucmd("WinEnter", {
     callback = function()
         for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
             local bufnr = vim.api.nvim_win_get_buf(win)
             local ft = vim.fn.getbufvar(bufnr, "&ft")
-            local bt = vim.fn.getbufvar(bufnr, "&bt")
-            -- require("utils").log("ft:", ft, "bt:", bt, "name:", vim.api.nvim_buf_get_name(bufnr))
-            -- if not (vim.list_contains(fts, ft) or bt == "nofile") then
+            -- local bt = vim.fn.getbufvar(bufnr, "&bt")
             if not vim.list_contains(fts, ft) then
                 return
             end
         end
-        vim.cmd("qa!")
+        vim.cmd("wqa!")
     end,
 })
-vim.api.nvim_create_autocmd("FileType", {
+aucmd("FileType", {
     pattern = fts,
     callback = function(ev)
         vim.bo[ev.buf].buflisted = false
+    end,
+})
+
+aucmd({ "BufEnter", "FocusGained", "InsertLeave", "WinEnter" }, {
+    command = [[if &nu && mode() != 'i' | set rnu   | endif]],
+})
+
+aucmd({ "BufLeave", "FocusLost", "InsertEnter", "WinLeave" }, {
+    command = [[if &nu | set nornu | endif]],
+})
+
+-- Disable inserting comment leader after hitting o or O
+-- aucmd("FileType", {
+--     command = "set formatoptions-=o",
+-- })
+
+-- When saving a file, aucmdtomatically create the file's parent
+aucmd({ "BufWritePre", "FileWritePre" }, {
+    callback = function()
+        local function is_dir(path)
+            local stat = uv.fs_stat(path)
+            return stat and stat.type == "directory"
+        end
+        local dir = vim.fn.expand("<afile>:p:h")
+        if not is_dir(dir) then
+            vim.fn.mkdir(dir, "p")
+        end
     end,
 })

@@ -77,7 +77,7 @@ return {
     -- NOTE: 仅lsp相关/文件相关复用
     keys = {
         {
-            "<leader>fcl",
+            "<leader>fl",
             TeleMultiplexSearchClear,
             desc = "TeleMultiplexSearchClear",
         },
@@ -288,7 +288,7 @@ return {
             function()
                 require("telescope").extensions.notify.notify()
             end,
-            desc = "Notify",
+            desc = "Find Notify",
         },
     },
     cmd = "Telescope",

@@ -22,24 +22,8 @@ return {
             },
         },
     },
-    init = function()
-        vim.g.transparent_groups =
-            vim.list_extend(vim.g.transparent_groups or {}, { "LightBulbVirtualText" })
-    end,
     config = function(_, opts)
         require("nvim-lightbulb").setup(opts)
-        local function set_lightbulb_colors()
-            -- local LightBulbVirtualText = vim.api.nvim_get_hl(0, { name = "LightBulbVirtualText", link = false })
-            vim.api.nvim_set_hl(0, "LightBulbVirtualText", { bg = nil })
-        end
-        set_lightbulb_colors()
-        vim.api.nvim_create_autocmd(
-            "ColorScheme",
-            { pattern = "*", callback = set_lightbulb_colors }
-        )
-        vim.api.nvim_create_autocmd(
-            "OptionSet",
-            { pattern = "background", callback = set_lightbulb_colors }
-        )
+        require("tools.hl").regist({ LightBulbVirtualText = {} })
     end,
 }

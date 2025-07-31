@@ -35,7 +35,9 @@ opt.foldenable = false
 vim.cmd("set path+=$PWD/**")
 opt.updatetime = 100
 vim.opt.shortmess:append("c")
-
+--CursorLineNr
+opt.cursorline = true
+opt.cursorlineopt = "number"
 -- Spell check:
 vim.cmd([[
 set spelllang=en_us

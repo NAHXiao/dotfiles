@@ -86,8 +86,7 @@ return {
                             local_clang_format_path
                         ) == 1
                         local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-                        local confpath = utils.findfile_any({
-                            filelist = { ".clang-format", "_clang_format" },
+                        local confpath = utils.GetRoot({ ".clang-format", "_clang_format" },{
                             startpath = path,
                             use_first_found = true,
                             return_dirname = false,

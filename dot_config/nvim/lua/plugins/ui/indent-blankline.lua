@@ -2,6 +2,7 @@ return {
     "lukas-reineke/indent-blankline.nvim",
     version = "*",
     main = "ibl",
+    cond=false,
     lazy = true,
     -- cond=false,
     ft = {

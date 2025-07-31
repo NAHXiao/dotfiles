@@ -5,10 +5,14 @@ return {
     lazy = true,
     event = "VeryLazy",
     keys = {
-        { "<leader>\\w", "<cmd>IlluminateToggle<cr>", desc = "Toggle Illuminate(Same Word Highlight)" },
+        {
+            "<leader>\\w",
+            "<cmd>IlluminateToggle<cr>",
+            desc = "Toggle Illuminate(Same Word Highlight)",
+        },
     },
     init = function()
-        vim.g.transparent_groups_map = vim.tbl_extend("force", vim.g.transparent_groups_map or {}, {
+        require("tools.hl").regist_transparent({
             IlluminatedWordWrite = { underline = true },
             IlluminatedWordText = { underline = true },
             IlluminatedWordRead = { underline = true },

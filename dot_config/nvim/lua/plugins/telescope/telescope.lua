@@ -6,7 +6,6 @@ function vim.ui.select(...)
         vim.ui.select(...)
     end
 end
-
 local find_command = (function()
     if 1 == vim.fn.executable("rg") then
         return { "rg", "--files", "--color", "never", "--follow" }
@@ -20,46 +19,47 @@ local find_command = (function()
         return { "where", "/r", ".", "*" }
     end
 end)()
-
-local _latest_func_map = {}
-
-function TeleMultiplexSearchClear()
-    _latest_func_map = {}
-    require("telescope.state").set_global_key("cached_pickers", {})
-end
-function TeleMultiplexSearch(func, funcopts, prompt_title, ctxfunc)
-    local ctx = ctxfunc and ctxfunc() or nil
-    local same_opt_and_ctx = _latest_func_map[func]
-        and vim.deep_equal(_latest_func_map[func].funcopts, funcopts)
-        and vim.deep_equal(_latest_func_map[func].ctx, ctx)
-    if not same_opt_and_ctx then
-        _latest_func_map[func] = { funcopts = vim.deepcopy(funcopts), ctx = ctx }
-        return func(vim.deepcopy(funcopts))
-    end
-    local latestindex = (function(query)
-        local cached_pickers = require("telescope.state").get_global_key("cached_pickers")
-        if cached_pickers == nil or vim.tbl_isempty(cached_pickers) then
-            return 0
-        end
-        local ret = math.huge
-        for i, v in ipairs(cached_pickers) do
-            if v.prompt_title == query then
-                ret = math.min(ret, i)
+---@class picker
+---@type table<string,picker>
+local __cache_ctx = {}
+local __save_id
+local function save_aucmd(key, id)
+    local id = id
+    vim.api.nvim_create_autocmd("User", {
+        pattern = "TelescopePickerClose",
+        once = true,
+        callback = function()
+            if id == __save_id then
+                local cached_pickers = require("telescope.state").get_global_key("cached_pickers")
+                assert(#cached_pickers == 1)
+                __cache_ctx[key] = cached_pickers[1]
             end
-        end
-        if ret == math.huge then
-            return 0
-        end
-        return ret
-    end)(prompt_title)
-    if latestindex == 0 then
-        _latest_func_map[func] = { funcopts = vim.deepcopy(funcopts), ctx = ctx }
-        return func(vim.deepcopy(funcopts))
-    end
-    require("telescope.builtin").resume({ cache_index = latestindex })
+        end,
+    })
 end
-
--- NOTE: telescope normal模式 `?` => show key map
+---try to resume and update
+---fallback: call and save
+local function resume_call(key, func)
+    return function()
+        __save_id = {}
+        save_aucmd(key, __save_id)
+        if __cache_ctx[key] then
+            require("telescope.state").set_global_key("cached_pickers", { __cache_ctx[key] })
+            require("telescope.builtin").resume()
+        else
+            func()
+        end
+    end
+end
+---clean call
+---save as latest
+local function clean_call(key, func)
+    return function()
+        __save_id = {}
+        save_aucmd(key, __save_id)
+        func()
+    end
+end
 return {
     "nvim-telescope/telescope.nvim",
     version = "*",
@@ -67,176 +67,126 @@ return {
     dependencies = {
         { "nvim-lua/popup.nvim" },
         { "nvim-lua/plenary.nvim" },
-        {
-            "nvim-telescope/telescope-fzf-native.nvim",
-            -- build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
-            build = "make",
-        },
+        { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
         { "nvim-telescope/telescope-ui-select.nvim" },
     },
-    -- NOTE: 仅lsp相关/文件相关复用
     keys = {
         {
-            "<leader>fcl",
-            TeleMultiplexSearchClear,
-            desc = "TeleMultiplexSearchClear",
-        },
-        {
             "<leader>ff",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").find_files,
-                    {
-                        find_command = find_command,
-                        no_ignore = true,
-                        hidden = true,
-                    },
-                    "Find Files",
-                    function() -- cwd
-                        return vim.fn.getcwd()
-                    end
-                )
-            end,
+            resume_call("Find Files", function()
+                require("telescope.builtin").find_files({
+                    find_command = find_command,
+                    no_ignore = true,
+                    hidden = true,
+                })
+            end),
             desc = "Find files",
         },
         {
-            "<leader>fw",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").live_grep,
-                    {
-                        additional_args = { "--follow" },
-                    },
-                    "Live Grep",
-                    function() -- cwd
-                        return vim.fn.getcwd()
-                    end
-                )
-            end,
+            "<leader>fF",
+            clean_call("Find Files", function()
+                require("telescope.builtin").find_files({
+                    find_command = find_command,
+                    no_ignore = true,
+                    hidden = true,
+                })
+            end),
+            desc = "Find files(clean)",
+        },
+        {
+            "<leader>fg",
+            resume_call("Find Grep", function()
+                require("telescope.builtin").live_grep({
+                    additional_args = { "--follow" },
+                })
+            end),
             desc = "Find word",
         },
         {
-            "<leader>fow",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").live_grep,
-                    {
-                        additional_args = { "--follow" },
-                        grep_open_files = true,
-                    },
-                    "Live Grep",
-                    function() -- opened buf files
-                        local bufs = vim.api.nvim_list_bufs()
-                        local file_bufs = {}
-                        for _, buf in ipairs(bufs) do
-                            if
-                                vim.api.nvim_buf_is_loaded(buf)
-                                and vim.api.nvim_buf_get_option(buf, "buftype") == ""
-                            then
-                                local name = vim.api.nvim_buf_get_name(buf)
-                                if name ~= "" then
-                                    table.insert(file_bufs, name)
-                                end
-                            end
-                        end
-                        return file_bufs
-                    end
-                )
-            end,
-            desc = "Find word in open files",
-        },
-        {
-            "<leader>fb",
-
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").buffers,
-                    {},
-                    "Buffers",
-                    vim.api.nvim_list_bufs
-                )
-            end,
-            desc = "Find buffers",
+            "<leader>fG",
+            clean_call("Find Grep", function()
+                require("telescope.builtin").live_grep({
+                    additional_args = { "--follow" },
+                })
+            end),
+            desc = "Find word(clean)",
         },
         {
             "<leader>fd",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").diagnostics,
-                    {},
-                    "Workspace Diagnostics",
-                    function() -- projroot
-                        return vim.b.projroot
-                    end
-                )
-            end,
+            resume_call("Find Diagnostics", function()
+                require("telescope.builtin").diagnostics()
+            end),
             desc = "Find diagnostics in project root",
         },
         {
+            "<leader>fD",
+            clean_call("Find Diagnostics", function()
+                require("telescope.builtin").diagnostics()
+            end),
+            desc = "Find diagnostics in project root(clean)",
+        },
+        {
             "<leader>fr",
-
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").lsp_references,
-                    {},
-                    "LSP References",
-                    function() -- word
-                        local cursor0 = vim.api.nvim_win_get_cursor(0)
-                        vim.cmd.normal("lb")
-                        local cursor = vim.api.nvim_win_get_cursor(0)
-                        local word = vim.call("expand", "<cword>")
-                        vim.api.nvim_win_set_cursor(0, cursor0)
-                        return { cursor, word }
-                    end
-                )
-            end,
+            resume_call("Find LspRefs", function()
+                require("telescope.builtin").lsp_references()
+            end),
             desc = "Find references of word under cursor",
         },
         {
+            "<leader>fR",
+            clean_call("Find LspRefs", function()
+                require("telescope.builtin").lsp_references()
+            end),
+            desc = "Find references of word under cursor(clean)",
+        },
+        {
             "<leader>fi",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").lsp_implementations,
-                    {},
-                    "FIXME",
-                    function() -- word
-                        local cursor0 = vim.api.nvim_win_get_cursor(0)
-                        vim.cmd.normal("li")
-                        local cursor = vim.api.nvim_win_get_cursor(0)
-                        local word = vim.call("expand", "<cword>")
-                        vim.api.nvim_win_set_cursor(0, cursor0)
-                        return { cursor, word }
-                    end
-                )
-            end,
+            resume_call("Find Impls", function()
+                require("telescope.builtin").lsp_implementations()
+            end),
             desc = "Find implementations of symbol under cursor",
         },
         {
+            "<leader>fI",
+            clean_call("Find Impls", function()
+                require("telescope.builtin").lsp_implementations()
+            end),
+            desc = "Find implementations of symbol under cursor(clean)",
+        },
+        {
             "<leader>fs",
-            function()
-                TeleMultiplexSearch(
-                    require("telescope.builtin").treesitter,
-                    {},
-                    "Treesitter Symbols",
-                    function()
-                        local bufnr = vim.api.nvim_get_current_buf()
-                        return {
-                            bufnr = bufnr,
-                            bufname = vim.api.nvim_buf_get_name(0),
-                            -- changedtick = vim.b[bufnr].changedtick,
-                            sha256 = require("utils").is_bigfile(bufnr)
-                                    and vim.b[bufnr].changedtick
-                                or vim.fn.sha256(
-                                    table.concat(
-                                        vim.api.nvim_buf_get_lines(bufnr, 0, -1, false),
-                                        "\n"
-                                    )
-                                ),
-                        }
-                    end
-                )
-            end,
+            resume_call("Find TS Symbol", function()
+                require("telescope.builtin").treesitter()
+            end),
             desc = "Find treesitter symbols in current buffer",
+        },
+        {
+            "<leader>fS",
+            clean_call("Find TS Symbol", function()
+                require("telescope.builtin").treesitter()
+            end),
+            desc = "Find treesitter symbols in current buffer(clean)"
+        },
+        {
+            "<leader>fw",
+            resume_call("Find Workspace Syml",function()
+               require("telescope.builtin").lsp_dynamic_workspace_symbols()
+            end),
+            desc="Find Workspace Symbol"
+        },
+        {
+            "<leader>fW",
+            clean_call("Find Workspace Syml",function()
+               require("telescope.builtin").lsp_dynamic_workspace_symbols()
+            end),
+            desc="Find Workspace Symbol(clean)"
+        },
+        {
+            "<leader>fb",
+            function()
+                require("telescope.builtin").buffers()
+            end,
+            desc = "Find buffers",
         },
         {
             "<leader>fh",
@@ -269,26 +219,16 @@ return {
             desc = "Find Jumplist",
         },
         {
-            "<leader>fmp",
+            "<leader>fm",
             "<cmd>lua require('telescope.builtin').man_pages()<cr>",
             desc = "Find man pages",
-        },
-        {
-            "<leader>fgc",
-            "<cmd>lua require('telescope.builtin').git_commits()<cr>",
-            desc = "Find git commits",
-        },
-        {
-            "<leader>fgb",
-            "<cmd>lua require('telescope.builtin').git_branches()<cr>",
-            desc = "Find git branches",
         },
         {
             "<leader>fn",
             function()
                 require("telescope").extensions.notify.notify()
             end,
-            desc = "Notify",
+            desc = "Find Notify",
         },
     },
     cmd = "Telescope",
@@ -296,7 +236,7 @@ return {
         require("telescope").setup({
             defaults = {
                 cache_picker = {
-                    num_pickers = 20,
+                    num_pickers = 1,
                 },
             },
             pickers = {
@@ -322,6 +262,14 @@ return {
                 },
             },
         })
+        local picker = require("telescope.pickers")
+        local _close_windows = picker._Picker.close_windows
+        picker._Picker.close_windows = function(...)
+            _close_windows(...)
+            vim.api.nvim_exec_autocmds("User", {
+                pattern = "TelescopePickerClose",
+            })
+        end
         require("telescope").load_extension("ui-select")
         require("telescope").load_extension("fzf")
     end,

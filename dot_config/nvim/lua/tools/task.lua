@@ -1335,12 +1335,7 @@ function M.switch_taskmode()
         M.task_mode = nil
         display = "auto(common>debug>release)"
     end
--- stylua: ignore
-    vim.cmd(string.format([[
-				echohl Number
-				echo "Current task_mode: %s"
-				echohl None
-        ]],display))
+    require("utils").vim_echo(("TaskMode: %s"):format(display))
 end
 function M.switch_tasktype()
     local display
@@ -1357,12 +1352,7 @@ function M.switch_tasktype()
         M.task_type = nil
         display = "auto(common>project>file)"
     end
--- stylua: ignore
-    vim.cmd(string.format([[
-				echohl Number
-				echo "Current task_type: %s"
-				echohl None
-        ]],display))
+    require("utils").vim_echo(("TaskType: %s"):format(display))
 end
 M.setup = function()
     for field, tbl in pairs(config) do

@@ -36,6 +36,12 @@ M.log = function(...)
         error("write log failed")
     end
 end
+---@param groupname string
+---@param clear? boolean
+function M.aug(groupname, clear)
+    return vim.api.nvim_create_augroup(groupname, { clear = clear })
+end
+M.auc = vim.api.nvim_create_autocmd
 function M.vim_echo(str, hlgroup)
     vim.cmd(string.format(
         [[
@@ -47,7 +53,6 @@ function M.vim_echo(str, hlgroup)
         str
     ))
 end
-local log = M.log
 function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     opt = vim.tbl_extend("force", {
@@ -80,22 +85,7 @@ function M.is_bigfile(bufnr, opt)
 
     return false
 end
--- 当tbl.trigger_key = trigger_value时，执行trigger_func
-function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
-    local mt = getmetatable(tbl) or {}
-    local old_newindex = mt.__newindex
-    mt.__newindex = function(t, key, value)
-        if old_newindex then
-            old_newindex(t, key, value)
-        else
-            rawset(t, key, value)
-        end
-        if key == trigger_key and value == trigger_value then
-            trigger_func()
-        end
-    end
-    setmetatable(tbl, mt)
-end
+
 function M.decode_path(path)
     if not path then
         return ""
@@ -104,7 +94,6 @@ function M.decode_path(path)
         return string.format("%%%02X", string.byte(c))
     end)
 end
-
 function M.encode_path(encoded_path)
     if not encoded_path then
         return ""
@@ -292,6 +281,82 @@ M.shorten_path = function(path, maxlen)
     return ret
 end
 
+---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
+---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
+---nullkeys将含有这些键的item去除
+---valuetype_cond, table_cond保证了这些键出现时必须满足条件或与给定值相等
+---nullkeys保证了这些键不能出现
+---@generic T
+---@param list T[]
+---@param valuetype_cond table<(number|string|boolean),(number|string|boolean)|(number|string|boolean)[]|fun(value:(number|string|boolean),item:table):boolean>|nil
+---@param table_cond table<(number|string|boolean),fun(value:table,item:table):boolean>|nil
+---@param nullkeys (number|string|boolean)[]|nil
+---@return T[]
+function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
+    local filtered = {}
+    for _, item in ipairs(list) do
+        if valuetype_cond then
+            for k, v in pairs(valuetype_cond) do
+                if item[k] then
+                    if type(v) == "table" then
+                        local bypass = false
+                        for _, bypassv in ipairs(v) do
+                            if bypassv == item[k] then
+                                bypass = true
+                                break
+                            end
+                        end
+                        if not bypass then
+                            goto next
+                        end
+                    elseif type(v) == "function" then
+                        if not v(item[k], item) then
+                            goto next
+                        end
+                    else
+                        if v ~= item[k] then
+                            goto next
+                        end
+                    end
+                end
+            end
+        end
+        if table_cond then
+            for k, f in pairs(table_cond) do
+                local x = f(item[k], item)
+                if true ~= x then
+                    goto next
+                end
+            end
+        end
+        if nullkeys then
+            for _, k in ipairs(nullkeys) do
+                if item[k] then
+                    goto next
+                end
+            end
+        end
+        table.insert(filtered, item)
+        ::next::
+    end
+    return filtered
+end
+-- 当tbl.trigger_key = trigger_value时，执行trigger_func
+function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
+    local mt = getmetatable(tbl) or {}
+    local old_newindex = mt.__newindex
+    mt.__newindex = function(t, key, value)
+        if old_newindex then
+            old_newindex(t, key, value)
+        else
+            rawset(t, key, value)
+        end
+        if key == trigger_key and value == trigger_value then
+            trigger_func()
+        end
+    end
+    setmetatable(tbl, mt)
+end
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
@@ -322,205 +387,48 @@ function M.range(...)
     end
     return result
 end
-
----valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
----table_cond将过滤key类型是(number|string|boolean),value类型是table的item
----nullkeys将含有这些键的item去除
----valuetype_cond, table_cond保证了这些键出现时必须满足条件或与给定值相等
----nullkeys保证了这些键不能出现
----@generic T
----@param list T[]
----@param valuetype_cond table<(number|string|boolean),(number|string|boolean)|(number|string|boolean)[]|fun(value:(number|string|boolean),item:table):boolean>|nil
----@param table_cond table<(number|string|boolean),fun(value:table,item:table):boolean>|nil
----@param nullkeys (number|string|boolean)[]|nil
----@return T[]
-function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
-    -- log("called", list, valuetype_cond, table_cond, nullkeys)
-    local filtered = {}
-    for _, item in ipairs(list) do
-        -- log("valuetype_cond")
-        if valuetype_cond then
-            for k, v in pairs(valuetype_cond) do
-                if item[k] then
-                    if type(v) == "table" then
-                        local bypass = false
-                        for _, bypassv in ipairs(v) do
-                            if bypassv == item[k] then
-                                bypass = true
-                                break
-                            end
-                        end
-                        if not bypass then
-                            goto next
-                        end
-                    elseif type(v) == "function" then
-                        if not v(item[k], item) then
-                            goto next
-                        end
-                    else
-                        if v ~= item[k] then
-                            goto next
-                        end
-                    end
-                end
-            end
+function M.index_of(tbl, obj)
+    for i, o in ipairs(tbl) do
+        if o == obj then
+            return i
         end
-        -- log("table_cond")
-        if table_cond then
-            for k, f in pairs(table_cond) do
-                local x = f(item[k], item)
-                -- log("item", item, "valid:", x)
-                if true ~= x then
-                    goto next
-                end
-            end
-        end
-        -- log("nullkeys")
-        if nullkeys then
-            for _, k in ipairs(nullkeys) do
-                if item[k] then
-                    goto next
-                end
-            end
-        end
-        -- log("ok")
-        table.insert(filtered, item)
-        ::next::
     end
-    -- log("return:", filtered)
-    return filtered
 end
-function M.findfile_any(opt)
-    local default_opt = {
-        filelist = {},
-        startpath = uv.cwd(),
-        use_first_found = false,
-        type = { "file", "directory" },
-        exclude_dirs = { uv.os_homedir() },
-        return_dirname = false,
+
+---@class utils.GetRoot.Opt
+---@field startpath string?         # default cwd()
+---@field use_first_found boolean? # default true
+---@field exclude_dirs string[]?    # default { homedir }
+---@field return_matchpath boolean?# default false
+---@param names string[]
+---@param opt utils.GetRoot.Opt?
+---@return string|nil
+function M.GetRoot(names, opt)
+    opt = opt or {}
+    local opts = {
+        startpath = opt.startpath or uv.cwd(),
+        use_first_found = opt.use_first_found ~= nil and opt.use_first_found or false,
+        exclude_dirs = opt.exclude_dirs or { uv.os_homedir() },
+        return_matchpath = opt.return_matchpath ~= nil and opt.return_matchpath or false,
     }
-    opt = vim.tbl_deep_extend("force", default_opt, opt or {})
-    local startpath = vim.fs.normalize(opt.startpath)
-    for i, exdirs in ipairs(opt.exclude_dirs) do
-        opt.exclude_dirs[i] = vim.fs.normalize(exdirs)
-    end
-    startpath = vim.fn.fnamemodify(startpath, ":p")
-    local current_path = startpath
-    local result = nil
-    local check_all_types = false
-    for _, t in ipairs(opt.type) do
-        if t == "*" then
-            check_all_types = true
-            break
+    local results = vim.fs.find(names, {
+        path = opts.startpah,
+        limit = opts.use_first_found and 1 or math.huge,
+        -- follow = false, --似乎对upward没用?
+        upward = true,
+    })
+    local result
+    for _, path in ipairs(results) do
+        if not vim.list_contains(opts.exclude_dirs, vim.fs.dirname(path)) then
+            result = path
         end
     end
-    local type_lookup = {}
-    if not check_all_types then
-        for _, t in ipairs(opt.type) do
-            type_lookup[t] = true
-        end
-    end
-    while true do
-        if (#opt.exclude_dirs == 0) or (not vim.list_contains(opt.exclude_dirs, current_path)) then
-            for _, filename in ipairs(opt.filelist) do
-                local filepath = vim.fs.joinpath(current_path, filename)
-                local stat = uv.fs_stat(filepath)
-                if stat then
-                    local valid_type = check_all_types or type_lookup[stat.type]
-                    if valid_type then
-                        if opt.return_dirname then
-                            local return_path = current_path
-                            if opt.use_first_found then
-                                return return_path
-                            else
-                                result = return_path
-                            end
-                        else
-                            if opt.use_first_found then
-                                return filepath
-                            else
-                                result = filepath
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        local parent_path = vim.fs.normalize(vim.fn.fnamemodify(current_path, ":h"))
-        if parent_path == current_path then
-            break
-        end
-        current_path = parent_path
+    if result and not opts.return_matchpath then
+        result = vim.fs.dirname(result)
     end
     return result
 end
 
-function M.findfile_all(opt)
-    local default_opt = {
-        filelist = {},
-        startpath = uv.cwd(),
-        exclude_dirs = { uv.os_homedir() },
-        use_first_found = false,
-        type = { "file", "directory" },
-    }
-    opt = vim.tbl_deep_extend("force", default_opt, opt or {})
-    local startpath = vim.fs.normalize(opt.startpath)
-    startpath = vim.fn.fnamemodify(startpath, ":p")
-    for i, exdirs in ipairs(opt.exclude_dirs) do
-        opt.exclude_dirs[i] = vim.fs.normalize(exdirs)
-    end
-    local results = {}
-    for _, filename in ipairs(opt.filelist) do
-        results[filename] = nil
-    end
-    local check_all_types = false
-    for _, t in ipairs(opt.type) do
-        if t == "*" then
-            check_all_types = true
-            break
-        end
-    end
-    local type_lookup = {}
-    if not check_all_types then
-        for _, t in ipairs(opt.type) do
-            type_lookup[t] = true
-        end
-    end
-
-    local current_path = startpath
-
-    while true do
-        if (#opt.exclude_dirs == 0) or (not vim.list_contains(opt.exclude_dirs, current_path)) then
-            for _, filename in ipairs(opt.filelist) do
-                local filepath = vim.fs.joinpath(current_path, filename)
-                local stat = uv.fs_stat(filepath)
-                if stat then
-                    local valid_type = check_all_types or type_lookup[stat.type]
-                    if valid_type then
-                        if opt.use_first_found then
-                            if not results[filename] then
-                                results[filename] = filepath
-                            end
-                        else
-                            results[filename] = filepath
-                        end
-                    end
-                end
-            end
-        end
-
-        local parent_path = vim.fs.normalize(vim.fn.fnamemodify(current_path, ":h"))
-        if parent_path == current_path then
-            break
-        end
-        current_path = parent_path
-    end
-
-    return results
-end
-function M.is_vim_empty_dict(var)
-    return type(var) == "table" and (getmetatable(var) == getmetatable(vim.empty_dict()))
-end
 function M.transparent_bg_test()
     local groups = vim.fn.getcompletion("", "highlight")
     local index = 1

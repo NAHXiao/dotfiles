@@ -8,7 +8,7 @@ return {
         { "HL", "<cmd>HopLineStart<cr>", desc = "jump to line" },
     },
     init = function()
-        vim.g.transparent_groups = vim.list_extend(vim.g.transparent_groups or {}, {
+        require("tools.hl").add_transparent_groups({
             "HopUnmatched",
             "HopNextKey",
             "HopNextKey1",

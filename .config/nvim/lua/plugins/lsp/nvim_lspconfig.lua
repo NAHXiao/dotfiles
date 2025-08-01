@@ -13,8 +13,8 @@ return {
         { cmd = "<cmd>LspLog<cr>", desc = "Lsp Log" },
     },
     keys = {
-        --( [|] ) + (w|e|i|h)
-        --g ( [|]|c|s|w|d|D|r )
+        --[] + (d|w|e|i|h)
+        --g + c|s|w|d|D|r
         --ca K <leader>rn <leader>ca <leader>i
         {
             "[w",
@@ -113,7 +113,7 @@ return {
             desc = "goto next diagnostic(HINT)",
         },
         {
-            "g[",
+            "[d",
             function()
                 vim.diagnostic.jump({ count = -1, float = true })
             end,
@@ -121,7 +121,7 @@ return {
             desc = "goto prev diagnostic",
         },
         {
-            "g]",
+            "]d",
             function()
                 vim.diagnostic.jump({ count = 1, float = true })
             end,
@@ -129,14 +129,14 @@ return {
             desc = "goto next diagnostic",
         },
 
-        { "ca", vim.lsp.buf.code_action, mode = "n", desc = "list code action" },
-        { "gc", vim.lsp.buf.incoming_calls, mode = "n", desc = "list incoming_calls" },
         { "gs", vim.lsp.buf.document_symbol, mode = "n", desc = "list document_symbol" },
         { "gw", vim.lsp.buf.workspace_symbol, mode = "n", desc = "query workspace_symbol" },
 
-        { "gD", vim.lsp.buf.declaration, mode = "n", desc = "goto declaration" },
         { "gd", vim.lsp.buf.definition, mode = "n", desc = "goto definition" },
         { "gr", vim.lsp.buf.references, mode = "n", desc = "goto references" },
+        { "gi", vim.lsp.buf.incoming_calls, mode = "n", desc = "list incoming_calls" },
+
+        { "gD", vim.lsp.buf.declaration, mode = "n", desc = "goto declaration" },
 
         { "K", vim.lsp.buf.hover, mode = "n", desc = "show hover doc" },
         -- { "<C-K>",       vim.lsp.buf.signature_help,   mode = "n" ,desc="show signature_help"},

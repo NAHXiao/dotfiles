@@ -7,5 +7,14 @@ return {
     dependencies = { "neovim/nvim-lspconfig" },
     config = function()
         require("inlay-hints").setup()
+        require("tools.hl").regist_transparent({
+            LspInlayHint = {
+                bg = {
+                    transform = "lighten",
+                    from = "LspInlayHint.bg",
+                    amount = 0.3,
+                },
+            },
+        })
     end,
 }

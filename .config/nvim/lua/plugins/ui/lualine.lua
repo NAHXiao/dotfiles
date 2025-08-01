@@ -142,7 +142,7 @@ return {
                                     .. ":"
                                     .. tostring(vim.o.shiftwidth)
                             end
-                            return "Sp:" .. str
+                            return "Tab:" .. str
                         end,
                         on_click = function(num, btn, mod)
                             vim.cmd([[stopinsert]])

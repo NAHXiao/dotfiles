@@ -56,14 +56,14 @@ return {
         }
     },
     keys = {
-        { "<Leader>hs", mode = "n", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
-        { "<Leader>hr", mode = "n", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
-        { "<Leader>hu", mode = "n", function() require("gitsigns").undo_stage_hunk() end, desc = "Undo Stage Hunk" },
-        { "<Leader>hS", mode = "n", function() require("gitsigns").stage_buffer() end, desc = "Stage Buffer" },
-        { "<Leader>hR", mode = "n", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
-        { "<Leader>hp", mode = "n", function() require("gitsigns").preview_hunk() end, desc = "Preview Hunk" },
-        { "<Leader>hb", mode = "n", function() require("gitsigns").blame_line() end, desc = "Blame Line" },
-        { "<Leader>hB", mode = "n", function() require("gitsigns").toggle_current_line_blame() end, desc = "Toggle Blame for Current Line" },
-        { "<Leader>hd", mode = "n", function() require("gitsigns").toggle_deleted() end, desc = "Toggle Deleted" }
+        { "<Leader>gs", mode = "n", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
+        { "<Leader>gr", mode = "n", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
+        { "<Leader>gu", mode = "n", function() require("gitsigns").undo_stage_hunk() end, desc = "Undo Stage Hunk" },
+        { "<Leader>gS", mode = "n", function() require("gitsigns").stage_buffer() end, desc = "Stage Buffer" },
+        { "<Leader>gR", mode = "n", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
+        { "<Leader>gp", mode = "n", function() require("gitsigns").preview_hunk() end, desc = "Preview Hunk" },
+        { "<Leader>gb", mode = "n", function() require("gitsigns").blame_line() end, desc = "Blame Line" },
+        { "<Leader>gB", mode = "n", function() require("gitsigns").toggle_current_line_blame() end, desc = "Toggle Blame for Current Line" },
+        { "<Leader>gd", mode = "n", function() require("gitsigns").toggle_deleted() end, desc = "Toggle Deleted" }
     }
 }

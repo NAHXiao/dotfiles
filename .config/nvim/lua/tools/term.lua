@@ -323,6 +323,7 @@ local function setup_keymap_panel(bufnr)
             panelbufcxt:toggle_expand(cursornode)
         else
             panelbufcxt:switch(cursornode)
+            winmanager:focus()
         end
     end, "switch/expand")
 end

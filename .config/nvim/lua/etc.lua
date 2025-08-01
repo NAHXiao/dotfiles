@@ -42,9 +42,7 @@ g.root_marker = {
     ".gitignore",
 }
 local function set_global_project_root()
-    ---@type vim.fs.find.Opts
-    
-    g.projroot = utils.GetRoot(g.root_marker,{
+    g.projroot = utils.GetRoot(g.root_marker, {
         startpath = vim.fn.getcwd(),
         use_first_found = false,
         return_dirname = true,
@@ -61,11 +59,14 @@ aucmd({ "BufReadPre", "BufNewFile" }, {
         local buftype = vim.bo.buftype
         local name = vim.api.nvim_buf_get_name(0)
         if buftype == "" and name ~= "" then
-            vim.b.projroot = utils.GetRoot(vim.g.root_marker,{ -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
-                startpath = vim.fn.fnamemodify(name, ":p:h"),
-                use_first_found = false,
-                return_dirname = true,
-            }) or vim.fn.fnamemodify(name, ":p:h")
+            vim.b.projroot = utils.GetRoot(
+                vim.g.root_marker,
+                { -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
+                    startpath = vim.fn.fnamemodify(name, ":p:h"),
+                    use_first_found = false,
+                    return_dirname = true,
+                }
+            ) or vim.fn.fnamemodify(name, ":p:h")
             -- For asyncrun
             vim.b.asyncrun_root = vim.b.projroot
         end
@@ -107,16 +108,25 @@ local multilingual = {
 -- keyboard
 --VIMEnter/zh->en: getmode savemode PY.EN
 --en->zh/VimLeavePre: resume mode
-if vim.g.is_wsl or vim.g.is_win then
-    vim.api.nvim_create_augroup("IME_Control", { clear = true })
-    local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
+local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
+local stat = vim.uv.fs_stat(im_select_mspy)
+if
+    (vim.g.is_wsl or vim.g.is_win)
+    and stat
+    and stat.type == "file"
+    and require("bit").band(stat.mode, 73) ~= 0
+then
+    local enabled = true
+    require("utils").aug("IME_Control", true)
     local locked = false
     local latest_call = nil
     local __lock_jobid
 
-    local function stop(jobid)
-        if jobid and vim.fn.jobwait({ jobid }, 0)[1] == -1 then
-            vim.fn.jobstop(jobid)
+    local function stop()
+        if __lock_jobid and vim.fn.jobwait({ __lock_jobid }, 0)[1] == -1 then
+            vim.fn.jobstop(__lock_jobid)
+            __lock_jobid = nil
+            return true
         end
     end
     local function get_lock_and_then(do_something)
@@ -130,7 +140,12 @@ if vim.g.is_wsl or vim.g.is_win then
                 locked = true
                 do_something()
             else
-                stop(__lock_jobid)
+                stop()
+                -- if stop() then
+                --     vim.notify("get lock failed , stop")
+                -- else
+                --     vim.notify("get lock failed , wait")
+                -- end
                 vim.defer_fn(try_get_lock, 1)
             end
         end
@@ -165,15 +180,14 @@ if vim.g.is_wsl or vim.g.is_win then
     aucmd("VimEnter", {
         group = "IME_Control",
         callback = function()
-            vim.schedule(function()
+            if enabled then
                 get_lock_and_then(to_normal)
-            end)
+            end
         end,
     })
     aucmd("ModeChanged", {
         callback = function(ev)
-            -- if inited then
-            vim.schedule(function()
+            if enabled then
                 local o, n = ev.match:match("^([^:]+):([^:]+)$")
                 assert(type(o) == "string" and type(n) == "string")
                 local o_en = not o:match("^[iRt]")
@@ -185,8 +199,7 @@ if vim.g.is_wsl or vim.g.is_win then
                         get_lock_and_then(to_normal)
                     end
                 end
-            end)
-            -- end
+            end
         end,
     })
     --RESUME(WAIT)
@@ -194,9 +207,15 @@ if vim.g.is_wsl or vim.g.is_win then
         group = "IME_Control",
         pattern = "*",
         callback = function()
-            vim.system({ im_select_mspy, insert_imemode }):wait()
+            if enabled then
+                vim.system({ im_select_mspy, insert_imemode }):wait()
+            end
         end,
     })
+    require("utils").map("n", "<leader>\\k", function()
+        enabled = not enabled
+        require("utils").vim_echo(("AutoSwitch Keyboard: %s"):format(enabled and "On" or "Off"))
+    end, { desc = "Toggle autoswitch keyboard" })
 end
 
 -- 终端终止时自动进入normal模式
@@ -298,13 +317,13 @@ aucmd("FileType", {
     end,
 })
 
-aucmd({ "BufEnter", "FocusGained", "InsertLeave", "WinEnter" }, {
-    command = [[if &nu && mode() != 'i' | set rnu   | endif]],
-})
-
-aucmd({ "BufLeave", "FocusLost", "InsertEnter", "WinLeave" }, {
-    command = [[if &nu | set nornu | endif]],
-})
+-- aucmd({ "BufEnter", "FocusGained", "InsertLeave", "WinEnter" }, {
+--     command = [[if &nu && mode() != 'i' | set rnu   | endif]],
+-- })
+--
+-- aucmd({ "BufLeave", "FocusLost", "InsertEnter", "WinLeave" }, {
+--     command = [[if &nu | set nornu | endif]],
+-- })
 
 -- Disable inserting comment leader after hitting o or O
 -- aucmd("FileType", {

@@ -36,6 +36,12 @@ M.log = function(...)
         error("write log failed")
     end
 end
+---@param groupname string
+---@param clear? boolean
+function M.aug(groupname, clear)
+    return vim.api.nvim_create_augroup(groupname, { clear = clear })
+end
+M.auc = vim.api.nvim_create_autocmd
 function M.vim_echo(str, hlgroup)
     vim.cmd(string.format(
         [[
@@ -47,7 +53,6 @@ function M.vim_echo(str, hlgroup)
         str
     ))
 end
-local log = M.log
 function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     opt = vim.tbl_extend("force", {
@@ -80,22 +85,7 @@ function M.is_bigfile(bufnr, opt)
 
     return false
 end
--- 当tbl.trigger_key = trigger_value时，执行trigger_func
-function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
-    local mt = getmetatable(tbl) or {}
-    local old_newindex = mt.__newindex
-    mt.__newindex = function(t, key, value)
-        if old_newindex then
-            old_newindex(t, key, value)
-        else
-            rawset(t, key, value)
-        end
-        if key == trigger_key and value == trigger_value then
-            trigger_func()
-        end
-    end
-    setmetatable(tbl, mt)
-end
+
 function M.decode_path(path)
     if not path then
         return ""
@@ -104,7 +94,6 @@ function M.decode_path(path)
         return string.format("%%%02X", string.byte(c))
     end)
 end
-
 function M.encode_path(encoded_path)
     if not encoded_path then
         return ""
@@ -292,37 +281,6 @@ M.shorten_path = function(path, maxlen)
     return ret
 end
 
-function M.trim(s)
-    return s:match("^%s*(.-)%s*$")
-end
-function M.range(...)
-    local args = { ... }
-    local start, end_, step
-    if #args == 1 then
-        start, end_, step = 1, args[1], 1
-    elseif #args == 2 then
-        start, end_, step = args[1], args[2], 1
-    elseif #args == 3 then
-        start, end_, step = args[1], args[2], args[3]
-    else
-        error("range() takes 1-3 arguments")
-    end
-    local result = {}
-    local idx = 1
-    if step > 0 then
-        for i = start, end_ - 1, step do
-            result[idx] = i
-            idx = idx + 1
-        end
-    else
-        for i = start, end_ + 1, step do
-            result[idx] = i
-            idx = idx + 1
-        end
-    end
-    return result
-end
-
 ---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
 ---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
 ---nullkeys将含有这些键的item去除
@@ -383,6 +341,59 @@ function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
     end
     return filtered
 end
+-- 当tbl.trigger_key = trigger_value时，执行trigger_func
+function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
+    local mt = getmetatable(tbl) or {}
+    local old_newindex = mt.__newindex
+    mt.__newindex = function(t, key, value)
+        if old_newindex then
+            old_newindex(t, key, value)
+        else
+            rawset(t, key, value)
+        end
+        if key == trigger_key and value == trigger_value then
+            trigger_func()
+        end
+    end
+    setmetatable(tbl, mt)
+end
+function M.trim(s)
+    return s:match("^%s*(.-)%s*$")
+end
+function M.range(...)
+    local args = { ... }
+    local start, end_, step
+    if #args == 1 then
+        start, end_, step = 1, args[1], 1
+    elseif #args == 2 then
+        start, end_, step = args[1], args[2], 1
+    elseif #args == 3 then
+        start, end_, step = args[1], args[2], args[3]
+    else
+        error("range() takes 1-3 arguments")
+    end
+    local result = {}
+    local idx = 1
+    if step > 0 then
+        for i = start, end_ - 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    else
+        for i = start, end_ + 1, step do
+            result[idx] = i
+            idx = idx + 1
+        end
+    end
+    return result
+end
+function M.index_of(tbl, obj)
+    for i, o in ipairs(tbl) do
+        if o == obj then
+            return i
+        end
+    end
+end
 
 ---@class utils.GetRoot.Opt
 ---@field startpath string?         # default cwd()
@@ -417,9 +428,7 @@ function M.GetRoot(names, opt)
     end
     return result
 end
-function M.is_vim_empty_dict(var)
-    return type(var) == "table" and (getmetatable(var) == getmetatable(vim.empty_dict()))
-end
+
 function M.transparent_bg_test()
     local groups = vim.fn.getcompletion("", "highlight")
     local index = 1

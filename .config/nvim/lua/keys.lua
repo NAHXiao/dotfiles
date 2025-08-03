@@ -109,6 +109,51 @@ map("n", "<leader>bn", ":bnext<CR>", {})
 map("n", "<leader>bf", ":bfirst<CR>", {})
 map("n", "<leader>bl", ":blast<CR>", {})
 map("n", "<leader>bd", ":bdelete<CR>", {})
+-- Navigate Brother Files
+local function switch_file(direction)
+    local current = vim.api.nvim_buf_get_name(0)
+    if current == "" then
+        return
+    end
+    local dir = vim.fs.dirname(current)
+    local current_name = vim.fs.basename(current)
+    local files = {}
+    for name, type in vim.fs.dir(dir) do
+        if type == "file" then
+            table.insert(files, name)
+        end
+    end
+    if #files <= 1 then
+        return
+    end
+    table.sort(files)
+    local current_idx
+    for i, name in ipairs(files) do
+        if name == current_name then
+            current_idx = i
+            break
+        end
+    end
+    if not current_idx then
+        return
+    end
+    local next_idx
+    if direction > 0 then
+        next_idx = current_idx == #files and 1 or current_idx + 1
+    else
+        next_idx = current_idx == 1 and #files or current_idx - 1
+    end
+    local next_file = vim.fs.joinpath(dir, files[next_idx])
+    if next_file ~= current then
+        vim.cmd.edit(next_file)
+    end
+end
+map("n", "[f", function()
+    switch_file(-1)
+end)
+map("n", "]f", function()
+    switch_file(1)
+end)
 -- Fix common typos
 vim.cmd([[
     cnoreabbrev W! w!

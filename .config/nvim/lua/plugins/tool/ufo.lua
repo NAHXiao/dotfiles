@@ -25,6 +25,15 @@ return {
             end,
             desc = "Toggle UfO Fold",
         },
+        {
+            "<leader>\\f",
+            function()
+                vim.o.foldenable = not vim.o.foldenable
+                require("utils").vim_echo(
+                    ("FoldEnable: %s"):format(vim.o.foldenable and "True" or "False")
+                )
+            end,
+        },
     },
     config = function()
         require("ufo").setup({

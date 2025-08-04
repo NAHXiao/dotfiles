@@ -189,6 +189,13 @@ return {
             desc = "Find buffers",
         },
         {
+            "<leader>fo",
+            function()
+                require("telescope.builtin").vim_options()
+            end,
+            desc = "Find Vim Options",
+        },
+        {
             "<leader>fh",
             "<cmd>lua require('telescope.builtin').search_history()<cr>",
             desc = "Find search history",

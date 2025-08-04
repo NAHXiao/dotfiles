@@ -57,6 +57,7 @@ return {
                     return vim.b.projroot or vim.g.projroot
                 end,
             },
+            notify_on_error = true,
             formatters = {
                 ["clang-format-"] = {
                     command = "clang-format",

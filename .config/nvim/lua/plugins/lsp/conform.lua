@@ -18,7 +18,7 @@ return {
     event = "UIEnter",
     keys = {
         {
-            "<space>fo",
+            "gQ",
             function()
                 require("conform").format({ async = true }, function(err)
                     if not err then
@@ -34,25 +34,6 @@ return {
                 end)
             end,
             desc = "Format",
-            mode = { "n", "v" },
-        },
-        {
-            "<space>fO",
-            function()
-                require("conform").format({ async = true, force = true }, function(err)
-                    if not err then
-                        local mode = vim.api.nvim_get_mode().mode
-                        if vim.startswith(string.lower(mode), "v") then
-                            vim.api.nvim_feedkeys(
-                                vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
-                                "m",
-                                true
-                            )
-                        end
-                    end
-                end)
-            end,
-            desc = "Format (force)",
             mode = { "n", "v" },
         },
     },
@@ -86,7 +67,7 @@ return {
                             local_clang_format_path
                         ) == 1
                         local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-                        local confpath = utils.GetRoot({ ".clang-format", "_clang_format" },{
+                        local confpath = utils.GetRoot({ ".clang-format", "_clang_format" }, {
                             startpath = path,
                             use_first_found = true,
                             return_dirname = false,
@@ -114,5 +95,6 @@ return {
             },
             -- formatters = vim.tbl_extend("force", formatters_clang_format, {})
         })
+        vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
     end,
 }

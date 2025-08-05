@@ -135,8 +135,15 @@ return {
             window = { border = "rounded" },
         },
         cmdline = {
-            keymap = { preset = "inherit" },
-            completion = { menu = { auto_show = true } },
+            keymap = {
+                preset = "inherit",
+            },
+            completion = {
+                menu = { auto_show = true },
+                list = {
+                    selection = { preselect = false, auto_insert = false },
+                },
+            },
         },
     },
     config = function(_, opts)

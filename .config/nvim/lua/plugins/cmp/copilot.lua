@@ -77,11 +77,6 @@ return {
                     vim.log.levels.ERROR
                 )
                 require("copilot.command").disable()
-                require("utils").vim_echo(
-                    ("Copilot: %s"):format(
-                        require("copilot.client").is_disabled() and "Disabled" or "Enabled"
-                    )
-                )
             else
                 _select(items, opts, on_choice)
             end

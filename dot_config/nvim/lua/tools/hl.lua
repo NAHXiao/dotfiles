@@ -90,12 +90,14 @@ function M.add_transparent_groupprefix(prefixs)
         end
     end
 end
+---@param tbl HighlightTransformRegistMap
 function M.regist(tbl)
     for hlname, hlopts in pairs(tbl) do
         __color_trans_tbl[hlname] = hlopts
     end
     __mk_handle(tbl)()
 end
+---@param tbl HighlightTransformRegistMap
 function M.regist_transparent(tbl)
     for hlname, hlopts in pairs(tbl) do
         __transparent_trans_tbl[hlname] = hlopts

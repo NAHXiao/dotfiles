@@ -2,7 +2,6 @@ return {
     "tpope/vim-surround",
     version = "*",
     lazy = true,
-    cond = false,
     event = "InsertEnter",
     dependencies = {},
     config = function()

@@ -1,24 +1,3 @@
--- 一次性:首次调用则加载Telescope
-function vim.ui.select(...)
-    if not Is_plugin_loaded("telescope.nvim") then
-        -- vim.ui.select = _uiselect
-        require("lazy").load({ plugins = "telescope.nvim" })
-        vim.ui.select(...)
-    end
-end
-local find_command = (function()
-    if 1 == vim.fn.executable("rg") then
-        return { "rg", "--files", "--color", "never", "--follow" }
-    elseif 1 == vim.fn.executable("fd") then
-        return { "fd", "--type", "f", "--color", "never", "--follow" }
-    elseif 1 == vim.fn.executable("fdfind") then
-        return { "fdfind", "--type", "f", "--color", "never", "--follow" }
-    elseif 1 == vim.fn.executable("find") and vim.fn.has("win32") == 0 then
-        return { "find", ".", "-type", "f" }
-    elseif 1 == vim.fn.executable("where") then
-        return { "where", "/r", ".", "*" }
-    end
-end)()
 ---@class picker
 ---@type table<string,picker>
 local __cache_ctx = {}
@@ -74,42 +53,38 @@ return {
         {
             "<leader>ff",
             resume_call("Find Files", function()
-                require("telescope.builtin").find_files({
-                    find_command = find_command,
-                    no_ignore = true,
-                    hidden = true,
-                })
+                require("telescope.builtin").find_files()
             end),
             desc = "Find files",
         },
         {
             "<leader>fF",
             clean_call("Find Files", function()
-                require("telescope.builtin").find_files({
-                    find_command = find_command,
-                    no_ignore = true,
-                    hidden = true,
-                })
+                require("telescope.builtin").find_files()
             end),
             desc = "Find files(clean)",
         },
         {
             "<leader>fg",
             resume_call("Find Grep", function()
-                require("telescope.builtin").live_grep({
-                    additional_args = { "--follow" },
-                })
+                require("telescope.builtin").live_grep()
             end),
             desc = "Find word",
         },
         {
             "<leader>fG",
             clean_call("Find Grep", function()
-                require("telescope.builtin").live_grep({
-                    additional_args = { "--follow" },
-                })
+                require("telescope.builtin").live_grep()
             end),
             desc = "Find word(clean)",
+        },
+        {
+            "<leader>fg",
+            clean_call("Find Word", function()
+                require("telescope.builtin").live_grep()
+            end),
+            desc = "Find word(Visual)",
+            mode = "v",
         },
         {
             "<leader>fd",
@@ -165,21 +140,21 @@ return {
             clean_call("Find TS Symbol", function()
                 require("telescope.builtin").treesitter()
             end),
-            desc = "Find treesitter symbols in current buffer(clean)"
+            desc = "Find treesitter symbols in current buffer(clean)",
         },
         {
             "<leader>fw",
-            resume_call("Find Workspace Syml",function()
-               require("telescope.builtin").lsp_dynamic_workspace_symbols()
+            resume_call("Find Workspace Syml", function()
+                require("telescope.builtin").lsp_dynamic_workspace_symbols()
             end),
-            desc="Find Workspace Symbol"
+            desc = "Find Workspace Symbol",
         },
         {
             "<leader>fW",
-            clean_call("Find Workspace Syml",function()
-               require("telescope.builtin").lsp_dynamic_workspace_symbols()
+            clean_call("Find Workspace Syml", function()
+                require("telescope.builtin").lsp_dynamic_workspace_symbols()
             end),
-            desc="Find Workspace Symbol(clean)"
+            desc = "Find Workspace Symbol(clean)",
         },
         {
             "<leader>fb",
@@ -191,7 +166,40 @@ return {
         {
             "<leader>fo",
             function()
-                require("telescope.builtin").vim_options()
+                require("telescope.builtin").vim_options({
+                    attach_mappings = function(_, map)
+                        local function select_and_esc()
+                            local selection =
+                                require("telescope.actions.state").get_selected_entry()
+                            if selection == nil then
+                                return
+                            end
+                            local esc = ""
+                            if vim.fn.mode() == "i" then
+                                esc =
+                                    vim.api.nvim_replace_termcodes("<esc><esc>", true, false, true)
+                            end
+
+                            vim.api.nvim_feedkeys(
+                                string.format(
+                                    "%s:set %s=%s",
+                                    esc,
+                                    selection.value.name,
+                                    selection.value.value
+                                ),
+                                "m",
+                                true
+                            )
+                        end
+                        map("i", "<CR>", function()
+                            select_and_esc()
+                        end)
+                        map("n", "<CR>", function()
+                            select_and_esc()
+                        end)
+                        return true
+                    end,
+                })
             end,
             desc = "Find Vim Options",
         },
@@ -239,11 +247,27 @@ return {
         },
     },
     cmd = "Telescope",
+    init = function()
+        -- 一次性:首次调用则加载Telescope
+        local _select = vim.ui.select
+        function vim.ui.select(...)
+            if not Is_plugin_loaded("telescope.nvim") then
+                vim.ui.select = _select
+                require("lazy").load({ plugins = "telescope.nvim" })
+                vim.ui.select(...)
+            end
+        end
+    end,
     config = function()
+        local actions = require("telescope.actions")
         require("telescope").setup({
             defaults = {
                 cache_picker = {
                     num_pickers = 1,
+                },
+                sorting_strategy = "ascending",
+                layout_config = {
+                    prompt_position = "top",
                 },
             },
             pickers = {
@@ -253,6 +277,29 @@ return {
                 man_pages = { cache_picker = false },
                 git_commits = { cache_picker = false },
                 git_branches = { cache_picker = false },
+                find_files = {
+                    find_command = {
+                        "fd",
+                        "-H",
+                        "-I",
+                        "--exclude={.Trash-1000,.DS_Store,$RECYCLE.BIN,.git,.idea,.vscode,.sass-cache,.mypy_cache,node_modules,.gradle,build,.vscode-server,.virtualenvs,.cache,.ghcup,.conda,.rustup,.cargo,.local,target,.stfolder,.vs}",
+                        "--strip-cwd-prefix",
+                        "--follow",
+                    },
+                },
+                live_grep = {
+                    additional_args = { "--follow" },
+                },
+                vim_options = {
+                    mappings = {
+                        i = {
+                            ["<CR>"] = actions.nop,
+                        },
+                        n = {
+                            ["<CR>"] = actions.nop,
+                        },
+                    },
+                },
             },
             extensions = {
                 fzf = {
@@ -263,9 +310,13 @@ return {
                     -- the default case_mode is "smart_case"
                 },
                 ["ui-select"] = {
-                    require("telescope.themes").get_dropdown({
-                        layout_config = { anchor = "N" },
-                    }),
+                    -- require("telescope.themes").get_dropdown({
+                    -- }),
+                    layout_config = {
+                        anchor = "N",
+                        width = 0.6,
+                        height = 0.5,
+                    },
                 },
             },
         })

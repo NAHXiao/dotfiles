@@ -15,23 +15,7 @@ return {
     keys = {
         { "<leader>\\a", "<cmr>Copilot toggle<cr>", desc = "Toggle Copilot(AI Completion)" },
     },
-    init = function() end,
     config = function()
-        local _select = vim.ui.select
-        function vim.ui.select(items, opts, on_choice)
-            if
-                opts
-                and opts.prompt
-                and type(opts.prompt) == "string"
-                and string.match(opts.prompt, [[^You've reached.*limit.*Upgrade.*$]])
-            then
-                vim.notify("Copilot: " .. opts.prompt, vim.log.levels.ERROR)
-                vim.cmd("Copilot disable")
-            else
-                _select(items, opts, on_choice)
-            end
-        end
-
         require("copilot").setup({
             panel = {
                 enabled = false, -- NOTE: blink.cmp 函数补全
@@ -77,6 +61,27 @@ return {
             copilot_node_command = "node", -- Node.js version must be > 18.x
             server_opts_overrides = {},
         })
+        local _select = vim.ui.select
+        function vim.ui.select(items, opts, on_choice)
+            if
+                opts
+                and opts.prompt
+                and type(opts.prompt) == "string"
+                and string.match(opts.prompt, [[^.*reached.*limit.*Copilot.*$]])
+            then
+                local year, month, day = opts.prompt:match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
+                vim.notify(
+                    "Copilot: "
+                        .. opts.prompt:match(".*limit%.")
+                        .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
+                    vim.log.levels.ERROR
+                )
+                require("copilot.command").disable()
+            else
+                _select(items, opts, on_choice)
+            end
+        end
+
         -- https://github.com/zbirenbaum/copilot.lua/issues/91
         vim.keymap.set("i", "<Tab>", function()
             if require("copilot.suggestion").is_visible() then

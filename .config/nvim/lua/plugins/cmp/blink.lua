@@ -114,7 +114,7 @@ return {
         sources = {
             default = { "lsp", "path", "snippets", "buffer", "copilot" },
             providers = {
-                path = {-- ./
+                path = { -- ./
                     opts = {
                         get_cwd = function(_)
                             return vim.b.projroot
@@ -133,6 +133,10 @@ return {
         signature = {
             enabled = true,
             window = { border = "rounded" },
+        },
+        cmdline = {
+            keymap = { preset = "inherit" },
+            completion = { menu = { auto_show = true } },
         },
     },
     config = function(_, opts)

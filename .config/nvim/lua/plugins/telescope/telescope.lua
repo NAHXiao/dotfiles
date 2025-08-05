@@ -79,6 +79,14 @@ return {
             desc = "Find word(clean)",
         },
         {
+            "<leader>fg",
+            clean_call("Find Word", function()
+                require("telescope.builtin").live_grep()
+            end),
+            desc = "Find word(Visual)",
+            mode = "v",
+        },
+        {
             "<leader>fd",
             resume_call("Find Diagnostics", function()
                 require("telescope.builtin").diagnostics()
@@ -278,6 +286,9 @@ return {
                         "--strip-cwd-prefix",
                         "--follow",
                     },
+                },
+                live_grep = {
+                    additional_args = { "--follow" },
                 },
                 vim_options = {
                     mappings = {

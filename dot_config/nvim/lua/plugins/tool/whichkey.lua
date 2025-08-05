@@ -13,4 +13,17 @@ return {
             desc = "Buffer Local Keymaps (which-key)",
         },
     },
+    config = function(_, opts)
+        require("which-key").setup(opts)
+        require("which-key").add({
+            { "<leader>a", group = "Aider" },
+            { "<leader>b", group = "Buffer" },
+            { "<leader>d", group = "Debug" },
+            { "<leader>f", group = "Find" },
+            { "<leader>l", group = "Lsp" },
+            { "<leader>g", group = "GitSigns" },
+            { "<leader>t", group = "Trouble" },
+            { "<leader>\\", group = "Switch" },
+        })
+    end,
 }

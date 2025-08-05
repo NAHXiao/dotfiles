@@ -26,7 +26,7 @@ return {
                     cmp.show()
                 end
             end,
-            mode = "i",
+            mode = { "i", "c" },
             desc = "Toggle BlinkCmp Completion",
         },
     },
@@ -117,7 +117,7 @@ return {
                 path = { -- ./
                     opts = {
                         get_cwd = function(_)
-                            return vim.b.projroot
+                            return require("utils").get_rootdir(0)
                         end,
                     },
                 },
@@ -137,41 +137,51 @@ return {
         cmdline = {
             keymap = {
                 preset = "inherit",
+                ["<CR>"] = { "fallback" },
             },
             completion = {
                 menu = { auto_show = true },
                 list = {
-                    selection = { preselect = false, auto_insert = false },
+                    selection = { preselect = false, auto_insert = true },
                 },
             },
         },
+        snippets = {},
     },
     config = function(_, opts)
         require("blink.cmp").setup(opts)
-        local success, copilot = pcall(require, "copilot.suggestion")
-        if success then
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "BlinkCmpMenuOpen",
-                callback = function()
-                    -- copilot.dismiss()
-                    vim.b.copilot_suggestion_hidden = true
-                end,
-            })
-
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "BlinkCmpMenuClose",
-                callback = function()
-                    vim.b.copilot_suggestion_hidden = false
-                end,
-            })
-        end
-
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "BlinkCmpMenuOpen",
+            callback = function()
+                vim.b.copilot_suggestion_hidden = true
+            end,
+        })
+        vim.api.nvim_create_autocmd("User", {
+            pattern = "BlinkCmpMenuClose",
+            callback = function()
+                vim.b.copilot_suggestion_hidden = false
+            end,
+        })
         -- NOTE:FOR BLINK:https://github.com/Saghen/blink.cmp/issues/1657
         local map = require("utils").map
         map({ "n", "s", "i" }, "<esc>", function()
             vim.cmd("noh")
             vim.snippet.stop()
             return "<esc>"
-        end, { expr = true, desc = "Escape and clear hlsearch/snippet" })
+        end, { expr = true, silent = true })
+        vim.keymap.set({ "i", "s" }, "<Tab>", function()
+            if vim.snippet.active({ direction = 1 }) then
+                return "<Cmd>lua vim.snippet.jump(1)<CR>"
+            else
+                return "<Tab>"
+            end
+        end, { expr = true, silent = true })
+        vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
+            if vim.snippet.active({ direction = -1 }) then
+                return "<Cmd>lua vim.snippet.jump(-1)<CR>"
+            else
+                return "<Tab>"
+            end
+        end, { expr = true, silent = true })
     end,
 }

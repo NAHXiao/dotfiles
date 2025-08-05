@@ -204,9 +204,14 @@ return {
             desc = "Find Vim Options",
         },
         {
-            "<leader>fh",
+            "<leader>fhs",
             "<cmd>lua require('telescope.builtin').search_history()<cr>",
             desc = "Find search history",
+        },
+        {
+            "<leader>fhc",
+            "<cmd>lua require('telescope.builtin').command_history()<cr>",
+            desc = "Find command history",
         },
         {
             "<leader>fk",
@@ -238,20 +243,13 @@ return {
             "<cmd>lua require('telescope.builtin').man_pages()<cr>",
             desc = "Find man pages",
         },
-        {
-            "<leader>fn",
-            function()
-                require("telescope").extensions.notify.notify()
-            end,
-            desc = "Find Notify",
-        },
     },
     cmd = "Telescope",
     init = function()
         -- 一次性:首次调用则加载Telescope
         local _select = vim.ui.select
         function vim.ui.select(...)
-            if not Is_plugin_loaded("telescope.nvim") then
+            if not require("lazy").is_loaded("telescope.nvim") then
                 vim.ui.select = _select
                 require("lazy").load({ plugins = "telescope.nvim" })
                 vim.ui.select(...)

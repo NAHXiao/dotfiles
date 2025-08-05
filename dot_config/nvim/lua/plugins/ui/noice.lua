@@ -2,13 +2,20 @@ local enable
 return {
     "folke/noice.nvim",
     event = "VeryLazy",
+    conf = false,
     dependencies = {
         "MunifTanjim/nui.nvim",
         {
             "rcarriga/nvim-notify",
             event = "VeryLazy",
             keys = {
-                -- { "<leader>fn", "<cmd>Telescope notify<cr>" },
+                {
+                    "<leader>fn",
+                    function()
+                        require("telescope").extensions.notify.notify()
+                    end,
+                    desc = "Find Notify",
+                },
             },
             cond = vim.version.cmp(vim.version(), "0.10.0") >= 0,
             config = function()
@@ -18,20 +25,12 @@ return {
                     stages = "static", --"fade",
                     top_down = false,
                 })
-                local old_notify = notify.notify
-                local new_notify = function(msg, level, opts)
-                    if
-                        string.match(
-                            string.lower(tostring(msg)),
-                            "^.*copilot.*not authenticated.*$"
-                        )
-                    then
-                        vim.cmd("Copilot disable")
-                    end
-                    return old_notify(msg, level, opts)
-                end
-                notify.notify = new_notify
-                vim.notify = notify
+                vim.notify = notify.notify
+                vim.list_extend(CC.cleanui_funcs, {
+                    function()
+                        require("notify").dismiss()
+                    end,
+                })
             end,
         },
     },
@@ -39,13 +38,16 @@ return {
         presets = {
             bottom_search = true, -- use a classic bottom cmdline for search
             command_palette = true, -- position the cmdline and popupmenu together
-            long_message_to_split = true, -- long messages will be sent to a split
+            long_message_to_split = false, -- long messages will be sent to a split
             inc_rename = false, -- enables an input dialog for inc-rename.nvim
             lsp_doc_border = true, -- add a border to hover docs and signature help
         },
         lsp = {
             signature = {
                 enabled = false,
+            },
+            progress = {
+                throttle = 1000 / 5, -- frequency to update lsp progress message
             },
         },
     },
@@ -68,7 +70,6 @@ return {
                 if enable then
                     _disable()
                     enable = false
-                    vim_echo("Noice: Disabled")
                 end
             end
             mod.toggle = function()
@@ -79,6 +80,9 @@ return {
                 end
             end
         end)
+        CC.cleanui_funcs[#CC.cleanui_funcs + 1] = function()
+            vim.cmd("NoiceDismiss")
+        end
     end,
     keys = {
         {

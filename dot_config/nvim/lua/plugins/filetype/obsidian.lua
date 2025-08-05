@@ -4,8 +4,8 @@ return {
     lazy = true,
     -- ft = "markdown",
     event = {
-        vim.g.obsidianPath and "BufReadPre " .. vim.g.obsidianPath .. "/*.md" or nil,
-        vim.g.obsidianPath and "BufNewFile  " .. vim.g.obsidianPath .. "/*.md" or nil,
+        CC.obsidianPath and "BufReadPre " .. CC.obsidianPath .. "/*.md" or nil,
+        CC.obsidianPath and "BufNewFile  " .. CC.obsidianPath .. "/*.md" or nil,
     },
     dependencies = {
         "nvim-lua/plenary.nvim",
@@ -16,7 +16,7 @@ return {
         workspaces = {
             {
                 name = "main",
-                path = vim.g.obsidianPath,
+                path =CC.obsidianPath,
             },
         },
         completion = {
@@ -174,12 +174,12 @@ return {
         -- URL it will be ignored but you can customize this behavior here.
         ---@param url string
         follow_url_func = function(url)
-            if vim.g.is_win then
+            if CC.is_win then
                 vim.cmd(':silent exec "!start ' .. url .. '"')
-            elseif vim.g.is_nix then
-                if vim.g.is_mac then
+            elseif CC.is_nix then
+                if CC.is_mac then
                     vim.fn.jobstart({ "open", url })
-                elseif vim.g.is_android then
+                elseif CC.is_android then
                     vim.fn.jobstart({
                         "am",
                         "start",
@@ -190,7 +190,7 @@ return {
                         "-d",
                         url,
                     })
-                elseif vim.g.is_wsl then
+                elseif CC.is_wsl then
                     vim.fn.jobstart({ "wslopen", url })
                 else
                     vim.fn.jobstart({ "xdg-open", url })
@@ -204,12 +204,12 @@ return {
         -- file it will be ignored but you can customize this behavior here.
         ---@param img string
         follow_img_func = function(img)
-            if vim.g.is_win then
+            if CC.is_win then
                 vim.cmd(':silent exec "!start ' .. img .. '"')
-            elseif vim.g.is_nix then
-                if vim.g.is_mac then
+            elseif CC.is_nix then
+                if CC.is_mac then
                     vim.fn.jobstart({ "qlmanage", "-p", img })
-                elseif vim.g.is_android then
+                elseif CC.is_android then
                     vim.fn.jobstart({
                         "am",
                         "start",
@@ -220,7 +220,7 @@ return {
                         "-d",
                         img,
                     })
-                elseif vim.g.is_wsl then
+                elseif CC.is_wsl then
                     vim.fn.jobstart({ "wslopen", img })
                 else
                     vim.fn.jobstart({ "xdg-open", img })

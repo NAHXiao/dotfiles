@@ -2,12 +2,11 @@
 return {
     "goolord/alpha-nvim",
     version = "*",
-    lazy = vim.fn.argc() > 0,
+    cond = vim.fn.argc() == 0,
+    lazy = false,
     cmd = { "Alpha", "AlphaRedraw", "AlphaRemap" },
     config = function()
-        --   Recently opened files                   SPC f h
         local alpha = require("alpha")
-
         local dashboard = require("alpha.themes.dashboard")
         local theta = require("alpha.themes.theta")
 
@@ -23,11 +22,11 @@ return {
         }
         local obsidianbutton
 
-        obsidianbutton = vim.g.obsidianPath
+        obsidianbutton = CC.obsidianPath
                 and dashboard.button(
                     "o",
                     "  Obsidian",
-                    "<cmd>cd " .. vim.g.obsidianPath .. " <CR><cmd>edit .<cr>"
+                    "<cmd>cd " .. CC.obsidianPath .. " <CR><cmd>edit .<cr>"
                 )
             or nil
         theta.buttons.val = {
@@ -44,8 +43,16 @@ return {
             --     "  Projects",
             --     "<cmd>lua require('tools.proj'):select_and_load()<cr>"
             -- ),
-            dashboard.button("f", "󰈞  Find file"),
-            dashboard.button("g", "󰊄  Live grep"),
+            dashboard.button(
+                "f",
+                "󰈞  Find file",
+                '<cmd>lua require("telescope.builtin").find_files()<cr>'
+            ),
+            dashboard.button(
+                "g",
+                "󰊄  Live grep",
+                '<cmd>lua require("telescope.builtin").live_grep()<cr>'
+            ),
             obsidianbutton,
             dashboard.button(
                 "c",

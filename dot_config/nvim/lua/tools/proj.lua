@@ -25,7 +25,7 @@ local M = {
                 return vim.fn.fnamemodify(path, ":t")
             end,
             path = function()
-                return vim.g.projroot
+                return require"utils".get_rootdir(0)
             end,
             -- {
             -- 	{ -- 第一列file窗口

@@ -23,12 +23,14 @@ end
 -- 	end,
 -- })
 vim.opt.rtp:prepend(lazypath)
-function Is_plugin_loaded(plugin_name)
-    local plugin = require("lazy.core.config").plugins[plugin_name]
+local lazy = require("lazy")
+---@param plugin_full_name string e.g. copilot.lua surround.vim
+function lazy.is_loaded(plugin_full_name)
+    local plugin = require("lazy.core.config").plugins[plugin_full_name]
     return plugin ~= nil and plugin._.loaded ~= nil
 end
 require("tools.hl").setup()
-require("lazy").setup(
+lazy.setup(
     (function(dir)
         local result = {}
         local uv = vim.loop or vim.uv

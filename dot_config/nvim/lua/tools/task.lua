@@ -89,7 +89,7 @@ local config = {
             {
                 name = "run",
                 cmds = {
-                    "$(VIM_PATHNOEXT)" .. (vim.g.is_win and ".exe" or ""),
+                    "$(VIM_PATHNOEXT)" .. (CC.is_win and ".exe" or ""),
                 },
                 filetypes = { "c", "cpp" },
                 type = "file",
@@ -618,7 +618,7 @@ function T:istaskset(taskset)
         and taskset.field
 end
 function T:localtask_path()
-    return vim.fs.abspath(vim.fs.joinpath(vim.g.projroot, ".tasks.lua"))
+    return vim.fs.abspath(vim.fs.joinpath(require("utils").get_rootdir(), ".tasks.lua"))
 end
 ---@type task|taskset
 local default_build
@@ -1400,7 +1400,7 @@ M.setup = function()
         T:refresh_local()
         M.run_select({ get_cur_ft() })
     end, { desc = "TaskSelectAndRun" })
-    map("n", vim.g.is_win and "<S-F12>" or "<F24>", function()
+    map("n", CC.is_win and "<S-F12>" or "<F24>", function()
         M.edittask()
     end, { desc = "TaskEdit" })
 end

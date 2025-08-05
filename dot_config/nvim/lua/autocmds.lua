@@ -42,7 +42,7 @@ g.root_marker = {
     ".gitignore",
 }
 local function set_global_project_root()
-    g.projroot = utils.GetRoot(g.root_marker, {
+    g.projroot = utils.FindRoot(g.root_marker, {
         startpath = vim.fn.getcwd(),
         use_first_found = false,
         return_dirname = true,
@@ -55,44 +55,37 @@ aucmd("DirChanged", {
     end,
 })
 aucmd({ "BufReadPre", "BufNewFile" }, {
-    callback = function()
-        local buftype = vim.bo.buftype
-        if vim.api.nvim_buf_get_name(0) == "" then
+    callback = function(args)
+        local bufnr = args.buf
+        local buftype = vim.bo[bufnr].buftype
+        local bufname = vim.api.nvim_buf_get_name(bufnr)
+        if buftype ~= "" or bufname == "" or vim.b[bufnr].projroot then
             return
         end
-        local bufpath = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-        if buftype == "" and bufpath ~= "" then
-            vim.b.projroot = utils.GetRoot(
-                vim.g.root_marker,
-                { -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
-                    startpath = vim.fn.fnamemodify(bufpath, ":p:h"),
-                    use_first_found = false,
-                    return_dirname = true,
-                }
-            ) or vim.fn.fnamemodify(bufpath, ":p:h")
-            -- For asyncrun
-            vim.b.asyncrun_root = vim.b.projroot
+        local bufpath = vim.fn.fnamemodify(bufname, ":p:h")
+        if bufpath ~= "" then
+            local root = utils.FindRoot(vim.g.root_marker, {
+                startpath = vim.fn.fnamemodify(bufpath, ":p:h"),
+                use_first_found = false,
+                return_dirname = true,
+            })
+            vim.b.projroot = vim.b.projroot or root
         end
     end,
 })
--- obsidian
-do
-    local obsidianpath
-    if osname == "Windows_NT" then
-        obsidianpath = "E:/Obsidian/main"
-    elseif osname == "Linux" then
-        if g.is_wsl then
-            obsidianpath = "/mnt/e/Obsidian/main"
-        else
-            obsidianpath = os.getenv("HOME") .. "/.local/Obsidian/main"
+aucmd("LspAttach", {
+    callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client then
+            return
         end
-    else
-        obsidianpath = nil
-    end
-    if obsidianpath ~= nil and uv.fs_stat(obsidianpath) then
-        g.obsidianPath = obsidianpath
-    end
-end
+        local bufnr = ev.buf
+        local root = client.config.root_dir
+        if root and root ~= "" then
+            vim.b[bufnr].projroot = root
+        end
+    end,
+})
 -- stylua: ignore
 local english = {
     --start with n
@@ -114,10 +107,8 @@ local multilingual = {
 local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
 local stat = vim.uv.fs_stat(im_select_mspy)
 if
-    (vim.g.is_wsl or vim.g.is_win)
-    and stat
-    and stat.type == "file"
-    and require("bit").band(stat.mode, 73) ~= 0
+    (CC.is_wsl and stat and stat.type == "file" and require("bit").band(stat.mode, 73) ~= 0)
+    or (CC.is_win and stat and stat.type == "file")
 then
     local enabled = true
     require("utils").aug("IME_Control", true)
@@ -309,9 +300,18 @@ aucmd("WinEnter", {
                 return
             end
         end
-        vim.cmd("wqa!")
+        vim.ui.input({ prompt = "Exit?" }, function(input)
+            if input then
+                vim.cmd("wa!")
+                vim.cmd("qa!")
+            end
+        end)
     end,
 })
+-- 自动保存光标位置
+vim.cmd([[
+  au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+]])
 aucmd("FileType", {
     pattern = fts,
     callback = function(ev)

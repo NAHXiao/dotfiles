@@ -7,6 +7,28 @@ function M.map(mode, lhs, rhs, opts)
     end
     vim.keymap.set(mode, lhs, rhs, options)
 end
+---@param keys {
+---[1]:string|string[],
+---[2]:string|(fun():string?)?,
+---mode?:string|string[],
+---desc?:string,
+---noremap?:boolean,
+---expr?:boolean,
+---nowiat?:boolean,
+---ft?:string|string[]}[]
+function M.lazy_keymap(keys)
+    local ret = {}
+    for _, key in ipairs(keys) do
+        if type(key[1]) == "string" then
+            table.insert(ret, key)
+        elseif type(key[1]) == "table" then
+            for _, k in ipairs(key[1]) do
+                table.insert(ret, vim.tbl_extend("force", key, { [1] = k }))
+            end
+        end
+    end
+    return ret
+end
 M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
@@ -280,7 +302,47 @@ M.shorten_path = function(path, maxlen)
     shorten_path_cache[path][tostring(maxlen)] = ret
     return ret
 end
-
+M.relpath = vim.fs.relpath
+    or function(base, target)
+        local function normalize_path(path)
+            if not path then
+                return nil
+            end
+            local expanded = vim.fn.expand(path)
+            local absolute = vim.fn.fnamemodify(expanded, ":p")
+            if absolute:match("/$") and #absolute > 1 then
+                absolute = absolute:sub(1, -2)
+            end
+            return absolute
+        end
+        local function split_path(path)
+            local parts = {}
+            for part in path:gmatch("[^/]+") do
+                table.insert(parts, part)
+            end
+            return parts
+        end
+        local norm_base = normalize_path(base)
+        local norm_target = normalize_path(target)
+        if not norm_base or not norm_target then
+            return nil
+        end
+        local base_parts = split_path(norm_base)
+        local target_parts = split_path(norm_target)
+        for i = 1, #base_parts do
+            if base_parts[i] ~= target_parts[i] then
+                return nil
+            end
+        end
+        if #target_parts <= #base_parts then
+            return nil
+        end
+        local rel_parts = {}
+        for i = #base_parts + 1, #target_parts do
+            table.insert(rel_parts, target_parts[i])
+        end
+        return table.concat(rel_parts, "/")
+    end
 ---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
 ---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
 ---nullkeys将含有这些键的item去除
@@ -341,20 +403,55 @@ function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
     end
     return filtered
 end
--- 当tbl.trigger_key = trigger_value时，执行trigger_func
-function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
+-- 总是tbl.key=wrap(assign_value)
+-- NOTEST:tbl with metatable
+---@generic T value_type
+---@param wrap fun(T):T
+function M.watch_assign_key(tbl, key, wrap)
     local mt = getmetatable(tbl) or {}
-    local old_newindex = mt.__newindex
-    mt.__newindex = function(t, key, value)
-        if old_newindex then
-            old_newindex(t, key, value)
-        else
-            rawset(t, key, value)
-        end
-        if key == trigger_key and value == trigger_value then
-            trigger_func()
+    local watchers = mt.____watchers or {}
+    local orig_newindex = mt.__newindex
+    local orig_index = mt.__index
+    local data = mt.____data or {}
+    if not mt.____data then
+        for k, v in pairs(tbl) do
+            data[k] = v
+            tbl[k] = nil
         end
     end
+    watchers[key] = watchers[key] or {}
+    table.insert(watchers[key], wrap)
+    mt.__index = function(t, k)
+        if data[k] ~= nil then
+            return data[k]
+        elseif orig_index then
+            if type(orig_index) == "function" then
+                return orig_index(t, k)
+            else
+                return orig_index[k]
+            end
+        end
+    end
+    mt.__newindex = function(t, k, v)
+        if watchers[k] then
+            for _, watcher in ipairs(watchers[k]) do
+                v = watcher(v)
+            end
+            data[k] = v
+        else
+            if orig_newindex then
+                if type(orig_newindex) == "function" then
+                    orig_newindex(t, k, v)
+                else
+                    orig_newindex[k] = v
+                end
+            else
+                data[k] = v
+            end
+        end
+    end
+    mt.____watchers = watchers
+    mt.____data = data
     setmetatable(tbl, mt)
 end
 function M.trim(s)
@@ -395,15 +492,15 @@ function M.index_of(tbl, obj)
     end
 end
 
----@class utils.GetRoot.Opt
+---@class utils.FindRoot.Opt
 ---@field startpath string?         # default cwd()
 ---@field use_first_found boolean? # default true
 ---@field exclude_dirs string[]?    # default { homedir }
 ---@field return_matchpath boolean?# default false
 ---@param names string[]
----@param opt utils.GetRoot.Opt?
+---@param opt utils.FindRoot.Opt?
 ---@return string|nil
-function M.GetRoot(names, opt)
+function M.FindRoot(names, opt)
     opt = opt or {}
     local opts = {
         startpath = opt.startpath or uv.cwd(),
@@ -427,6 +524,15 @@ function M.GetRoot(names, opt)
         result = vim.fs.dirname(result)
     end
     return result
+end
+---@param bufnr? number default nil=>global
+---@return string
+function M.get_rootdir(bufnr)
+    if bufnr then
+        return vim.b[bufnr].projroot or vim.g.projroot or vim.fn.getcwd()
+    else
+        return vim.b.projroot or vim.g.projroot or vim.fn.getcwd()
+    end
 end
 
 function M.transparent_bg_test()

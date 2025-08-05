@@ -60,18 +60,18 @@ return {
                         padding = { right = 0, left = 1 },
                         cond = function()
                             return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
-                                or vim.bo.buftype== "terminal"
+                                or vim.bo.buftype == "terminal"
                         end,
                     },
                     {
                         function()
                             return vim.bo.buftype == "terminal" and vim.api.nvim_buf_get_name(0)
                                 or shorten_path(
-                                    vim.fs.relpath(
-                                        vim.b.projroot or vim.g.projroot or vim.fn.getcwd(),
+                                    require("utils").relpath(
+                                        require("utils").get_rootdir(0),
                                         vim.api.nvim_buf_get_name(0)
                                     ),
-                                    math.floor(vim.o.columns / 3)
+                                    math.floor(vim.o.columns / 4)
                                 )
                         end,
                         padding = { right = 0, left = 0 },
@@ -192,7 +192,7 @@ return {
                         end,
                         padding = { left = 0, right = 0 },
                         cond = function()
-                            return Is_plugin_loaded("copilot.lua")
+                            return require("lazy").is_loaded("copilot.lua")
                         end,
                     },
                 },
@@ -245,7 +245,7 @@ return {
                     {
                         function()
                             return shorten_path(
-                                vim.b.projroot or vim.g.projroot or vim.fn.getcwd(),
+                                require("utils").get_rootdir(0),
                                 math.floor(vim.o.columns / 3)
                             )
                         end,

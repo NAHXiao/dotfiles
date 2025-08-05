@@ -33,20 +33,6 @@ map("n", "<A-h>", "<C-w>h")
 map("n", "<A-j>", "<C-w>j")
 map("n", "<A-k>", "<C-w>k")
 map("n", "<A-l>", "<C-w>l")
-map("n", "<A-q>", function() -- 不关闭最后一个文件窗口
-    local wins = vim.api.nvim_tabpage_list_wins(0)
-    local file_win_count = 0
-    for _, win in ipairs(wins) do
-        local buf = vim.api.nvim_win_get_buf(win)
-        local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
-        if buftype == "" then
-            file_win_count = file_win_count + 1
-        end
-    end
-    if file_win_count > 1 or vim.bo.buftype ~= "" then
-        vim.cmd("close")
-    end
-end)
 -- 终端A-hjkl c-[
 map("t", "<A-h>", "<C-\\><C-n><C-w>h")
 map("t", "<A-j>", "<C-\\><C-n><C-w>j")

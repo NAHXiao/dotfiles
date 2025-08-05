@@ -21,9 +21,9 @@ return {
             [[ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝  ]],
             [[                                                     ]],
         }
-        local obsidianbotton
+        local obsidianbutton
 
-        obsidianbotton = vim.g.obsidianPath
+        obsidianbutton = vim.g.obsidianPath
                 and dashboard.button(
                     "o",
                     "  Obsidian",
@@ -39,20 +39,20 @@ return {
             { type = "padding", val = 1 },
             dashboard.button("e", "󰈔  New file", "<Cmd>ene<CR>"),
             -- dashboard.button("SPC s l", "  Recently sessions"),
-            dashboard.button(
-                "p",
-                "  Projects",
-                "<cmd>lua require('tools.proj'):select_and_load()<cr>"
-            ),
-            dashboard.button("SPC f f", "󰈞  Find file"),
-            dashboard.button("SPC f w", "󰊄  Live grep"),
-            obsidianbotton,
+            -- dashboard.button(
+            --     "p",
+            --     "  Projects",
+            --     "<cmd>lua require('tools.proj'):select_and_load()<cr>"
+            -- ),
+            dashboard.button("f", "󰈞  Find file"),
+            dashboard.button("g", "󰊄  Live grep"),
+            obsidianbutton,
             dashboard.button(
                 "c",
                 "  Configuration",
                 "<cmd>cd " .. vim.fn.stdpath("config") .. " <CR><cmd>edit .<cr>"
             ),
-            dashboard.button("l", "  Plugins", "<Cmd>Lazy<CR>"),
+            dashboard.button("p", "  Plugins", "<Cmd>Lazy<CR>"),
             dashboard.button("q", "󰅚  Quit", "<Cmd>qa<CR>"),
         }
         alpha.setup(theta.config)

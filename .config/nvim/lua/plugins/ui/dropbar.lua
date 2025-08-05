@@ -12,50 +12,44 @@ return {
                     or vim.wo[win].winbar ~= ""
                     or vim.bo[buf].ft == "help"
                     or vim.bo[buf].ft == "neo-tree-preview"
-                    or vim.bo[buf].buftype == "terminal" --TODO: only file? only file with name(no) 
+                    or vim.bo[buf].buftype == "terminal"
                     or vim.bo[buf].buftype == "nofile"
                     or vim.w[win].neo_tree_preview == 1
                 then
                     return false
                 end
-
-                local stat = vim.uv.fs_stat(vim.api.nvim_buf_get_name(buf))
-                if stat and stat.size > 1024 * 1024 then
-                    return false
-                end
-                return true
-                -- return vim.bo[buf].ft == "markdown"
-                --     or pcall(vim.treesitter.get_parser, buf)
-                --     or not vim.tbl_isempty(vim.lsp.get_clients({
-                --         bufnr = buf,
-                --         method = "textDocument/documentSymbol",
-                --     }))
+                return vim.bo[buf].ft == "markdown"
+                    or pcall(vim.treesitter.get_parser, buf)
+                    or not vim.tbl_isempty(vim.lsp.get_clients({
+                        bufnr = buf,
+                        method = "textDocument/documentSymbol",
+                    }))
             end,
-        },
-        sources = {
-            path = {
-                preview = false,
-            },
+            sources = function(buf, _)
+                local sources = require("dropbar.sources")
+                local filename = {
+                    get_symbols = function(buff, win, cursor)
+                        local symbols =
+                            require("dropbar.sources").path.get_symbols(buff, win, cursor)
+                        return { symbols[#symbols] }
+                    end,
+                }
+                if vim.bo[buf].ft == "markdown" then
+                    return { filename, sources.markdown }
+                end
+                local utils = require("dropbar.utils")
+                return {
+                    filename,
+                    utils.source.fallback({
+                        sources.lsp,
+                        sources.treesitter,
+                    }),
+                }
+            end,
         },
     },
     config = function(_, opts)
         require("dropbar").setup(opts)
-
-        local set_dropbar_colors = function()
-            local WinBar = vim.api.nvim_get_hl(0, { name = "WinBar", link = false })
-            local WinBarNC = vim.api.nvim_get_hl(0, { name = "WinBarNC", link = false })
-            -- local Normal = vim.api.nvim_get_hl(0, { name = 'Normal', link = false })
-            vim.api.nvim_set_hl(0, "WinBar", { fg = WinBar.fg, bg = nil, bold = true })
-            vim.api.nvim_set_hl(0, "WinBarNC", { fg = WinBarNC.fg, bg = nil, bold = false })
-        end
-        set_dropbar_colors()
-        vim.api.nvim_create_autocmd("ColorScheme", {
-            pattern = "*",
-            callback = set_dropbar_colors,
-        })
-        vim.api.nvim_create_autocmd("OptionSet", {
-            pattern = "background",
-            callback = set_dropbar_colors,
-        })
+        require("tools.hl").add_transparent_groups({ "WinBar", "WinBarNC" })
     end,
 }

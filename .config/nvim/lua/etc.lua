@@ -57,16 +57,19 @@ aucmd("DirChanged", {
 aucmd({ "BufReadPre", "BufNewFile" }, {
     callback = function()
         local buftype = vim.bo.buftype
-        local name = vim.api.nvim_buf_get_name(0)
-        if buftype == "" and name ~= "" then
+        if vim.api.nvim_buf_get_name(0) == "" then
+            return
+        end
+        local bufpath = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
+        if buftype == "" and bufpath ~= "" then
             vim.b.projroot = utils.GetRoot(
                 vim.g.root_marker,
                 { -- For Common Buffer : it's projroot or it's parent dir ; For Other : nil
-                    startpath = vim.fn.fnamemodify(name, ":p:h"),
+                    startpath = vim.fn.fnamemodify(bufpath, ":p:h"),
                     use_first_found = false,
                     return_dirname = true,
                 }
-            ) or vim.fn.fnamemodify(name, ":p:h")
+            ) or vim.fn.fnamemodify(bufpath, ":p:h")
             -- For asyncrun
             vim.b.asyncrun_root = vim.b.projroot
         end
@@ -141,11 +144,6 @@ then
                 do_something()
             else
                 stop()
-                -- if stop() then
-                --     vim.notify("get lock failed , stop")
-                -- else
-                --     vim.notify("get lock failed , wait")
-                -- end
                 vim.defer_fn(try_get_lock, 1)
             end
         end
@@ -164,7 +162,7 @@ then
                     end
                 end
             end,
-            on_exit = function(_, code, _)
+            on_exit = function()
                 locked = false
             end,
         })
@@ -172,7 +170,7 @@ then
 
     local function to_insert() --insert
         __lock_jobid = vim.fn.jobstart({ im_select_mspy, insert_imemode }, {
-            on_exit = function(_, code, _)
+            on_exit = function()
                 locked = false
             end,
         })
@@ -190,8 +188,10 @@ then
             if enabled then
                 local o, n = ev.match:match("^([^:]+):([^:]+)$")
                 assert(type(o) == "string" and type(n) == "string")
-                local o_en = not o:match("^[iRt]")
-                local n_en = not n:match("^[iRt]")
+                -- local o_en = not o:match("^[iRt]")
+                -- local n_en = not n:match("^[iRt]")
+                local o_en = not o:match("^[iR]")
+                local n_en = not n:match("^[iR]")
                 if o_en ~= n_en then
                     if o_en then --en->cn: Resume(?->EN/PY.?)
                         get_lock_and_then(to_insert)
@@ -202,6 +202,8 @@ then
             end
         end,
     })
+    --TODO:WinEnter
+
     --RESUME(WAIT)
     aucmd("VimLeavePre", {
         group = "IME_Control",

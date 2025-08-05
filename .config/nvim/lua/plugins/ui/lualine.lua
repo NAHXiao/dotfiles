@@ -54,8 +54,31 @@ return {
                 },
                 lualine_c = {
                     {
-                        "filesize",
-                        cond = conditions.buffer_not_empty,
+                        "filetype",
+                        colored = true,
+                        icon_only = true,
+                        padding = { right = 0, left = 1 },
+                        cond = function()
+                            return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
+                                or vim.bo.buftype== "terminal"
+                        end,
+                    },
+                    {
+                        function()
+                            return vim.bo.buftype == "terminal" and vim.api.nvim_buf_get_name(0)
+                                or shorten_path(
+                                    vim.fs.relpath(
+                                        vim.b.projroot or vim.g.projroot or vim.fn.getcwd(),
+                                        vim.api.nvim_buf_get_name(0)
+                                    ),
+                                    math.floor(vim.o.columns / 3)
+                                )
+                        end,
+                        padding = { right = 0, left = 0 },
+                        cond = function()
+                            return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
+                                or vim.bo.buftype == "terminal"
+                        end,
                     },
                     {
                         "diagnostics",
@@ -95,6 +118,9 @@ return {
                                     return client.name
                                 end)
                                 :totable()
+                            clients = vim.tbl_filter(function(it)
+                                return it ~= "copilot"
+                            end, clients)
                             if #clients == 0 then
                                 return "No Active Lsp"
                             else
@@ -158,15 +184,37 @@ return {
                             )
                         end,
                     },
+                    {
+                        function()
+                            local disabled = "`̸"
+                            local enabled = " "
+                            return require("copilot.client").is_disabled() and disabled or enabled
+                        end,
+                        padding = { left = 0, right = 0 },
+                        cond = function()
+                            return Is_plugin_loaded("copilot.lua")
+                        end,
+                    },
                 },
                 lualine_y = {
                     {
                         "progress",
                         color = { fg = colors.violet },
+                        padding = { left = 1, right = 1 },
+                        fmt = vim.trim,
                     },
                     {
                         "location",
                         color = { fg = colors.violet },
+                        padding = { left = 0, right = 1 },
+                        fmt = vim.trim,
+                    },
+                    {
+                        "filesize",
+                        color = { fg = colors.violet },
+                        cond = conditions.buffer_not_empty,
+                        padding = { left = 0, right = 1 },
+                        fmt = vim.trim,
                     },
                 },
                 lualine_z = {
@@ -174,7 +222,7 @@ return {
                         "encoding",
                         fmt = string.upper,
                         on_click = function()
-                            vim.cmd([[stopinsert]])
+                            vim.cmd.stopinsert()
                             vim.api.nvim_feedkeys(":set fileencoding=", "nt", false)
                         end,
                     },
@@ -196,7 +244,10 @@ return {
                 lualine_x = {
                     {
                         function()
-                            return shorten_path(vim.g.projroot, math.floor(vim.o.columns / 3))
+                            return shorten_path(
+                                vim.b.projroot or vim.g.projroot or vim.fn.getcwd(),
+                                math.floor(vim.o.columns / 3)
+                            )
                         end,
                     },
                 },

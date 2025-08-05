@@ -54,7 +54,7 @@ return {
             default_format_opts = {
                 lsp_format = "fallback",
                 cwd = function()
-                    return vim.b.projroot or vim.g.projroot
+                    return require("utils").get_rootdir(0)
                 end,
             },
             notify_on_error = true,
@@ -68,7 +68,7 @@ return {
                             local_clang_format_path
                         ) == 1
                         local path = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-                        local confpath = utils.GetRoot({ ".clang-format", "_clang_format" }, {
+                        local confpath = utils.FindRoot({ ".clang-format", "_clang_format" }, {
                             startpath = path,
                             use_first_found = true,
                             return_dirname = false,

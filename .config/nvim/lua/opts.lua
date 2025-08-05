@@ -16,7 +16,7 @@ opt.termguicolors = true
 --  Search
 opt.ignorecase = true
 opt.smartcase = true
-opt.incsearch = true
+-- opt.incsearch = true
 -- opt.hlsearch = false
 
 --  Whitespace
@@ -32,7 +32,7 @@ opt.clipboard = "unnamedplus"
 opt.hidden = true
 opt.foldenable = false
 --跨文件搜索
-vim.cmd("set path+=$PWD/**")
+-- vim.cmd("set path+=$PWD/**")
 opt.updatetime = 100
 vim.opt.shortmess:append("c")
 --CursorLineNr
@@ -41,10 +41,6 @@ opt.cursorlineopt = "number"
 -- Spell check:
 vim.cmd([[
 set spelllang=en_us
-]])
--- 自动保存光标位置
-vim.cmd([[
-  au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 ]])
 vim.o.sessionoptions =
     "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

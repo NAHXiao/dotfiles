@@ -209,12 +209,20 @@ local function setup_termbuf(bufnr)
         local next = curnode().next
         if next then
             panelbufcxt:switch(next)
+        else
+            if curnode().parent ~= panelbufcxt.root and curnode().parent.next then
+                panelbufcxt:switch(curnode().parent.next)
+            end
         end
     end, "switch to next node")
     map({ "n", "t" }, "<M-p>", function()
         local prev = curnode().prev
         if prev then
             panelbufcxt:switch(prev)
+        else
+            if curnode().parent ~= panelbufcxt.root and curnode().parent.prev then
+                panelbufcxt:switch(curnode().parent.prev)
+            end
         end
     end, "switch to prev node")
     map({ "n", "t" }, "<M-,>", function()
@@ -290,12 +298,20 @@ local function setup_keymap_panel(bufnr)
         local next = curnode().next
         if next then
             panelbufcxt:switch(next)
+        else
+            if curnode().parent ~= panelbufcxt.root and curnode().parent.next then
+                panelbufcxt:switch(curnode().parent.next)
+            end
         end
     end, "switch to next node")
     map("n", { "<M-p>", "p" }, function()
         local prev = curnode().prev
         if prev then
             panelbufcxt:switch(prev)
+        else
+            if curnode().parent ~= panelbufcxt.root and curnode().parent.prev then
+                panelbufcxt:switch(curnode().parent.prev)
+            end
         end
     end, "switch to prev node")
     map("n", { "<M-,>", "h" }, function()
@@ -613,44 +629,53 @@ function GroupNode:swap(node, offset)
     elseif swapped_idx > #self.children then
         swapped_idx = #self.children
     end
-    if swapped_idx < swap_idx then
+    if swapped_idx > swap_idx then
         swap_idx, swapped_idx = swapped_idx, swap_idx
     end
 
     if swapped_idx ~= swap_idx then
-        -- nil x y nil
-        -- a   c b d
-        if swap_idx + 1 ~= swapped_idx then
-            local swap_prev_node = self.children[swap_idx - 1]
-            local swap_next_node = self.children[swap_idx + 1]
-            local swapped_prev_node = self.children[swapped_idx - 1]
-            local swapped_next_node = self.children[swapped_idx + 1]
-            if swap_prev_node then
-                swap_prev_node.next = self.children[swapped_idx]
+        --swapped_idx < swap_idx
+        -- nil? x y nil?
+        -- a b c d
+        if swapped_idx + 1 == swap_idx then --相邻
+            local a = self.children[swapped_idx - 1]
+            local c = self.children[swapped_idx + 1]
+            local b = self.children[swap_idx - 1]
+            local d = self.children[swap_idx + 1]
+            assert(b == self.children[swapped_idx])
+            assert(c == self.children[swap_idx])
+            if a then
+                a.next = c
             end
-            if swap_next_node then
-                swap_next_node.prev = self.children[swapped_idx]
-            end
-            if swapped_prev_node then
-                swapped_prev_node.next = self.children[swap_idx]
-            end
-            if swapped_next_node then
-                swapped_next_node.prev = self.children[swap_idx]
+            c.prev = a
+            c.next = b
+            b.prev = c
+            b.next = d
+            if d then
+                d.prev = b
             end
         else
-            --prev x y next
-            local prev = self.children[swap_idx - 1]
-            local next = self.children[swapped_idx + 1]
-            if prev then
-                prev.next = self.children[swap_idx]
+            --xp x xn...yp y yn
+            local xp = self.children[swapped_idx - 1]
+            local x = self.children[swapped_idx]
+            local xn = self.children[swapped_idx + 1]
+            local yp = self.children[swap_idx - 1]
+            local y = self.children[swap_idx]
+            local yn = self.children[swap_idx + 1]
+            if xp then
+                xp.next = y
             end
-            if next then
-                next.prev = self.children[swapped_idx]
+            assert(yp~=nil)
+            assert(xn~=nil)
+            x.prev = yp
+            x.next = yn
+            xn.prev = y
+            yp.next = x
+            y.prev = xp
+            y.next = xn
+            if yn then
+                yn.prev = x
             end
-            self.children[swap_idx].prev = self.children[swapped_idx]
-            self.children[swap_idx].next = next
-            self.children[swapped_idx].prev = prev
-            self.children[swapped_idx].next = self.children[swap_idx]
         end
 
         self.children[swap_idx], self.children[swapped_idx] =
@@ -1134,7 +1159,7 @@ end
 --alias _addnode
 function panelbufcxt:append_default(parent)
     local cmds
-    if vim.g.is_win then
+    if CC.is_win then
         cmds = { "pwsh", "-nologo" }
     else
         cmds = { vim.o.shell }
@@ -1357,7 +1382,7 @@ local function create_fallback_termbuf()
         { "Fallback Term Bufnr", "You Should Create A TermBuf Now" }
     )
     vim.bo[bufnr].filetype = "TerminalBuf"
-    vim.bo[bufnr].buftype= "nofile"
+    vim.bo[bufnr].buftype = "nofile"
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].buflisted = false
     return bufnr
@@ -1692,20 +1717,10 @@ function M.send(lines, node)
 end
 
 function M.setup()
-    local function sethl()
-        local cursorline = vim.api.nvim_get_hl(0, { name = "CursorLine", link = false })
-        local visual = vim.api.nvim_get_hl(0, { name = "Visual", link = false })
-        ---@diagnostic disable-next-line: param-type-mismatch
-        vim.api.nvim_set_hl(ns, "TermCurIndex", cursorline)
-        ---@diagnostic disable-next-line: param-type-mismatch
-        vim.api.nvim_set_hl(ns, "TermCursorLine", visual)
-    end
-    vim.api.nvim_create_autocmd("ColorScheme", {
-        group = "tools.terminal.global",
-        pattern = "*",
-        callback = sethl,
+    require("tools.hl").regist({
+        TermCurIndex = { link = "CursorLine" },
+        TermCursorLine = { link = "Visual" },
     })
-    sethl()
     vim.keymap.set({ "n", "t" }, "<M-`>", function()
         M.toggle()
     end)

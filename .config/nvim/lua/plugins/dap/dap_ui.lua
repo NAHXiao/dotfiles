@@ -13,7 +13,6 @@ return {
             end,
             desc = "Debug: Toggle UI",
         },
-
         {
             "<leader>du",
             function()

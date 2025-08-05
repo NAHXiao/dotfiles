@@ -1,15 +1,11 @@
 return {
     "mfussenegger/nvim-dap-python",
     lazy = true,
-    cond=false,
     ft = { "python" },
     config = function()
         if require("mason-registry").is_installed("debugpy") then
             require("dap-python").setup(
-                vim.fs.joinpath(
-                    require("mason-registry").get_package("debugpy"):get_install_path(),
-                    "venv/bin/python"
-                )
+                vim.fs.joinpath(vim.fn.expand("$MASON"), "packages", "debugpy", "venv/bin/python")
             )
         else
             vim.notify("debugpy is not installed,try MasonInstall debugpy", vim.log.levels.WARN)
@@ -17,7 +13,7 @@ return {
     end,
     keys = {
         {
-            "<leader>dn",
+            "<leader>dtm",
             function()
                 require("dap-python").test_method()
             end,
@@ -25,7 +21,7 @@ return {
             ft = { "python" },
         },
         {
-            "<leader>df",
+            "<leader>dtc",
             function()
                 require("dap-python").test_class()
             end,
@@ -43,4 +39,3 @@ return {
         },
     },
 }
-

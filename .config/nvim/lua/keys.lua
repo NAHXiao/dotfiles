@@ -140,6 +140,16 @@ end)
 map("n", "]f", function()
     switch_file(1)
 end)
+---@type fun()[]
+CC.cleanui_funcs = {}
+CC.cleanui = function()
+    for _, f in ipairs(CC.cleanui_funcs) do
+        f()
+    end
+    vim.cmd("redraw!")
+    vim.cmd("nohlsearch")
+end
+map("n", "<C-l>", CC.cleanui)
 -- Fix common typos
 vim.cmd([[
     cnoreabbrev W! w!

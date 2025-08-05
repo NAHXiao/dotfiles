@@ -13,7 +13,7 @@ return {
     event = "VeryLazy",
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
-        { "<leader>td", ":TodoQuickFix<cr>", mode = "n" },
+        { "<leader>qt", "<cmd>TodoQuickFix<cr>", mode = "n" },
         {
             "]t",
             function()
@@ -34,7 +34,7 @@ return {
             "<leader>ft",
             "<cmd>TodoTelescope<cr>",
             mode = "n",
-            desc = "Toggle todo comment",
+            desc = "Find todo comment",
         },
     },
     config = function()
@@ -63,6 +63,7 @@ return {
                     "--with-filename",
                     "--line-number",
                     "--column",
+                    "--follow"
                 },
                 pattern = [[\b(KEYWORDS):]],
             },

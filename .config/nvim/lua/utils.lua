@@ -7,6 +7,28 @@ function M.map(mode, lhs, rhs, opts)
     end
     vim.keymap.set(mode, lhs, rhs, options)
 end
+---@param keys {
+---[1]:string|string[],
+---[2]:string|(fun():string?)?,
+---mode?:string|string[],
+---desc?:string,
+---noremap?:boolean,
+---expr?:boolean,
+---nowiat?:boolean,
+---ft?:string|string[]}[]
+function M.lazy_keymap(keys)
+    local ret = {}
+    for _, key in ipairs(keys) do
+        if type(key[1]) == "string" then
+            table.insert(ret, key)
+        elseif type(key[1]) == "table" then
+            for _, k in ipairs(key[1]) do
+                table.insert(ret, vim.tbl_extend("force", key, { [1] = k }))
+            end
+        end
+    end
+    return ret
+end
 M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
@@ -342,7 +364,7 @@ function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
     return filtered
 end
 -- 当tbl.trigger_key = trigger_value时，执行trigger_func
-function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
+function M.watch_assign_kv(tbl, trigger_key, trigger_value, trigger_func)
     local mt = getmetatable(tbl) or {}
     local old_newindex = mt.__newindex
     mt.__newindex = function(t, key, value)
@@ -357,6 +379,26 @@ function M.wrapmetaable_newindex(tbl, trigger_key, trigger_value, trigger_func)
     end
     setmetatable(tbl, mt)
 end
+-- 总是tbl.key=wrap(assign_value)
+---@generic T value_type
+---@param wrap fun(T):T
+function M.watch_assign_key(tbl, key, wrap)
+    local mt = getmetatable(tbl) or {}
+    local _newindex = mt.__newindex
+    mt.__newindex = function(t, k, v)
+        if k == key then
+            rawset(t, k, wrap(v))
+        else
+            if _newindex then
+                _newindex(t, k, v)
+            else
+                rawset(t, k, v)
+            end
+        end
+    end
+    setmetatable(tbl, mt)
+end
+
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
@@ -395,15 +437,15 @@ function M.index_of(tbl, obj)
     end
 end
 
----@class utils.GetRoot.Opt
+---@class utils.FindRoot.Opt
 ---@field startpath string?         # default cwd()
 ---@field use_first_found boolean? # default true
 ---@field exclude_dirs string[]?    # default { homedir }
 ---@field return_matchpath boolean?# default false
 ---@param names string[]
----@param opt utils.GetRoot.Opt?
+---@param opt utils.FindRoot.Opt?
 ---@return string|nil
-function M.GetRoot(names, opt)
+function M.FindRoot(names, opt)
     opt = opt or {}
     local opts = {
         startpath = opt.startpath or uv.cwd(),
@@ -427,6 +469,15 @@ function M.GetRoot(names, opt)
         result = vim.fs.dirname(result)
     end
     return result
+end
+---@param bufnr? number default nil=>global
+---@return string
+function M.get_rootdir(bufnr)
+    if bufnr then
+        return vim.b[bufnr].projroot or vim.g.projroot or vim.fn.getcwd()
+    else
+        return vim.b.projroot or vim.g.projroot or vim.fn.getcwd()
+    end
 end
 
 function M.transparent_bg_test()

@@ -231,7 +231,7 @@ return {
         {
             "<F9>",
             function()
-                if not Is_plugin_loaded("asynctasks.vim") then
+                if not reqiure("lazy").is_loaded("asynctasks.vim") then
                     require("lazy").load({ plugins = "asynctasks.vim" })
                 end
                 local taskname
@@ -275,7 +275,7 @@ return {
         {
             "<F10>",
             function()
-                if not Is_plugin_loaded("asynctasks.vim") then
+                if not reqire("lazy").is_loaded("asynctasks.vim") then
                     require("lazy").load({ plugins = "asynctasks.vim" })
                 end
                 -- local old_asynctasks_term_focus = vim.g.asynctasks_term_focus
@@ -319,7 +319,7 @@ return {
         {
             "<F11>",
             function()
-                if not Is_plugin_loaded("asynctasks.vim") then
+                if not require("lazy").is_loaded("asynctasks.vim") then
                     require("lazy").load({ plugins = "asynctasks.vim" })
                 end
                 vim.cmd(
@@ -332,7 +332,7 @@ return {
         {
             vim.g.is_win and "<S-F11>" or "<F23>",
             function()
-                if not Is_plugin_loaded("asynctasks.vim") then
+                if not require("lazy").is_loaded("asynctasks.vim") then
                     require("lazy").load({ plugins = "asynctasks.vim" })
                 end
                 local old = vim.g.asynctasks_config

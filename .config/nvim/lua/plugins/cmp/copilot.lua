@@ -61,27 +61,30 @@ return {
             copilot_node_command = "node", -- Node.js version must be > 18.x
             server_opts_overrides = {},
         })
-        local _select = vim.ui.select
-        function vim.ui.select(items, opts, on_choice)
-            if
-                opts
-                and opts.prompt
-                and type(opts.prompt) == "string"
-                and string.match(opts.prompt, [[^.*reached.*limit.*Copilot.*$]])
-            then
-                local year, month, day = opts.prompt:match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
-                vim.notify(
-                    "Copilot: "
-                        .. opts.prompt:match(".*limit%.")
-                        .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
-                    vim.log.levels.ERROR
-                )
-                require("copilot.command").disable()
-            else
-                _select(items, opts, on_choice)
+        local wrap_uiselect = function(old_uiselect)
+            return function(items, opts, on_choice)
+                if
+                    opts
+                    and opts.prompt
+                    and type(opts.prompt) == "string"
+                    and string.match(opts.prompt, [[^.*reached.*limit.*Copilot.*$]])
+                then
+                    local year, month, day = opts.prompt:match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
+                    vim.notify(
+                        "Copilot: "
+                            .. opts.prompt:match(".*limit%.")
+                            .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
+                        vim.log.levels.ERROR
+                    )
+                    require("copilot.command").disable()
+                else
+                    old_uiselect(items, opts, on_choice)
+                end
             end
         end
-
+        local _select = vim.ui.select
+        vim.ui.select = wrap_uiselect(_select)
+        require("utils").watch_assign_key(vim.ui, "select", wrap_uiselect)
         -- https://github.com/zbirenbaum/copilot.lua/issues/91
         vim.keymap.set("i", "<Tab>", function()
             if require("copilot.suggestion").is_visible() then
@@ -95,6 +98,7 @@ return {
             end
         end, {
             silent = true,
+            remap = true,
         })
     end,
 }

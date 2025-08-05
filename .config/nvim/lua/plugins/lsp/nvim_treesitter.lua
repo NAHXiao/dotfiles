@@ -44,9 +44,14 @@ return {
             desc = "Jump To Prev Usage(Buffer)",
         },
         {
-            "<leader>\\t",
-            "<cmd>TSBufToggle<cr>",
-            desc = "Toggle TreeSitter(Buffer)",
+            "<leader>\\th",
+            "<cmd>TSBufToggle highlight<cr>",
+            desc = "Toggle TreeSitter(Buffer highlight)",
+        },
+        {
+            "<leader>\\ti",
+            "<cmd>TSBufToggle indent<cr>",
+            desc = "Toggle TreeSitter(Buffer indent)",
         },
     },
     config = function()

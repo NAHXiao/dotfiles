@@ -33,6 +33,7 @@ return {
                     ("FoldEnable: %s"):format(vim.o.foldenable and "True" or "False")
                 )
             end,
+            desc = "Toggle Fold",
         },
     },
     config = function()

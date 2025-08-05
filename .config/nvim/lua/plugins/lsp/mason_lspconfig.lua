@@ -21,7 +21,7 @@ return {
         })
         local default_lsp_settings = {
             root_dir = function()
-                return vim.b.projroot or vim.g.projroot
+                return require("utils").get_rootdir(0)
             end,
         }
         local clangd_config = vim.tbl_extend("force", default_lsp_settings, {

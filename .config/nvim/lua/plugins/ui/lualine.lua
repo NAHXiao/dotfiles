@@ -67,7 +67,7 @@ return {
                         function()
                             return vim.bo.buftype == "terminal" and vim.api.nvim_buf_get_name(0)
                                 or shorten_path(
-                                    vim.fs.relpath(
+                                    require("utils").relpath(
                                         require("utils").get_rootdir(0),
                                         vim.api.nvim_buf_get_name(0)
                                     ),

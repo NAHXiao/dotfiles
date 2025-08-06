@@ -302,7 +302,47 @@ M.shorten_path = function(path, maxlen)
     shorten_path_cache[path][tostring(maxlen)] = ret
     return ret
 end
-
+M.relpath = vim.fs.relpath
+    or function(base, target)
+        local function normalize_path(path)
+            if not path then
+                return nil
+            end
+            local expanded = vim.fn.expand(path)
+            local absolute = vim.fn.fnamemodify(expanded, ":p")
+            if absolute:match("/$") and #absolute > 1 then
+                absolute = absolute:sub(1, -2)
+            end
+            return absolute
+        end
+        local function split_path(path)
+            local parts = {}
+            for part in path:gmatch("[^/]+") do
+                table.insert(parts, part)
+            end
+            return parts
+        end
+        local norm_base = normalize_path(base)
+        local norm_target = normalize_path(target)
+        if not norm_base or not norm_target then
+            return nil
+        end
+        local base_parts = split_path(norm_base)
+        local target_parts = split_path(norm_target)
+        for i = 1, #base_parts do
+            if base_parts[i] ~= target_parts[i] then
+                return nil
+            end
+        end
+        if #target_parts <= #base_parts then
+            return nil
+        end
+        local rel_parts = {}
+        for i = #base_parts + 1, #target_parts do
+            table.insert(rel_parts, target_parts[i])
+        end
+        return table.concat(rel_parts, "/")
+    end
 ---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
 ---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
 ---nullkeys将含有这些键的item去除
@@ -368,51 +408,51 @@ end
 ---@generic T value_type
 ---@param wrap fun(T):T
 function M.watch_assign_key(tbl, key, wrap)
-	local mt = getmetatable(tbl) or {}
-	local watchers = mt.____watchers or {}
-	local orig_newindex = mt.__newindex
-	local orig_index = mt.__index
-	local data = mt.____data or {}
-	if not mt.____data then
-		for k, v in pairs(tbl) do
-			data[k] = v
-			tbl[k] = nil
-		end
-	end
-	watchers[key] = watchers[key] or {}
-	table.insert(watchers[key], wrap)
-	mt.__index = function(t, k)
-		if data[k] ~= nil then
-			return data[k]
-		elseif orig_index then
-			if type(orig_index) == "function" then
-				return orig_index(t, k)
-			else
-				return orig_index[k]
-			end
-		end
-	end
-	mt.__newindex = function(t, k, v)
-		if watchers[k] then
-			for _, watcher in ipairs(watchers[k]) do
-				v = watcher(v)
-			end
-			data[k] = v
-		else
-			if orig_newindex then
-				if type(orig_newindex) == "function" then
-					orig_newindex(t, k, v)
-				else
-					orig_newindex[k] = v
-				end
-			else
-				data[k] = v
-			end
-		end
-	end
-	mt.____watchers = watchers
-	mt.____data = data
-	setmetatable(tbl, mt)
+    local mt = getmetatable(tbl) or {}
+    local watchers = mt.____watchers or {}
+    local orig_newindex = mt.__newindex
+    local orig_index = mt.__index
+    local data = mt.____data or {}
+    if not mt.____data then
+        for k, v in pairs(tbl) do
+            data[k] = v
+            tbl[k] = nil
+        end
+    end
+    watchers[key] = watchers[key] or {}
+    table.insert(watchers[key], wrap)
+    mt.__index = function(t, k)
+        if data[k] ~= nil then
+            return data[k]
+        elseif orig_index then
+            if type(orig_index) == "function" then
+                return orig_index(t, k)
+            else
+                return orig_index[k]
+            end
+        end
+    end
+    mt.__newindex = function(t, k, v)
+        if watchers[k] then
+            for _, watcher in ipairs(watchers[k]) do
+                v = watcher(v)
+            end
+            data[k] = v
+        else
+            if orig_newindex then
+                if type(orig_newindex) == "function" then
+                    orig_newindex(t, k, v)
+                else
+                    orig_newindex[k] = v
+                end
+            else
+                data[k] = v
+            end
+        end
+    end
+    mt.____watchers = watchers
+    mt.____data = data
+    setmetatable(tbl, mt)
 end
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")

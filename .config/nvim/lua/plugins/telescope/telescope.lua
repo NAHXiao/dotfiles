@@ -211,7 +211,7 @@ return {
         {
             "<leader>fhc",
             "<cmd>lua require('telescope.builtin').command_history()<cr>",
-            desc = "Find search history",
+            desc = "Find command history",
         },
         {
             "<leader>fk",

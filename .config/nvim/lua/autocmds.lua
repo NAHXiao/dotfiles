@@ -302,7 +302,8 @@ aucmd("WinEnter", {
         end
         vim.ui.input({ prompt = "Exit?" }, function(input)
             if input then
-                vim.cmd("wqa!")
+                vim.cmd("wa!")
+                vim.cmd("qa!")
             end
         end)
     end,

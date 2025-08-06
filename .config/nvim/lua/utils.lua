@@ -363,42 +363,57 @@ function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
     end
     return filtered
 end
--- 当tbl.trigger_key = trigger_value时，执行trigger_func
-function M.watch_assign_kv(tbl, trigger_key, trigger_value, trigger_func)
-    local mt = getmetatable(tbl) or {}
-    local old_newindex = mt.__newindex
-    mt.__newindex = function(t, key, value)
-        if old_newindex then
-            old_newindex(t, key, value)
-        else
-            rawset(t, key, value)
-        end
-        if key == trigger_key and value == trigger_value then
-            trigger_func()
-        end
-    end
-    setmetatable(tbl, mt)
-end
 -- 总是tbl.key=wrap(assign_value)
+-- NOTEST:tbl with metatable
 ---@generic T value_type
 ---@param wrap fun(T):T
 function M.watch_assign_key(tbl, key, wrap)
-    local mt = getmetatable(tbl) or {}
-    local _newindex = mt.__newindex
-    mt.__newindex = function(t, k, v)
-        if k == key then
-            rawset(t, k, wrap(v))
-        else
-            if _newindex then
-                _newindex(t, k, v)
-            else
-                rawset(t, k, v)
-            end
-        end
-    end
-    setmetatable(tbl, mt)
+	local mt = getmetatable(tbl) or {}
+	local watchers = mt.____watchers or {}
+	local orig_newindex = mt.__newindex
+	local orig_index = mt.__index
+	local data = mt.____data or {}
+	if not mt.____data then
+		for k, v in pairs(tbl) do
+			data[k] = v
+			tbl[k] = nil
+		end
+	end
+	watchers[key] = watchers[key] or {}
+	table.insert(watchers[key], wrap)
+	mt.__index = function(t, k)
+		if data[k] ~= nil then
+			return data[k]
+		elseif orig_index then
+			if type(orig_index) == "function" then
+				return orig_index(t, k)
+			else
+				return orig_index[k]
+			end
+		end
+	end
+	mt.__newindex = function(t, k, v)
+		if watchers[k] then
+			for _, watcher in ipairs(watchers[k]) do
+				v = watcher(v)
+			end
+			data[k] = v
+		else
+			if orig_newindex then
+				if type(orig_newindex) == "function" then
+					orig_newindex(t, k, v)
+				else
+					orig_newindex[k] = v
+				end
+			else
+				data[k] = v
+			end
+		end
+	end
+	mt.____watchers = watchers
+	mt.____data = data
+	setmetatable(tbl, mt)
 end
-
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end

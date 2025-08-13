@@ -1,11 +1,3 @@
--- local logger = require("copilot.logger")
--- local _notify = logger.notify
--- logger.notify = function(msg, ...)
---     require("utils").log(msg)
---     _notify(msg, ...)
--- end
--- logger.notify="hello"
--- vim.fn.writefile()
 return {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
@@ -13,7 +5,23 @@ return {
     version = "*",
     lazy = true,
     keys = {
-        { "<leader>\\a", "<cmr>Copilot toggle<cr>", desc = "Toggle Copilot(AI Completion)" },
+        {
+            "<leader>\\a",
+            function()
+                local disabled = require("copilot.client").is_disabled()
+                if disabled then
+                    require("copilot.command").enable()
+                else
+                    require("copilot.command").disable()
+                end
+                require("utils").vim_echo(
+                    ("Copilot: %s"):format(
+                        require("copilot.client").is_disabled() and "Disabled" or "Enabled"
+                    )
+                )
+            end,
+            desc = "Toggle Copilot(AI Completion)",
+        },
     },
     config = function()
         require("copilot").setup({
@@ -72,8 +80,8 @@ return {
                     local year, month, day = opts.prompt:match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
                     vim.notify(
                         "Copilot: "
-                            .. opts.prompt:match(".*limit%.")
-                            .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
+                        .. opts.prompt:match(".*limit%.")
+                        .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
                         vim.log.levels.ERROR
                     )
                     require("copilot.command").disable()
@@ -85,10 +93,12 @@ return {
         local _select = vim.ui.select
         vim.ui.select = wrap_uiselect(_select)
         require("utils").watch_assign_key(vim.ui, "select", wrap_uiselect)
+
         -- https://github.com/zbirenbaum/copilot.lua/issues/91
         vim.keymap.set("i", "<Tab>", function()
             if require("copilot.suggestion").is_visible() then
                 require("copilot.suggestion").accept()
+                vim.snippet.stop()
             else
                 vim.api.nvim_feedkeys(
                     vim.api.nvim_replace_termcodes("<Tab>", true, false, true),
@@ -96,9 +106,6 @@ return {
                     false
                 )
             end
-        end, {
-            silent = true,
-            remap = true,
-        })
+        end, { silent = true })
     end,
 }

@@ -1,282 +1,5 @@
-local log = require("utils").log
 local list_filter = require("utils").list_filter
----@type table<"global"|string,{tasks:utask[],tasksets:utaskset[]}>
-local config = {
-    global = {
-        tasks = {
-            --project-create
-            {
-                name = "mvn-create",
-                cmds = {
-                    "mvn",
-                    "archetype:generate",
-                    "-DgroupId=$(-group:com.example)",
-                    "-DartifactId=$(-artifactname:hello-world)",
-                    "-DarchetypeArtifactId=maven-archetype-quickstart",
-                    "-DinteractiveMode=false",
-                },
-                type = "project",
-            },
-            {
-                name = "cargo-create",
-                cmds = { "cargo", "new", "$(-name)", "--bin" },
-                type = "project",
-            },
-            {
-                name = "cmake-create",
-                cmds = { "cmake_create", "$(-name:)" },
-                type = "project",
-            },
-            --c/cpp
-            {
-                name = "build",
-                cmds = {
-                    "gcc",
-                    "-O3",
-                    "--std=c23",
-                    "$(VIM_FILEPATH)",
-                    "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-                },
-                filetypes = { "c" },
-                type = "file",
-                mode = "release",
-            },
-            {
-                name = "build",
-                cmds = {
-                    "gcc",
-                    "-O3",
-                    "--std=c23",
-                    "$(VIM_FILEPATH)",
-                    "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-                    "--debug",
-                },
-                filetypes = { "c" },
-                type = "file",
-                mode = "debug",
-            },
-            {
-                name = "build",
-                cmds = {
-                    "g++",
-                    "-O3",
-                    "--std=c++23",
-                    "$(VIM_FILEPATH)",
-                    "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-                },
-                filetypes = { "cpp" },
-                type = "file",
-                mode = "release",
-            },
-            {
-                name = "build",
-                cmds = {
-                    "g++",
-                    "-O3",
-                    "--std=c++23",
-                    "$(VIM_FILEPATH)",
-                    "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
-                    "--debug",
-                },
-                filetypes = { "cpp" },
-                type = "file",
-                mode = "debug",
-            },
-            {
-                name = "run",
-                cmds = {
-                    "$(VIM_PATHNOEXT)" .. (CC.is_win and ".exe" or ""),
-                },
-                filetypes = { "c", "cpp" },
-                type = "file",
-            },
-            --java
-            {
-                name = "build",
-                cmds = {
-                    "javac",
-                    "-d",
-                    "$(VIM_ROOT)/.build",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "java" },
-                type = "file",
-            },
-            {
-                name = "run",
-                cmds = {
-                    "java",
-                    "-cp",
-                    "$(VIM_ROOT)/.build",
-                    "$(VIM_FILENOEXT)",
-                },
-                filetypes = { "java" },
-                type = "file",
-            },
-            --scripts
-            {
-                name = "run",
-                cmds = {
-                    "lua",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "lua" },
-                type = "file",
-            },
-            {
-                name = "run(nvim)",
-                cmds = {
-                    "nvim",
-                    "-u",
-                    "NONE",
-                    "-l",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "lua" },
-                type = "file",
-            },
-            {
-                name = "run",
-                cmds = {
-                    "python",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "python" },
-                type = "file",
-            },
-            {
-                name = "run",
-                cmds = {
-                    "node",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "javascript" },
-                type = "file",
-            },
-            {
-                name = "run",
-                cmds = {
-                    "powershell",
-                    "-file",
-                    "$(VIM_FILEPATH)",
-                },
-                filetypes = { "ps1" },
-                type = "file",
-            },
-        },
-        tasksets = {
-            {
-                name = "build_and_run(cpp release)",
-                break_on_err = true,
-                seq = true,
-                "build(file:release)[cpp]",
-                "run(file)[cpp,c]",
-            },
-            {
-                name = "build_and_run(cpp debug)",
-                break_on_err = true,
-                seq = true,
-                { "build(file:debug)[cpp]" },
-                "run(file)[cpp,c]",
-            },
-        },
-    },
-    template = {
-        tasks = {
-            {
-                name = "build",
-                cmds = { "echo", "${CC}" },
-                type = "project",
-                mode = "debug",
-                opts = {
-                    clear_env = false,
-                    cwd = "$(VIM_ROOT)",
-                    env = {
-                        CC = "clang",
-                    },
-                },
-            },
-            {
-                name = "run",
-                cmds = { "echo", "${CC}" },
-                type = "project",
-                mode = "debug",
-                opts = {
-                    clear_env = false,
-                    cwd = "$(VIM_ROOT)",
-                    env = {
-                        CC = "clang",
-                    },
-                },
-            },
-        },
-        tasksets = {
-            {
-                { "build(debug:project)" },
-                "run(project:debug)",
-                break_on_err = true,
-                seq = true,
-                name = "build and run",
-            },
-        },
-    },
-    cmake = {
-        tasks = {
-            {
-                name = "project-refresh-config",
-                cmds = { "cmake", "--fresh", "-B", "build", "-S", "." },
-            },
-            {
-                name = "build",
-                cmds = { "cmake", "--build", "build" },
-            },
-            {
-                name = "run",
-                cmds = { "build/$(VIM_PRONAME)" },
-            },
-        },
-        tasksets = {},
-    },
-    cargo = {
-        tasks = {
-            {
-                name = "build",
-                cmds = { "cargo", "build" },
-            },
-            {
-                name = "run",
-                cmds = { "cargo", "run" },
-            },
-            {
-                name = "project-test",
-                cmds = { "cargo", "test" },
-            },
-        },
-        tasksets = {},
-    },
-    mvn = {
-        tasks = {
-            {
-                name = "build",
-                cmds = { "mvn", "compile" },
-            },
-            {
-                name = "project-test",
-                cmds = { "mvn", "test" },
-            },
-            {
-                name = "run",
-                cmds = { "mvn", "exec:java", "-Dexec.mainClass=$(-mainClass:)" },
-            },
-        },
-        tasksets = {},
-    },
-}
-
+local config = require("tools.config.task")
 local T = {
     ---@type table<"global"|"locall"|string,{tasks:task[],tasksets:taskset[],str2taskmap:{[string]:task},str2setmap:{[string]:taskset}}>
     data = {
@@ -308,6 +31,7 @@ local T = {
 function T:utask2task(utask, field)
     return vim.tbl_deep_extend("force", self.task_base, utask, { field = field })
 end
+
 ---@param utaskset utaskset
 ---@return taskset
 function T:utaskset2taskset(utaskset, field)
@@ -315,7 +39,7 @@ function T:utaskset2taskset(utaskset, field)
     local taskset = vim.tbl_deep_extend("force", self.taskset_base, utaskset, { field = field })
     for i, item in ipairs(taskset) do
         local taskname
-        local bg = false --DEFAULT
+        local bg = false         --DEFAULT
         local ignore_err = false --DEFAULT
         if type(item) == "string" then
             taskname = item
@@ -344,6 +68,7 @@ function T:utaskset2taskset(utaskset, field)
     ---return-type-mismatch
     return taskset
 end
+
 ---@param utask utask
 ---@param field string
 ---@return task
@@ -367,6 +92,7 @@ function T:addtask(utask, field)
     self.data[field].str2taskmap[str] = task
     return task
 end
+
 ---@param utaskset utaskset
 ---@param field string
 function T:addtaskset(utaskset, field)
@@ -386,6 +112,7 @@ function T:addtaskset(utaskset, field)
     self.data[field].str2setmap[taskset.name] = taskset
     return taskset
 end
+
 ---@param item task|taskset
 ---@param fts string[]
 function T:item_valid_on_ft(item, fts)
@@ -404,6 +131,7 @@ function T:item_valid_on_ft(item, fts)
         return true
     end
 end
+
 ---@param items items
 function T:items2lines(items)
     ---@type string[]
@@ -458,6 +186,7 @@ function T:items2lines(items)
     end
     return lines
 end
+
 ---@param task task|keys_tbl
 ---@return task_keys
 function T:task2keys(task)
@@ -477,6 +206,7 @@ function T:task2keys(task)
     end
     return result
 end
+
 ---@param str task_keys
 ---@return keys_tbl
 function T:keys2task(str)
@@ -593,12 +323,15 @@ function T:keys2task(str)
     result.name = working_str
     return result
 end
+
 function T:isutask(task)
     return task and #task == 0 and task.name and task.cmds
 end
+
 function T:isutaskset(taskset)
     return taskset and #taskset ~= 0 and taskset.name
 end
+
 function T:istask(task)
     return task
         and #task == 0
@@ -609,6 +342,7 @@ function T:istask(task)
         and task.filetypes
         and task.opts
 end
+
 function T:istaskset(taskset)
     return taskset
         and #taskset ~= 0
@@ -617,9 +351,11 @@ function T:istaskset(taskset)
         and taskset.seq ~= nil
         and taskset.field
 end
+
 function T:localtask_path()
-    return vim.fs.abspath(vim.fs.joinpath(require("utils").get_rootdir(), ".tasks.lua"))
+    return vim.fs.abspath(vim.fs.joinpath(require("utils").get_rootdir(), ".vim", ".tasks.lua"))
 end
+
 ---@type task|taskset
 local default_build
 ---@type task|taskset
@@ -665,7 +401,7 @@ end
 local comp = {
     order = { "field", "isset", "tasktype", "taskmode" },
     field = function(a, _) return a == "locall" end,
-    isset= function(a, _) return a == true end,
+    isset = function(a, _) return a == true end,
     taskmode = function(a, b) return a == "" or b == "release" end,
     tasktype = function(a, b) return a == "" or b == "file" end,
 }
@@ -739,6 +475,7 @@ function T:findmax(items, _comp)
     end
     return { unpack(list, 1, last) }
 end
+
 ---@param data {[string]:{tasks:task[],tasksets:taskset[]}}
 ---@param prompt string
 ---@param callback fun(items:(task|taskset)[]|(task|taskset)|nil)
@@ -761,6 +498,7 @@ function T:select(data, prompt, callback, field_option)
                 math.max(draw[5], #item.filetypes ~= 0 and #table.concat(item.filetypes, ",") or 1)
         end
     end
+
     function draw:calcute_rownum()
         if self[4] == 0 and self[5] == 0 then
             self.colnum = 3
@@ -768,6 +506,7 @@ function T:select(data, prompt, callback, field_option)
             self.colnum = 5
         end
     end
+
     function draw:draw(item)
         local row
         if item.below then
@@ -804,6 +543,7 @@ function T:select(data, prompt, callback, field_option)
         end
         return table.concat(row, " | ")
     end
+
     local function process_tbl(field, tbl)
         if not tbl then
             return
@@ -857,6 +597,7 @@ function T:select(data, prompt, callback, field_option)
         end
     end)
 end
+
 local M = {
     ignore_filetypes = {
         "",
@@ -1214,29 +955,8 @@ M.run_select = function(fts)
     end, false)
 end
 M.edittask = function()
-    local append_items = function(lines, items)
-        local insert_before
-        for i = #lines, 1, -1 do
-            if lines[i]:match("^%s*return%s+items%s*$") then
-                insert_before = i
-                break
-            end
-        end
-        if not insert_before then
-            vim.notify("[task]: 'return items' not found", vim.log.levels.ERROR)
-            return
-        else
-            for i, line in ipairs(T:items2lines(items)) do
-                table.insert(lines, insert_before + i - 1, line)
-            end
-        end
-    end
-    local function is_empty_buffer(bufnrr)
-        local byte_size = vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
-        return byte_size == 0 or byte_size == 1
-    end
-    local tmpl = [[
----@class task
+    local tmpl =
+        ([[---@class task
 ---@field name string
 ---@field cmds string[]
 ---@field mode? ("debug"|"release"|"") default ""
@@ -1252,13 +972,14 @@ M.edittask = function()
 ---@field default_build? boolean
 ---@field default_run? boolean
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
+---See [%s]
 
 ---@MACRO: $(MACRO_NAME)
 ---VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
 ---VIM_FILEDIR VIM_DIRNAME
 ---VIM_ROOT VIM_PRONAME
 ---@ARG: $(-argname:default)
----@ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## % %% /// //}
+---@ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## %% %%%% /// //}
 
 ---@type (task|taskset)[]
 local items = {}
@@ -1266,49 +987,45 @@ local items = {}
 local function new(it)
     table.insert(items,it)
 end
-return items
-]]
-    ---@param args {bufnr:integer,filepath:string}
-    local function select_and_write(args)
-        assert(args.bufnr ~= nil or args.filepath ~= nil)
+return items]]):format(vim.fs.joinpath(vim.fn.stdpath("config"), "lua/tools/config/task.lua"))
+    local bufnr, already_focus, _, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
+    if already_focus == true then
+        local append_items = function(lines, items)
+            local insert_before
+            for i = #lines, 1, -1 do
+                if lines[i]:match("^%s*return%s+items%s*$") then
+                    insert_before = i
+                    break
+                end
+            end
+            if not insert_before then
+                vim.notify("[task]: 'return items' not found", vim.log.levels.ERROR)
+                return
+            else
+                for i, line in ipairs(T:items2lines(items)) do
+                    table.insert(lines, insert_before + i - 1, line)
+                end
+            end
+        end
+        local function is_empty_buffer(bufnrr)
+            local byte_size = vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
+            return byte_size == 0 or byte_size == 1
+        end
         local data =
             vim.tbl_deep_extend("force", T.data, { locall = { tasks = {}, tasksets = {} } })
         T:select(data, "Select To Add", function(items)
             if not items then
                 return
             end
-            local bufnr = args.bufnr
-                or (function()
-                    vim.cmd("botright vsplit " .. args.filepath)
-                    return vim.api.nvim_get_current_buf()
-                end)()
             local lines
             if is_empty_buffer(bufnr) then
-                lines = vim.split(tmpl, "[\r\n]")
+                lines = vim.split(tmpl, "\r?\n")
             else
                 lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
             end
             append_items(lines, items)
             vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
         end, true)
-    end
-    local filepath = T:localtask_path()
-    local bufnr = vim.fn.bufnr(filepath)
-    local buf_exists = bufnr ~= -1
-    local win_exists = buf_exists and vim.fn.bufwinnr(bufnr) ~= -1
-    local is_focused = buf_exists and vim.api.nvim_get_current_buf() == bufnr
-    local file_exists = vim.fn.filereadable(filepath) == 1
-
-    if buf_exists and win_exists and not is_focused then
-        vim.api.nvim_set_current_win(vim.fn.bufwinnr(bufnr))
-    elseif buf_exists and not win_exists and not is_focused then
-        vim.cmd("botright vsplit #" .. bufnr)
-    elseif buf_exists and win_exists and is_focused then
-        select_and_write({ bufnr = bufnr })
-    elseif not buf_exists and not file_exists then
-        select_and_write({ filepath = filepath })
-    elseif not buf_exists and file_exists then
-        vim.cmd("botright vsplit " .. filepath)
     end
 end
 
@@ -1337,6 +1054,7 @@ function M.switch_taskmode()
     end
     require("utils").vim_echo(("TaskMode: %s"):format(display))
 end
+
 function M.switch_tasktype()
     local display
     if M.task_type == nil then
@@ -1354,6 +1072,7 @@ function M.switch_tasktype()
     end
     require("utils").vim_echo(("TaskType: %s"):format(display))
 end
+
 M.setup = function()
     for field, tbl in pairs(config) do
         for _, task in ipairs(tbl.tasks) do
@@ -1400,8 +1119,8 @@ M.setup = function()
         T:refresh_local()
         M.run_select({ get_cur_ft() })
     end, { desc = "TaskSelectAndRun" })
-    map("n", CC.is_win and "<S-F12>" or "<F24>", function()
+    map("n", { CC.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
         M.edittask()
-    end, { desc = "TaskEdit" })
+    end, { desc = "Edit: Task (Add Task)" })
 end
 return M

@@ -1,0 +1,130 @@
+local utils = require("utils")
+local M = {}
+---@param reload? boolean
+function M.loadconfig(reload)
+    if reload then
+        package.loaded["tools.config.lsp"] = nil
+    end
+    M.config = require("tools.config.lsp")
+    M.config.ulsp_config_ok = nil
+    local config = M.config
+    if vim.uv.fs_stat(config.ulsp_config_path()) then
+        local ok, ulsp_config = pcall(dofile, config.ulsp_config_path())
+        if ok then
+            vim.validate("ulsp_config.disable", ulsp_config.disable, function(it)
+                return type(it) == "table" or it == true
+            end, true)
+            vim.validate("ulsp_config.disable_exclude", ulsp_config.disable_exclude, "table", true)
+            vim.validate("ulsp_config.extend", ulsp_config.extend, "table", true)
+            vim.validate("ulsp_config.override", ulsp_config.override, 'table', true)
+            ulsp_config.disable = ulsp_config.disable or {}
+            ulsp_config.disable_exclude = ulsp_config.disable_exclude or {}
+            ulsp_config.extend = ulsp_config.extend or {}
+            ulsp_config.override = ulsp_config.override or {}
+            config.ulsp_config = ulsp_config
+            for lspname, _ in pairs(config.ulsp_config.extend) do
+                config.auto_enable[#config.auto_enable + 1] = lspname
+            end
+            for lspname, _ in pairs(config.ulsp_config.override) do
+                config.auto_enable[#config.auto_enable + 1] = lspname
+            end
+        end
+        config.ulsp_config_ok = ok
+    end
+end
+
+---Override/Extend
+function M.setup_lspconfig()
+    local config = M.config
+    if config.extend then
+        for lsp, conf in pairs(config.extend) do
+            vim.lsp.config(lsp, conf)
+        end
+    end
+    if config.override then
+        for lsp, conf in pairs(config.override) do
+            vim.lsp.config[lsp] = conf
+        end
+    end
+    if config.ulsp_config_ok == true then
+        for lsp, conf in pairs(config.ulsp_config.extend) do
+            vim.lsp.config(lsp, conf)
+        end
+        for lsp, conf in pairs(config.ulsp_config.override) do
+            vim.lsp.config[lsp] = conf
+        end
+    elseif config.ulsp_config_ok == false then
+        vim.notify(("[LSP]: dofile %s error: %s"):format(config.ulsp_config_path(), config.ulsp_config),
+            vim.log.levels.ERROR)
+    end
+end
+
+function M.enable_lsps()
+    for _, lsp in ipairs(M.config.auto_enable) do
+        if M.allow_enable(lsp) then
+            vim.lsp.enable(lsp)
+        end
+    end
+end
+
+function M.allow_enable(lspname)
+    if M.config.ulsp_config_ok then
+        local ulsp_config = M.config.ulsp_config
+        local pass
+        if ulsp_config.disable == true then
+            pass = vim.list_contains(ulsp_config.disable_exclude, lspname)
+        else
+            pass = (not vim.list_contains(ulsp_config.disable, lspname)) or
+                vim.list_contains(ulsp_config.disable_exclude, lspname)
+        end
+        return pass
+    end
+    return true
+end
+
+---Should be setup after <rtp>/lsp loaded
+function M.setup_disable()
+    local _enable = vim.lsp.enable
+    vim.lsp.enable = function(name, enable)
+        vim.validate('name', name, { 'string', 'table' })
+        if type(name) == "string" then
+            name = { name }
+        end
+        if enable == nil or enable == true then
+            name = vim.iter(name):filter(function(it)
+                local pass = M.allow_enable(it)
+                if not pass then
+                    vim.notify(("[LSP]: %s has been disabled"):format(it), vim.log.levels.WARN)
+                end
+                return pass
+            end):totable()
+        end
+        return _enable(name, enable)
+    end
+end
+
+function M.setup_keymap()
+    require("utils").map("n", "<leader>el", function()
+        utils.focus_or_new(M.config.ulsp_config_path(), M.config.ulsp_config_tmpl)
+    end, { desc = "Edit: Lsp" })
+end
+
+function M.setup()
+    M.loadconfig()
+    M.setup_lspconfig()
+    M.setup_disable()
+    M.enable_lsps()
+    M.setup_keymap()
+    require("utils").auc("User", {
+        pattern = "ProjRootChanged",
+        callback = M.reload
+    })
+end
+
+function M.reload()
+    M.loadconfig(true)
+    M.setup_lspconfig()
+    M.enable_lsps()
+end
+
+return M

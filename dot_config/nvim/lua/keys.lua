@@ -1,9 +1,5 @@
 local map = require("utils").map
 -- [[ keys.lua ]]
--- map('n','<C-c>','<Esc>')
--- map('v','<C-c>','<Esc>')
--- map('c','<C-c>','<Esc>')
-map("i", "<C-c>", "<Esc>", { remap = true })
 
 -- format encoding? (\r\n -> \n)
 map("n", "<leader>fe", ":%s#\\r##g<CR>", { silent = true })
@@ -41,23 +37,17 @@ map("t", "<A-l>", "<C-\\><C-n><C-w>l")
 map("t", "<C-[>", "<C-\\><C-n>")
 --禁用H
 map("n", "H", "h")
---禁用F1
-map({ "n", "i" }, "<F1>", "<Nop>")
+--Nop
+-- map("i", "<C-i>", "<Nop>") --C-i和Tab的键码是同一个.?
+map('*', "<F1>", "<Nop>")
+map('v', "K", "<Nop>")
 
 map("i", "<C-h>", function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = vim.api.nvim_get_current_line()
     local first_non_blank = line:find("%S") or 1
     vim.api.nvim_win_set_cursor(0, { row, first_non_blank - 1 })
-end)
--- map('i', "<C-h>", "<home>")
-map("i", "<C-l>", function()
-    local row = vim.api.nvim_win_get_cursor(0)[1]
-    local line = vim.api.nvim_get_current_line()
-    local line_length = #line
-    vim.api.nvim_win_set_cursor(0, { row, line_length })
-end)
--- map('i', "<C-l>", "<end>")
+end, { desc = "<HOME>" })
 
 local function jump_next_line(where)
     local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
@@ -86,6 +76,24 @@ end, { noremap = true, silent = true })
 --ctrl s保存
 map("i", "<C-s>", "<C-[>:wa<CR>")
 map("n", "<C-s>", "<C-[>:wa<CR>")
+
+map("i", "<C-l>", function()
+    local row = vim.api.nvim_win_get_cursor(0)[1]
+    local line = vim.api.nvim_get_current_line()
+    local line_length = #line
+    vim.api.nvim_win_set_cursor(0, { row, line_length })
+end, { desc = "<END>" })
+map({ "i", "s" }, "<C-j>", function()
+    if vim.snippet.active({ direction = 1 }) then
+        vim.snippet.jump(1)
+    end
+end, { desc = "snippet next" })
+map({ "i", "s" }, "<C-k>", function()
+    if vim.snippet.active({ direction = -1 }) then
+        vim.snippet.jump(-1)
+    end
+end, { desc = "snippet prev" })
+map({ "i", "s" }, "<esc>", "<cmd>lua vim.snippet.stop()<cr><esc>", { silent = true })
 -- Toggle colored column at 81
 -- map('n', '<leader>|', ':execute "set colorcolumn=" . (&colorcolumn == "" ? "81" : "")<CR>')
 
@@ -105,7 +113,7 @@ local function switch_file(direction)
     local current_name = vim.fs.basename(current)
     local files = {}
     for name, type in vim.fs.dir(dir) do
-        if type == "file" then
+        if type == "file" or (type == "link" and vim.uv.fs_stat(vim.fs.joinpath(dir,name)).type == "file") then
             table.insert(files, name)
         end
     end
@@ -158,13 +166,13 @@ vim.cmd([[
     cnoreabbrev Q! q!
     cnoreabbrev Q1 q!
     cnoreabbrev q1 q!
-    
+
     cnoreabbrev qa1 qa!
     cnoreabbrev Qa qa
     cnoreabbrev Qa! qa!
     cnoreabbrev Qall qall
     cnoreabbrev Qall! qall!
-    
+
     cnoreabbrev Wa wa
     cnoreabbrev Wq wq
     cnoreabbrev wQ wq
@@ -183,15 +191,3 @@ vim.cmd([[
     cnoreabbrev wQa wqa
     cnoreabbrev wqA wqa
 ]])
---vim.cmd([[
---" " Copy to clipboard
---vnoremap  <leader>y  "+y
---nnoremap  <leader>Y  "+yg_
---nnoremap  <leader>y  "+y
---nnoremap  <leader>yy  "+yy
---" " Paste from clipboard
---nnoremap <leader>p "+p
---nnoremap <leader>P "+P
---vnoremap <leader>p "+p
---vnoremap <leader>P "+P
---]])

@@ -1,0 +1,10 @@
+[open]
+prepend_rules = [
+   { mime = "text/*", use = "nvim" }
+]
+[opener]
+nvim = [
+	{ run = 'nvim "$@"', block = true, for = "unix" },
+	{ run = 'nvim "$@"', block = true, for = "android" },
+	{ run = "nvim %*",  block = true, for = "windows" },
+]

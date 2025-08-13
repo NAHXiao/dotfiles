@@ -1,6 +1,6 @@
 return {
     "3rd/image.nvim",
-    enabled = vim.loop.os_uname().sysname ~= "Windows_NT",
+    enabled = vim.uv.os_uname().sysname ~= "Windows_NT",
     cond = false,
     -- ft = { "markdown", "org", "norg" },
     event = function(plugin)

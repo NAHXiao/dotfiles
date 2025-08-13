@@ -1,6 +1,11 @@
 #!/bin/bash
-
-PROJECT_NAME=${1:-MyProject}
+PROJECT_NAME=${1:-"NewProject"}
+uname -a |grep -iq windows && IS_WIN=true
+if test $IS_WIN;then
+    VCPKG_TARGET_TRIPLET="x64-windows"
+else
+    VCPKG_TARGET_TRIPLET="x64-linux"
+fi
 
 mkdir "$PROJECT_NAME"
 cd "$PROJECT_NAME"
@@ -13,9 +18,9 @@ int main() {
 }
 EOF
 
-cat > CMakeLists.txt << 'EOF'
+cat > CMakeLists.txt <<-'EOF'
 cmake_minimum_required(VERSION 3.24)
-#set(VCPKG_TARGET_TRIPLET "x64-linux")
+#set(VCPKG_TARGET_TRIPLET "VCPKG_TARGET_TRIPLET_PLACEHOLDER")
 #set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake) # before project() command
 project(PROJECT_NAME_PLACEHOLDER VERSION 0.1.0 LANGUAGES CXX)
 #find_package(fmt CONFIG REQUIRED) # after project() command
@@ -33,15 +38,16 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 #target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_BINARY_DIR}/compile_commands.json"
-        "${CMAKE_SOURCE_DIR}/compile_commands.json"
-    COMMENT "Copying compile_commands.json to source directory"
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 EOF
 
 sed -i "s/PROJECT_NAME_PLACEHOLDER/$PROJECT_NAME/g" CMakeLists.txt
+sed -i "s/VCPKG_TARGET_TRIPLET_PLACEHOLDER/$VCPKG_TARGET_TRIPLET/g" CMakeLists.txt
 
 mkdir build
 cmake -S . -B build

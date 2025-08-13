@@ -69,7 +69,7 @@ local env_map_func = {
         end
     end,
     VIM_VSC_Home = function()
-        return vim.loop.os_homedir()
+        return vim.uv.os_homedir()
     end,
 }
 

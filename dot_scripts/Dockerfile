@@ -4,7 +4,12 @@ FROM ubuntu:latest
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""
 ARG socks_proxy=""
-RUN echo "#!/bin/bash\n [[ \$# -ne 0 ]] && env http_proxy=$HTTP_PROXY https_proxy=$HTTPS_PROXY socks_proxy=$socks_proxy no_proxy=$NO_PROXY \"\$@\"; " > /usr/local/bin/useproxy && chmod +x /usr/local/bin/useproxy
+
+RUN cat  <<-EOF > /usr/local/bin/useproxy && chmod +x /usr/local/bin/useproxy
+#!/bin/bash
+env http_proxy=$HTTP_PROXY https_proxy=$HTTPS_PROXY socks_proxy=$socks_proxy no_proxy=$NO_PROXY "\$@"; 
+EOF
+
 RUN set -e &&\
     echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/99retries && \
     #must \

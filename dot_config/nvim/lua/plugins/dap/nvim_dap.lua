@@ -2,6 +2,22 @@ vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DiagnosticError" }
 vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DiagnosticInfo" })
 vim.fn.sign_define("DapStopped", { text = "", texthl = "Constant", linehl = "debugPC" })
 vim.fn.sign_define("DapBreakpointRejected", { text = "" })
+---@type vim.lsp.rpc.PublicClient
+
+local dap_config_path = function()
+    return vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "dap.lua")
+end
+local dap_config_tmpl =
+    ([[local dap = require('dap')
+---@alias ft string
+---@type table<ft,dap.Configuration[]>
+---See `:help dap-configuration`
+---See [%s]
+---See [%s]
+return {}]]):format(
+        vim.fs.joinpath(CC.lazypath, "mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/configurations.lua"),
+        vim.fs.joinpath(CC.lazypath, "mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/filetypes.lua"))
+---@type table<string,dap.Configuration>
 return {
     {
         "mfussenegger/nvim-dap",
@@ -10,7 +26,7 @@ return {
             "theHamsta/nvim-dap-virtual-text",
 
             "jay-babu/mason-nvim-dap.nvim", -- ensure dap configurated by mason-nvim-dap
-            "rcarriga/nvim-dap-ui", -- ensure dap-ui loaded when dap
+            "rcarriga/nvim-dap-ui",         -- ensure dap-ui loaded when dap
         },
         lazy = true,
         --d bBprioO
@@ -52,20 +68,26 @@ return {
                 end,
                 desc = "Debug: Run last",
             },
+            {
+                "<leader>ed",
+                function()
+                    require("utils").focus_or_new(dap_config_path(), dap_config_tmpl)
+                end,
+                desc = "Edit: Dap"
+            },
 
             {
-                "<F5>", --TODO: Edit
+                "<F5>",
                 function()
                     local dap = require("dap")
-                    local root = require("utils").get_rootdir()
-                    local paths = { root .. "/.dap.lua" }
-                    local ok = false
-                    local config = nil
-                    for _, path in pairs(paths) do
-                        ok, config = pcall(dofile, path)
+                    if vim.fn.filereadable(dap_config_path()) then
+                        local ok, config = pcall(dofile, dap_config_path())
                         if ok then
-                            dap.configurations[vim.o.filetype] = config
-                            break
+                            for ft, conf in pairs(config) do
+                                dap.configurations[ft] = conf
+                            end
+                        else
+                            vim.notify(("[Dap]: load configuration error: %s"):format(config), vim.log.levels.ERROR)
                         end
                     end
                     dap.continue()
@@ -81,18 +103,18 @@ return {
                 desc = "Debug: Step into Function/Method",
             },
             {
-                { "<F8>", "<leader>do" },
-                function()
-                    require("dap").step_out()
-                end,
-                desc = "Debug: Step out Function/Method",
-            },
-            {
                 { "<F7>", "<leader>dO" },
                 function()
                     require("dap").step_over()
                 end,
                 desc = "Debug: Step over",
+            },
+            {
+                { "<F8>", "<leader>do" },
+                function()
+                    require("dap").step_out()
+                end,
+                desc = "Debug: Step out Function/Method",
             },
         }),
     },
@@ -117,6 +139,7 @@ return {
                     python = function() end, --python: dap-python
                 },
             })
+            -- require("dap").configurations
         end,
     },
 }

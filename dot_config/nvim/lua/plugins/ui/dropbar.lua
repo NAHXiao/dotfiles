@@ -2,6 +2,15 @@ return {
     "Bekaboo/dropbar.nvim",
     event = { "BufReadPost", "BufWritePost", "BufNewFile" },
     cond = vim.fn.has("nvim-0.11") == 1,
+    keys = {
+        {
+            "HP",
+            function()
+                require("dropbar.api").pick()
+            end,
+            desc = "DropbarPick",
+        },
+    },
     opts = {
         bar = {
             enable = function(buf, win, _)

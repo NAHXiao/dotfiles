@@ -45,7 +45,7 @@ return {
             ["<C-b>"] = { "scroll_documentation_up", "fallback" },
             ["<C-f>"] = { "scroll_documentation_down", "fallback" },
             ["<CR>"] = { "accept", "fallback" },
-            ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
+            ["<C-o>"] = { "show_signature", "hide_signature", "fallback" },
         },
 
         appearance = {
@@ -112,7 +112,7 @@ return {
         -- Default list of enabled providers defined so that you can extend it
         -- elsewhere in your config, without redefining it, due to `opts_extend`
         sources = {
-            default = { "lsp", "path", "snippets", "buffer", "copilot" },
+            default = { "lazydev", "lsp", "path", "snippets", "buffer", "copilot" },
             providers = {
                 path = { -- ./
                     opts = {
@@ -126,6 +126,12 @@ return {
                     module = "blink-copilot",
                     score_offset = 100,
                     async = true,
+                },
+                lazydev = {
+                    name = "LazyDev",
+                    module = "lazydev.integrations.blink",
+                    -- make lazydev completions top priority (see `:h blink.cmp`)
+                    score_offset = 100,
                 },
             },
         },
@@ -154,34 +160,15 @@ return {
             pattern = "BlinkCmpMenuOpen",
             callback = function()
                 vim.b.copilot_suggestion_hidden = true
+                vim.cmd("doautocmd CursorMovedI")
             end,
         })
         vim.api.nvim_create_autocmd("User", {
             pattern = "BlinkCmpMenuClose",
             callback = function()
                 vim.b.copilot_suggestion_hidden = false
+                vim.cmd("doautocmd CursorMovedI")
             end,
         })
-        -- NOTE:FOR BLINK:https://github.com/Saghen/blink.cmp/issues/1657
-        local map = require("utils").map
-        map({ "n", "s", "i" }, "<esc>", function()
-            vim.cmd("noh")
-            vim.snippet.stop()
-            return "<esc>"
-        end, { expr = true, silent = true })
-        vim.keymap.set({ "i", "s" }, "<Tab>", function()
-            if vim.snippet.active({ direction = 1 }) then
-                return "<Cmd>lua vim.snippet.jump(1)<CR>"
-            else
-                return "<Tab>"
-            end
-        end, { expr = true, silent = true })
-        vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-            if vim.snippet.active({ direction = -1 }) then
-                return "<Cmd>lua vim.snippet.jump(-1)<CR>"
-            else
-                return "<Tab>"
-            end
-        end, { expr = true, silent = true })
     end,
 }

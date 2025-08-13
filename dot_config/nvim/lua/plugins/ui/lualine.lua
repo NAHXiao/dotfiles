@@ -1,4 +1,6 @@
+local icons = require("tools.icons")
 local shorten_path = require("utils").shorten_path
+local shorten_filepath = true
 local colors = {
     bg = "#202328",
     fg = "#bbc2cf",
@@ -36,12 +38,18 @@ return {
                 return gitdir and #gitdir > 0 and #gitdir < #filepath
             end,
         }
+        local refresh = function()
+            require("lualine").refresh()
+        end
         require("lualine").setup({
             options = {
                 ignore_focus = { "neo-tree" }, --be drawn as inactive statusline
                 component_separators = "",
                 section_separators = { left = "", right = "" },
                 globalstatus = true,
+                refresh = {
+                    refresh_time = 100, -- ~10fps
+                },
             },
             sections = {
                 lualine_a = { "mode" },
@@ -65,25 +73,39 @@ return {
                     },
                     {
                         function()
-                            return vim.bo.buftype == "terminal" and vim.api.nvim_buf_get_name(0)
-                                or shorten_path(
-                                    require("utils").relpath(
-                                        require("utils").get_rootdir(0),
-                                        vim.api.nvim_buf_get_name(0)
-                                    ),
-                                    math.floor(vim.o.columns / 4)
+                            if vim.bo.buftype == "terminal" then
+                                return vim.api.nvim_buf_get_name(0)
+                            end
+                            local root_dir = require("utils").get_rootdir(0)
+                            local buf_path = vim.api.nvim_buf_get_name(0)
+                            local maxlen = shorten_filepath and math.floor(vim.o.columns / 4) or 1e9
+                            if root_dir then
+                                return shorten_path(
+                                    require("utils").relpath(root_dir, buf_path),
+                                    maxlen
                                 )
+                            else
+                                return shorten_path(buf_path, maxlen)
+                            end
                         end,
                         padding = { right = 0, left = 0 },
                         cond = function()
                             return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
                                 or vim.bo.buftype == "terminal"
                         end,
+                        on_click = function()
+                            shorten_filepath = not shorten_filepath
+                            refresh()
+                        end,
                     },
                     {
                         "diagnostics",
                         sources = { "nvim_diagnostic" },
-                        symbols = { error = " ", warn = " ", info = " " },
+                        symbols = {
+                            error = icons.diagnostics.error[1],
+                            warn = icons.diagnostics.warn[1],
+                            info = icons.diagnostics.info[1]
+                        },
                         diagnostics_color = {
                             color_error = { fg = colors.red },
                             color_warn = { fg = colors.yellow },
@@ -106,7 +128,7 @@ return {
                         end,
                     },
                     {
-                        -- Lsp server name .
+                        -- Lsp server name
                         function()
                             local clients = vim.lsp.get_clients()
                             local buf = vim.api.nvim_get_current_buf()

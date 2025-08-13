@@ -1,3 +1,4 @@
+local fdpath
 ---@class picker
 ---@type table<string,picker>
 local __cache_ctx = {}
@@ -63,6 +64,38 @@ return {
                 require("telescope.builtin").find_files()
             end),
             desc = "Find files(clean)",
+        },
+        {
+            "<leader>fa",
+            resume_call("Find All Files", function()
+                require("telescope.builtin").find_files({
+                    find_command = {
+                        fdpath,
+                        "-H",
+                        "-I",
+                        "--follow",
+                    },
+                    no_ignore = true,
+                    hidden = true,
+                })
+            end),
+            desc = "Find All files",
+        },
+        {
+            "<leader>fa",
+            clean_call("Find All Files", function()
+                require("telescope.builtin").find_files({
+                    find_command = {
+                        fdpath,
+                        "-H",
+                        "-I",
+                        "--follow",
+                    },
+                    no_ignore = true,
+                    hidden = true,
+                })
+            end),
+            desc = "Find All files(clean)",
         },
         {
             "<leader>fg",
@@ -214,6 +247,11 @@ return {
             desc = "Find command history",
         },
         {
+            "<leader>fhh",
+            "<cmd>lua require('telescope.builtin').help_tags()<cr>",
+            desc = "Find help tags",
+        },
+        {
             "<leader>fk",
             "<cmd>lua require('telescope.builtin').keymaps()<cr>",
             desc = "Find keymaps",
@@ -257,6 +295,12 @@ return {
         end
     end,
     config = function()
+        local fd = vim.fn.exepath("fd")
+        local fdfind = vim.fn.exepath("fdfind")
+        if fd == "" and fdfind == "" then
+            vim.notify("telescope need fd")
+        end
+        fdpath = fd == "" and fdfind or fd
         local actions = require("telescope.actions")
         require("telescope").setup({
             defaults = {
@@ -277,11 +321,10 @@ return {
                 git_branches = { cache_picker = false },
                 find_files = {
                     find_command = {
-                        "fd",
-                        "-H",
-                        "-I",
+                        fdpath,
+                        -- "-H",
+                        -- "-I",
                         "--exclude={.Trash-1000,.DS_Store,$RECYCLE.BIN,.git,.idea,.vscode,.sass-cache,.mypy_cache,node_modules,.gradle,build,.vscode-server,.virtualenvs,.cache,.ghcup,.conda,.rustup,.cargo,.local,target,.stfolder,.vs}",
-                        "--strip-cwd-prefix",
                         "--follow",
                     },
                 },

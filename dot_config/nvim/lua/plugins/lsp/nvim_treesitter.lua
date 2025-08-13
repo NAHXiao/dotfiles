@@ -25,7 +25,7 @@ return {
     lazy = false,
     branch = branch,
     dependencies = {
-        "neovim/nvim-lspconfig",
+        -- "neovim/nvim-lspconfig",
     },
     build = ":TSUpdate",
     keys = {

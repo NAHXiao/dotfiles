@@ -457,7 +457,14 @@ local TermNode = {
 TermNode.__index = TermNode
 setmetatable(TermNode, Node)
 local scroll = function()
-    if winmanager:_is_opened() and not winmanager:_is_focused() then
+    if
+        winmanager:_is_opened()
+        and not winmanager:_is_focused()
+        and vim.fn.jobwait({
+                vim.b[vim.api.nvim_win_get_buf(winmanager.term_winid)].terminal_job_id,
+            })[1]
+            == -1
+    then
         local winid = winmanager.term_winid
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
@@ -665,8 +672,8 @@ function GroupNode:swap(node, offset)
             if xp then
                 xp.next = y
             end
-            assert(yp~=nil)
-            assert(xn~=nil)
+            assert(yp ~= nil)
+            assert(xn ~= nil)
             x.prev = yp
             x.next = yn
             xn.prev = y

@@ -223,38 +223,38 @@ return {
                 { name = "cmdline" },
             }),
             mapping = {
-                ["<Tab>"] = cmp.mapping({
-                    c = function()
-                        if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
-                        else
-                            cmp.complete()
-                        end
-                    end,
-                    i = vim.schedule_wrap(function(fallback)
-                        if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
-                        else
-                            fallback()
-                        end
-                    end),
-                }),
-                ["<S-Tab>"] = cmp.mapping({
-                    c = function()
-                        if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
-                        else
-                            cmp.complete()
-                        end
-                    end,
-                    i = function(fallback)
-                        if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
-                        else
-                            fallback()
-                        end
-                    end,
-                }),
+                -- ["<Tab>"] = cmp.mapping({
+                --     c = function()
+                --         if cmp.visible() then
+                --             cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                --         else
+                --             cmp.complete()
+                --         end
+                --     end,
+                --     i = vim.schedule_wrap(function(fallback)
+                --         if cmp.visible() then
+                --             cmp.select_next_item({ behavior = cmp.SelectBehavior.Insert })
+                --         else
+                --             fallback()
+                --         end
+                --     end),
+                -- }),
+                -- ["<S-Tab>"] = cmp.mapping({
+                --     c = function()
+                --         if cmp.visible() then
+                --             cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                --         else
+                --             cmp.complete()
+                --         end
+                --     end,
+                --     i = function(fallback)
+                --         if cmp.visible() then
+                --             cmp.select_prev_item({ behavior = cmp.SelectBehavior.Insert })
+                --         else
+                --             fallback()
+                --         end
+                --     end,
+                -- }),
             },
         })
         local cmp_autopairs = require("nvim-autopairs.completion.cmp")

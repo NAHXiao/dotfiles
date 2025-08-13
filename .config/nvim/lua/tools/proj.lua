@@ -1,4 +1,4 @@
-local uv = vim.loop or vim.uv
+local uv =  vim.uv
 ---@alias path string
 
 ---@class Project

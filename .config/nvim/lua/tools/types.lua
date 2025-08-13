@@ -69,3 +69,9 @@
 ---@field type ("project"|"file"|"") default ""
 ---@field filetypes string[]|{} default {}
 ---@alias task_keys string
+
+
+---vim will attempt to prevent vim.lsp.enable() for all LSPs that are in the disable list but not in disable_exclude.
+---You need to restart vim to apply the changes.
+---@alias ulsp_config {disable?:table<string>|true,disable_exclude?:table<string>,extend?:table<string,vim.lsp.Config>,override?:table<string,vim.lsp.Config>}
+---@alias lsp_config {disable:table<string>|true,disable_exclude:table<string>,extend:table<string,vim.lsp.Config>,override:table<string,vim.lsp.Config>}

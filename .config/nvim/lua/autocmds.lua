@@ -1,14 +1,16 @@
 local utils = require("utils")
 local g = vim.g
-local uv = vim.uv or vim.loop
+local uv = vim.uv
 local osname = uv.os_uname().sysname
 local group = vim.api.nvim_create_augroup("user.config", { clear = true })
 ---@param opts vim.api.keyset.create_autocmd
 local aucmd = function(event, opts)
     vim.api.nvim_create_autocmd(event, vim.tbl_extend("force", opts, { group = group }))
 end
--- projroot TODO: Bind To LspAttach workspace_folders[1].name
+--vim.g.projroot only for fallback
+--vim.b.projroot bind to lsp
 g.projroot = nil
+
 g.root_marker = {
     -- 版本控制
     ".git",
@@ -41,37 +43,20 @@ g.root_marker = {
     ".repo",
     ".gitignore",
 }
-local function set_global_project_root()
-    g.projroot = utils.FindRoot(g.root_marker, {
+local function setroot()
+    vim.g.projroot = utils.FindRoot(g.root_marker, {
         startpath = vim.fn.getcwd(),
         use_first_found = false,
         return_dirname = true,
     }) or vim.fn.getcwd()
 end
-set_global_project_root()
+setroot()
 aucmd("DirChanged", {
     callback = function()
-        set_global_project_root()
-    end,
-})
-aucmd({ "BufReadPre", "BufNewFile" }, {
-    callback = function(args)
-        local bufnr = args.buf
-        local buftype = vim.bo[bufnr].buftype
-        local bufname = vim.api.nvim_buf_get_name(bufnr)
-        if buftype ~= "" or bufname == "" or vim.b[bufnr].projroot then
-            return
-        end
-        local bufpath = vim.fn.fnamemodify(bufname, ":p:h")
-        if bufpath ~= "" then
-            local root = utils.FindRoot(vim.g.root_marker, {
-                startpath = vim.fn.fnamemodify(bufpath, ":p:h"),
-                use_first_found = false,
-                return_dirname = true,
-            })
-            vim.b.projroot = vim.b.projroot or root
-        end
-    end,
+        setroot()
+        vim.notify("[Root]: " .. vim.g.projroot)
+        vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
+    end
 })
 aucmd("LspAttach", {
     callback = function(ev)
@@ -81,7 +66,7 @@ aucmd("LspAttach", {
         end
         local bufnr = ev.buf
         local root = client.config.root_dir
-        if root and root ~= "" then
+        if root and root ~= "" and utils.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root) then
             vim.b[bufnr].projroot = root
         end
     end,
@@ -89,17 +74,17 @@ aucmd("LspAttach", {
 -- stylua: ignore
 local english = {
     --start with n
-  "n","no","nov","noV","noCTRL‑V","niI","niR","niV","nt","ntT",
-  "v","vs","V","Vs","CTRL‑V","CTRL‑Vs",
-  "s","S","CTRL‑S",
-  "c","cr","cv","cvr",
-  "r","rm","r?","!"
+    "n", "no", "nov", "noV", "noCTRL‑V", "niI", "niR", "niV", "nt", "ntT",
+    "v", "vs", "V", "Vs", "CTRL‑V", "CTRL‑Vs",
+    "s", "S", "CTRL‑S",
+    "c", "cr", "cv", "cvr",
+    "r", "rm", "r?", "!"
 }
 -- stylua: ignore
 local multilingual = {
-  "i","ic","ix",
-  "R","Rc","Rx","Rv","Rvc","Rvx",
-  "t"
+    "i", "ic", "ix",
+    "R", "Rc", "Rx", "Rv", "Rvc", "Rvx",
+    "t"
 }
 -- keyboard
 --VIMEnter/zh->en: getmode savemode PY.EN
@@ -184,7 +169,7 @@ then
                 local o_en = not o:match("^[iR]")
                 local n_en = not n:match("^[iR]")
                 if o_en ~= n_en then
-                    if o_en then --en->cn: Resume(?->EN/PY.?)
+                    if o_en then     --en->cn: Resume(?->EN/PY.?)
                         get_lock_and_then(to_insert)
                     elseif n_en then --cn->en: Save->(PY.?->PY.EN)/(EN->PY.EN)
                         get_lock_and_then(to_normal)

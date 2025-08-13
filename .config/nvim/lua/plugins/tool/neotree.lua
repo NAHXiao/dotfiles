@@ -91,9 +91,9 @@ return {
             default_component_configs = {
                 git_status = {
                     symbols = {
-                        added = "󰬈",
-                        modified = "󰬔",
-                        deleted = "󰬋",
+                        added = "",
+                        modified = "󰝤",
+                        deleted = "",
                         renamed = "󰬙",
                         -- Status type
                         untracked = "UN",

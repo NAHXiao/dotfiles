@@ -42,6 +42,29 @@ return {
                 return { "treesitter", "indent" }
             end,
             disabled = { "neo-tree" },
+            fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
+                local newVirtText = {}
+                local suffix = (" 󰁂 %d lines "):format(endLnum - lnum)
+                local sufWidth = vim.fn.strdisplaywidth(suffix)
+                local targetWidth = width - sufWidth
+                local curWidth = 0
+                for _, chunk in ipairs(virtText) do
+                    local chunkText = chunk[1]
+                    local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+                    if curWidth + chunkWidth < targetWidth then
+                        table.insert(newVirtText, chunk)
+                        curWidth = curWidth + chunkWidth
+                    else
+                        chunk =
+                            { vim.fn.strcharpart(chunkText, 0, targetWidth - curWidth), chunk[2] }
+                        table.insert(newVirtText, chunk)
+                        curWidth = targetWidth
+                        break
+                    end
+                end
+                table.insert(newVirtText, { suffix, "SpecialComment" })
+                return newVirtText
+            end,
         })
         -- vim.o.foldmethod = "expr"
         -- vim.o.foldexpr = "nvim_treesitter#foldexpr()"

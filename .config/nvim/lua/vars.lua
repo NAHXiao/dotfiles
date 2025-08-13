@@ -1,6 +1,6 @@
 --[[ vars.lua ]]
 local g = vim.g
-local uv = vim.uv or vim.loop
+local uv = vim.uv
 -- 256 色
 g.t_co = 256
 g.background = "dark"

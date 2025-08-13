@@ -4,7 +4,7 @@ return {
     keys = {
         { "<leader>\\i", "<cmd>InlayHintsToggle<cr>", desc = "Toggle inlayhints" },
     },
-    dependencies = { "neovim/nvim-lspconfig" },
+    -- dependencies = { "neovim/nvim-lspconfig" },
     config = function()
         require("inlay-hints").setup()
         require("tools.hl").regist_transparent({

@@ -45,7 +45,6 @@ alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"
 alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
 alias trim_all="sudo fstrim -va"
 alias mkgrub='sudo grub-mkconfig -o /boot/grub/grub.cfg'
-
 ################################ APPS ########################################
 #为什么bear不能走代理
 alias bear='http_proxy=;https_proxy=;HTTP_PROXY=;HTTPS_PROXY=;socks_proxy=;bear'
@@ -53,6 +52,16 @@ alias Man='tldr'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
 alias ra='ranger'
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+alias yz='y'
+alias ra="yz"
+
 alias py='python'
 
 alias vi='nvim'

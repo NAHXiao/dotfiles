@@ -31,7 +31,9 @@ return {
                 "neo-tree",
             },
             should_enable = function(bufnr)
-                return not require("utils").is_bigfile(bufnr)
+                return not require("utils").is_bigfile(bufnr, {
+                    line_limit = 1000,
+                })
             end,
             disable_keymaps = true,
         })

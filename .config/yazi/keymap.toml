@@ -1,0 +1,4 @@
+[mgr]
+prepend_keymap = [
+	{ on = "<Backspace>", run = "toggle hidden", desc = "Toggle the visibility of hidden files" },
+]

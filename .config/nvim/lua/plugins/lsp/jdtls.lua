@@ -43,16 +43,20 @@ return {
         )
 
         local jdtls = require("jdtls")
+        local root_dir = require("utils").get_rootdir()
         local cmd = {
             "jdtls",
             lombok_path ~= nil and ("--jvm-arg=-javaagent:" .. lombok_path) or "",
-            "--jvm-arg=-Xmx" .. (os.getenv("JDTLS_XMX") or "1G"),
+            ("--jvm-arg=-Xmx%s"):format(os.getenv("JDTLS_XMX") or "8G"),
+            "-data",
+            ("%s/jdtls/%s"):format(
+                (os.getenv("XDG_CACHE_HOME") or vim.uv.os_homedir() .. "/.cache"),
+                require("utils").encode_path(root_dir)
+            ),
         }
         local config = {
             cmd = cmd,
-            root_dir = vim.fs.dirname(
-                vim.fs.find({ "gradlew", ".git", "mvnw" }, { upward = true })[1]
-            ),
+            root_dir = root_dir,
             filetypes = { "java" },
             init_options = {
                 bundles = bundles,

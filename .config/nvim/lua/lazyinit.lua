@@ -1,5 +1,6 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+CC.lazypath=lazypath
+if not vim.uv.fs_stat(lazypath) then
     vim.fn.system({
         "git",
         "clone",
@@ -30,10 +31,11 @@ function lazy.is_loaded(plugin_full_name)
     return plugin ~= nil and plugin._.loaded ~= nil
 end
 require("tools.hl").setup()
+require("tools.lsp").setup()
 lazy.setup(
     (function(dir)
         local result = {}
-        local uv = vim.loop or vim.uv
+        local uv = vim.uv
         local handle = uv.fs_scandir(dir)
         if not handle then
             vim.notify("directory doesn't exist: " .. dir, vim.log.levels.WARN)

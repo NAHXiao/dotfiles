@@ -10,8 +10,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # 需手动修改
-ROUTE= '6070cb668825e3ed2a462f9e3b4be234'
-Authorization='eyJhbGciOiJIUzUxMiJ9.eyJ0aW1lIjoxNzQxMTU3NzQ1MjA5LCJsb2dpbl91c2VyX2tleSI6IjU1MjIwMjE0IiwidG9rZW4iOiJyc2tpZmZxMWNjaTZtcGtmZzM1NTcyYjExOSJ9.114_Vz36ASUlvxaAlRkVIm5mm9LhifPbDnxegfqIC_DPGPVidOXQFyOdqPFsunUPig7UqJv6x0RKLE_DDHbWmA'
+ROUTE= '60xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+Authorization='eyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 # ExitMsg=("课容量已满","该课程已在选课结果中")
 ExitMsg=("该课程已在选课结果中") #Listen模式
@@ -20,7 +20,7 @@ ExitMsg=("该课程已在选课结果中") #Listen模式
 addList={
 }
 ###################################################################
-batchId='1a12e5ac0f634a42948c23388109e21b'
+batchId='1axxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 ClazzType="TJKC"  #默认
 # ClazzType="FANKC" #退补选
 ###################################################################
@@ -64,7 +64,7 @@ return: {
     "Software Architecture": {
         "HONGJI YANG,李大利": {
             "clazzId": "202420252ae2255101401",
-            "secretVal": "8CL+v9fIGiT8veCZu+ABOxKvpsZyU9TuVR0gcXDsd6Iqs0braOXE7ISseE02fILbiNtNuMm9X70WIvngVNj0kY3qI41/jkhkr8QcVmXXMlQ51yvMnKWBmLUFxGPV7rb24etikkm8ZiXA6NUuk2rzO3I7ZGD0xch38htJxDAKaiE="
+            "secretVal": "8Cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         }
     }
 }

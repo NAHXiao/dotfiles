@@ -1,12 +1,23 @@
 local M = {}
-local uv = vim.loop or vim.uv
+local uv = vim.uv
+M.map_func = {}
+---@param mode string|string[] Mode "short-name" (see |nvim_set_keymap()|), or a list thereof.
+---@param lhs string|string[]           Left-hand side |{lhs}| of the mapping.
+---@param rhs string|function  Right-hand side |{rhs}| of the mapping, can be a Lua function.
+---@param opts? vim.keymap.set.Opts
 function M.map(mode, lhs, rhs, opts)
-    local options = { silent = true, noremap = true }
-    if opts then
-        options = vim.tbl_extend("force", options, opts)
+    if mode == "*" then
+        mode = { "i", "n", "s", "v", "t", "o" }
     end
-    vim.keymap.set(mode, lhs, rhs, options)
+    local options = vim.tbl_extend("force", { silent = true, noremap = true }, opts or {})
+    if type(lhs) == "string" then
+        lhs = { lhs }
+    end
+    for _, l in ipairs(lhs) do
+        vim.keymap.set(mode, l, rhs, options)
+    end
 end
+
 ---@param keys {
 ---[1]:string|string[],
 ---[2]:string|(fun():string?)?,
@@ -29,6 +40,7 @@ function M.lazy_keymap(keys)
     end
     return ret
 end
+
 M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
@@ -63,6 +75,7 @@ end
 function M.aug(groupname, clear)
     return vim.api.nvim_create_augroup(groupname, { clear = clear })
 end
+
 M.auc = vim.api.nvim_create_autocmd
 function M.vim_echo(str, hlgroup)
     vim.cmd(string.format(
@@ -75,11 +88,16 @@ function M.vim_echo(str, hlgroup)
         str
     ))
 end
+
+---@param opt {
+---line_limit?:number,
+---size_limit?:number,
+---avg_linesize_limit?:number}
 function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     opt = vim.tbl_extend("force", {
         line_limit = 5000,
-        size_limit = 10 * 1024 * 1024, -- 10MB
+        size_limit = 10 * 1024 * 1024,   -- 10MB
         avg_linesize_limit = 100 * 1024, -- 平均每行 100 KB
     }, opt or {})
 
@@ -108,7 +126,7 @@ function M.is_bigfile(bufnr, opt)
     return false
 end
 
-function M.decode_path(path)
+function M.encode_path(path)
     if not path then
         return ""
     end
@@ -116,7 +134,8 @@ function M.decode_path(path)
         return string.format("%%%02X", string.byte(c))
     end)
 end
-function M.encode_path(encoded_path)
+
+function M.decode_path(encoded_path)
     if not encoded_path then
         return ""
     end
@@ -124,6 +143,7 @@ function M.encode_path(encoded_path)
         return string.char(tonumber(hex, 16))
     end)
 end
+
 local function shorten_path(path, maxlen)
     if not path or path == "" then
         return ""
@@ -343,6 +363,7 @@ M.relpath = vim.fs.relpath
         end
         return table.concat(rel_parts, "/")
     end
+
 ---valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
 ---table_cond将过滤key类型是(number|string|boolean),value类型是table的item
 ---nullkeys将含有这些键的item去除
@@ -403,6 +424,22 @@ function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
     end
     return filtered
 end
+
+---原地修改
+function M.list_compact(list)
+    local p = 1
+    for q, it in pairs(list) do
+        if type(q) == "number" then
+            list[q] = nil
+            if it ~= nil then
+                list[p] = it
+                p = p + 1
+            end
+        end
+    end
+    return list
+end
+
 -- 总是tbl.key=wrap(assign_value)
 -- NOTEST:tbl with metatable
 ---@generic T value_type
@@ -454,9 +491,11 @@ function M.watch_assign_key(tbl, key, wrap)
     mt.____data = data
     setmetatable(tbl, mt)
 end
+
 function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
+
 function M.range(...)
     local args = { ... }
     local start, end_, step
@@ -484,6 +523,7 @@ function M.range(...)
     end
     return result
 end
+
 function M.index_of(tbl, obj)
     for i, o in ipairs(tbl) do
         if o == obj then
@@ -525,13 +565,96 @@ function M.FindRoot(names, opt)
     end
     return result
 end
----@param bufnr? number default nil=>global
----@return string
+
+---- bufnr:filebuf
+---bufferProjRoot
+---fallback:
+---belong to globalProjRoot => globalProjRoot
+---otherwise => nil
+---- bufnr:other/nil
+---globalProjRoot
+---@param bufnr? number
+---@return string|nil
 function M.get_rootdir(bufnr)
-    if bufnr then
-        return vim.b[bufnr].projroot or vim.g.projroot or vim.fn.getcwd()
+    if bufnr and vim.bo[bufnr].buftype == "" then
+        local root_dir = vim.b[bufnr].projroot
+        if not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), vim.g.projroot) then
+            root_dir = vim.g.projroot
+        end
+        return root_dir
     else
-        return vim.b.projroot or vim.g.projroot or vim.fn.getcwd()
+        return vim.g.projroot
+    end
+end
+
+function M.file_parents_has(file, parent)
+    for dir in vim.fs.parents(file) do
+        if dir == vim.fs.normalize(parent) then
+            return true
+        end
+    end
+    return false
+end
+
+---@alias bufnr integer
+---@alias winid integer
+---@param filepath string
+---@param new_content? string|string[]
+---@param split? fun(bufnr?:number,filepath?:string):bufnr,winid
+---@return integer bufnr
+---@return integer winid
+---@return boolean already_focused
+---@return boolean newfile
+function M.focus_or_new(filepath, new_content, split)
+    vim.validate("filepath", filepath, "string")
+    filepath = vim.fs.normalize(filepath)
+    if type(new_content) == "table" then
+        new_content = table.concat(new_content, "\r\n")
+    elseif type(new_content) == "nil" then
+        new_content = ""
+    end
+    ---@diagnostic disable-next-line: redefined-local
+    split = split or function(bufnr, filepath)
+        vim.validate("focus_or_new: split args", { bufnr = bufnr, filepath = filepath }, function(it)
+            return (type(it.bufnr) == "number" and vim.api.nvim_buf_is_valid(it.bufnr)) or
+                (type(it.filepath) == "string" and it.filepath ~= "")
+        end)
+        if bufnr then
+            vim.cmd("botright vsplit #" .. bufnr)
+        else
+            vim.cmd("botright vsplit " .. filepath)
+        end
+        return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
+    end
+    local lines = vim.split(new_content, "\r?\n") or { "" }
+    local bufnr = vim.fn.bufnr(filepath)
+    local buf_exists = bufnr and bufnr ~= -1
+    local winid = buf_exists and vim.fn.bufwinid(bufnr) or nil
+    local win_exists = winid and winid ~= -1
+    local is_focused = buf_exists and vim.api.nvim_get_current_buf() == bufnr
+    local file_exists = vim.fn.filereadable(filepath) == 1
+    if file_exists or buf_exists then
+        if buf_exists then
+            if win_exists then
+                ---@cast winid integer
+                if is_focused then
+                    return bufnr, winid, true, false
+                else
+                    vim.api.nvim_set_current_win(winid)
+                    return bufnr, winid, false, false
+                end
+            else
+                _, winid = split(bufnr, nil)
+                return bufnr, winid, false, false
+            end
+        else
+            bufnr, winid = split(nil, filepath)
+            return bufnr, winid, false, false
+        end
+    else
+        bufnr, winid = split(nil, filepath)
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+        return bufnr, winid, false, true
     end
 end
 
@@ -565,5 +688,6 @@ function M.transparent_bg_test()
 
     process_next()
 end
+
 -------------------------------------------
 return M

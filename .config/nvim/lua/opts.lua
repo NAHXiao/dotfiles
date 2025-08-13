@@ -42,6 +42,7 @@ opt.cursorlineopt = "number"
 vim.cmd([[
 set spelllang=en_us
 ]])
+vim.opt.exrc=true --autoload $(cwd)/.nvim.lua
 vim.o.sessionoptions =
     "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 --[[

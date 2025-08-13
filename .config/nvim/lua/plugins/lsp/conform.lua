@@ -1,20 +1,7 @@
 local utils = require("utils")
-local conform_cond = vim.version.cmp(vim.version(), "0.8.0") >= 0
-local conform_branch
--- *
--- nvim-0.9
--- nvim-0.8
-if vim.version.cmp(vim.version(), "0.10.0") >= 0 then
-    conform_branch = "master"
-elseif vim.version.cmp(vim.version(), "0.9.0") >= 0 then
-    conform_branch = "nvim-0.9"
-elseif vim.version.cmp(vim.version(), "0.8.0") >= 0 then
-    conform_branch = "nvim-0.8"
-end
 return {
     "stevearc/conform.nvim",
-    branch = conform_branch,
-    cond = conform_cond,
+    branch = "master",
     event = "UIEnter",
     keys = {
         {
@@ -30,6 +17,9 @@ return {
                                 true
                             )
                         end
+                        vim.notify("Format: Ok", vim.log.levels.INFO) --[1/2]
+                    else
+                        vim.notify("Format Err:\n" .. err, vim.log.levels.WARN)
                     end
                 end)
             end,
@@ -57,7 +47,7 @@ return {
                     return require("utils").get_rootdir(0)
                 end,
             },
-            notify_on_error = true,
+            notify_on_error = false,
             formatters = {
                 ["clang-format-"] = {
                     command = "clang-format",

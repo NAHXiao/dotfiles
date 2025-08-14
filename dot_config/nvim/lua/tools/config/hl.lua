@@ -25,6 +25,10 @@ M.transparent_groups = {
     "StatusLine",
     "StatusLineNC",
     "EndOfBuffer",
+
+    "FloatBorder",
+    "FloatFooter",
+    "FloatTitle"
 }
 
 M.transparent_extra_groups = {}

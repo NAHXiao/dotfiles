@@ -154,6 +154,9 @@ return {
         },
         snippets = {},
     },
+    init = function()
+        require("tools.hl").add_transparent_groupprefix({ "BlinkCmp" })
+    end,
     config = function(_, opts)
         require("blink.cmp").setup(opts)
         vim.api.nvim_create_autocmd("User", {

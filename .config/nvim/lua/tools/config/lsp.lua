@@ -7,7 +7,7 @@ local function ifArch(arch, val)
     return machine == arch and val or nil
 end
 local function notArch(arch, val)
-    return machine == arch and val or nil
+    return machine ~= arch and val or nil
 end
 ---@type vim.lsp.Config
 M.lsp_default_config = {
@@ -30,8 +30,8 @@ M.mason_ensure_install = compact {
     "pyright",
 }
 M.auto_enable = compact {
-    notArch("aarch64", "clangd"),
-    notArch("aarch64", "lua_ls"),
+    "clangd",
+    "lua_ls",
     "bashls",
     "jdtls",
     "cmake",

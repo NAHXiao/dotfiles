@@ -32,8 +32,9 @@ M.mason_ensure_install = compact {
 M.auto_enable = compact {
     "clangd",
     "lua_ls",
+    -- "rust_analyzer", --rustaceanvim
     "bashls",
-    "jdtls",
+    -- "jdtls", --nvim_jdtls
     "cmake",
     "pyright",
 }

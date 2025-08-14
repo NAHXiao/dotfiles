@@ -3,21 +3,16 @@ return {
     ft = "java",
     config = function()
         local jdtls_installdir
-        local mason_path = os.getenv("MASON") or nil
-        if mason_path then
-            jdtls_installdir = vim.fs.joinpath(mason_path, "packages", "jdtls")
-            if vim.fn.isdirectory(jdtls_installdir) == 0 then
-                jdtls_installdir = nil
-            end
+        jdtls_installdir = vim.fs.joinpath(GVars.mason_install_root_dir, "packages", "jdtls")
+        if vim.fn.isdirectory(jdtls_installdir) == 0 then
+            vim.notify(
+                "JDTLS is not installed, please run :MasonInstall jdtls",
+                vim.log.levels.ERROR
+            )
+            return
         end
 
-        local lombok_path
-        if vim.fn.filereadable(vim.fs.joinpath(jdtls_installdir, "lombok.jar")) == 1 then
-            lombok_path = vim.fs.joinpath(jdtls_installdir, "lombok.jar")
-        else
-            lombok_path = nil
-        end
-
+        local lombok_path = vim.fs.joinpath(jdtls_installdir, "lombok.jar")
         local bundles = {}
         -- java-debug
         vim.list_extend(
@@ -25,7 +20,7 @@ return {
             vim.split(
                 vim.fn.glob(
                     vim.fn.stdpath("data")
-                        .. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"
+                    .. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"
                 ),
                 "\n"
             )
@@ -44,18 +39,18 @@ return {
 
         local jdtls = require("jdtls")
         local root_dir = require("utils").get_rootdir()
-        local cmd = {
-            "jdtls",
-            lombok_path ~= nil and ("--jvm-arg=-javaagent:" .. lombok_path) or "",
-            ("--jvm-arg=-Xmx%s"):format(os.getenv("JDTLS_XMX") or "8G"),
-            "-data",
-            ("%s/jdtls/%s"):format(
-                (os.getenv("XDG_CACHE_HOME") or vim.uv.os_homedir() .. "/.cache"),
-                require("utils").encode_path(root_dir)
-            ),
-        }
+        local compact = require("utils").list_compact
         local config = {
-            cmd = cmd,
+            cmd = compact {
+                "jdtls",
+                ("--jvm-arg=-javaagent:%s"):format(lombok_path),
+                ("--jvm-arg=-Xmx%s"):format(os.getenv("JDTLS_XMX") or "8G"),
+                "-data",
+                ("%s/jdtls/%s"):format(
+                    (os.getenv("XDG_CACHE_HOME") or vim.uv.os_homedir() .. "/.cache"),
+                    require("utils").encode_path(root_dir)
+                ),
+            },
             root_dir = root_dir,
             filetypes = { "java" },
             init_options = {

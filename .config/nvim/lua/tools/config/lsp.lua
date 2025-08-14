@@ -29,7 +29,7 @@ M.mason_ensure_install = compact {
     "cmake",
     "pyright",
 }
-M.auto_enable = {
+M.auto_enable = compact {
     notArch("aarch64", "clangd"),
     notArch("aarch64", "lua_ls"),
     "bashls",

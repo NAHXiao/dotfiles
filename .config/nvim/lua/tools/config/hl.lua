@@ -25,6 +25,10 @@ M.transparent_groups = {
     "StatusLine",
     "StatusLineNC",
     "EndOfBuffer",
+
+    "FloatBorder",
+    "FloatFooter",
+    "FloatTitle"
 }
 
 M.transparent_extra_groups = {}
@@ -37,7 +41,7 @@ M.color_transparent_trans_tbl = {
     CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
     Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
     LspInlayHint = {
-        bg = { transform = "darken", from = "Cursor.bg", amount = 0.1, },
+        bg = { transform = "darken", from = "Cursor.bg", amount = 0.15, },
         fg = "Cursor.fg",
     },
 }

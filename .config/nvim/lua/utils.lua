@@ -678,15 +678,15 @@ function M.transparent_bg_test()
         local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
 
         if hl.bg and hl.bg ~= 0 then
-            local original_bg = hl.bg
+            -- local original_bg = hl.bg
             vim.api.nvim_set_hl(0, group, { bg = "none" })
             vim.notify(group)
             M.log(group)
             vim.defer_fn(function()
-                vim.api.nvim_set_hl(0, group, { bg = original_bg })
+                -- vim.api.nvim_set_hl(0, group, { bg = original_bg })
                 index = index + 1
                 process_next()
-            end, 1000)
+            end, 500)
         else
             index = index + 1
             process_next()

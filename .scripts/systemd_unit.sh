@@ -1,4 +1,18 @@
 #!/bin/bash
+setup_user_systemd(){
+    sudo systemctl start user@$(id -u).service
+    sudo systemctl enable user@$(id -u).service
+    systemctl --user status
+}
+install_paru(){
+    tmp_dir=$(mktemp -d /tmp/paru-XXXXXXX)
+sudo pacman -S --needed base-devel git && \
+git clone https://aur.archlinux.org/paru.git $tmp_dir && \
+cd $tmp_dir && \
+makepkg -si --noconfirm && \
+cd ~ && \
+rm -rf $tmp_dir
+}
 setup_kopia(){
 SCRIPT_NAME="kopia"
 SCRIPT_PATH="$HOME/.scripts_encrypt/kopia_backup.sh"

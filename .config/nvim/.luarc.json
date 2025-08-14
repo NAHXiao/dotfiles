@@ -1,0 +1,6 @@
+{
+    "completion.autoRequire": false
+    "diagnostics.globals": [
+        "vim"
+    ]
+}

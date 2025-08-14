@@ -1,4 +1,5 @@
-local log = require("utils").log
+-- local log = require("utils").log
+local log = function() end
 local ns = vim.api.nvim_create_namespace("tools.terminal")
 vim.api.nvim_create_augroup("tools.terminal.global", { clear = true })
 local function hlline(bufnr, linenum, hlgroup)
@@ -457,13 +458,16 @@ local TermNode = {
 TermNode.__index = TermNode
 setmetatable(TermNode, Node)
 local scroll = function()
+    local is_opened = winmanager:_is_opened()
+    local is_focused = winmanager:_is_focused()
+    local bufnr = vim.api.nvim_win_get_buf(winmanager.term_winid)
+    ---NOTE: vim.fn.jobwait Cannnot be used in interactive binary,that will causes block
+    -- local is_running = vim.fn.jobwait({ vim.b[].terminal_job_id, })[1] == -1
+    local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
     if
-        winmanager:_is_opened()
-        and not winmanager:_is_focused()
-        and vim.fn.jobwait({
-                vim.b[vim.api.nvim_win_get_buf(winmanager.term_winid)].terminal_job_id,
-            })[1]
-            == -1
+        is_opened
+        and not is_focused
+        and is_running
     then
         local winid = winmanager.term_winid
         vim.api.nvim_win_call(winid, function()
@@ -528,19 +532,19 @@ function TermNode:start()
             local on_stdout = opts.on_stdout
             local on_stderr = opts.on_stderr
             opts.on_exit = on_exit
-                    and function(job_id, code, event)
-                        on_exit(job_id, code, event, self)
-                    end
+                and function(job_id, code, event)
+                    on_exit(job_id, code, event, self)
+                end
                 or nil
             opts.on_stdout = on_stdout
-                    and function(job_id, data, event)
-                        on_stdout(job_id, data, event, self)
-                    end
+                and function(job_id, data, event)
+                    on_stdout(job_id, data, event, self)
+                end
                 or nil
             opts.on_stderr = on_stderr
-                    and function(job_id, data, event)
-                        on_stderr(job_id, data, event, self)
-                    end
+                and function(job_id, data, event)
+                    on_stderr(job_id, data, event, self)
+                end
                 or nil
             ok, result = pcall(vim.fn.jobstart, self.jobinfo.cmds, opts)
         else
@@ -748,22 +752,28 @@ local taskterm_icons = {
 ---jobinfo:param>TaskTermNode>TermNode
 ---func: scroll,TermNode,(status,TaskTermNode,param,on_finish)
 function TaskTermNode:new(newnode_opts, ujobinfo, startnow, on_finish)
+    log("TaskTermNode:new on_exit:", ujobinfo.opts.on_exit)
     ---@type ujobinfo
     ---@diagnostic disable-next-line: assign-type-mismatch
     local jobinfo = vim.tbl_deep_extend("force", TaskTermNode.jobinfo, ujobinfo, {
-        opts = jobinfo_func_append({
-            on_exit = function(_, code, _, node)
-                assert(node.classname == "TaskTermNode")
-                if code == 0 then
-                    node.status = "success"
-                else
-                    node.status = "error"
-                end
-                PanelBufLineUpdate()
-                PanelCurHLUpdate()
-                PanelCurSorHLUpdate()
-            end,
-        }, TaskTermNode.jobinfo.opts, ujobinfo.opts, { on_exit = on_finish }),
+        opts = jobinfo_func_append(
+            {
+                on_exit = function(_, code, _, node)
+                    assert(node.classname == "TaskTermNode")
+                    if code == 0 then
+                        node.status = "success"
+                    else
+                        node.status = "error"
+                    end
+                    PanelBufLineUpdate()
+                    PanelCurHLUpdate()
+                    PanelCurSorHLUpdate()
+                end,
+            },
+            TaskTermNode.jobinfo.opts,
+            ujobinfo.opts,
+            { on_exit = on_finish }
+        ),
     })
     local obj = TermNode.new(self, newnode_opts, jobinfo, false, true)
     setmetatable(obj, self)
@@ -1221,7 +1231,7 @@ end
 function panelbufcxt:swap(offset, node)
     if node.parent:swap(node, offset) then
         PanelBufLinesUpdate()
-        PanelCurHLUpdate() --TODO:精细化
+        PanelCurHLUpdate()    --TODO:精细化
         PanelCurSorHLUpdate() --TODO:精细化
     end
 end
@@ -1379,6 +1389,7 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
         self.panel_buf_hl_cursornode_clearfunc = cursornode_clearfunc
     end
 end
+
 local function create_fallback_termbuf()
     local bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_lines(
@@ -1738,6 +1749,7 @@ function M.setup()
     end)
     panelbufcxt:init()
 end
+
 function M.reset()
     if winmanager:_is_opened() then
         winmanager:close()
@@ -1770,4 +1782,5 @@ function M.reset()
     panelbufcxt.__inited = false
     M.setup()
 end
+
 return M

@@ -204,15 +204,22 @@ return {
                     }
                 local bufnr, winid = _open_floating_preview(contents, syntax, opts)
                 local group        = vim.api.nvim_create_augroup(
-                "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid), { clear = true })
+                    "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid), { clear = true })
                 vim.api.nvim_create_autocmd("BufLeave", {
                     buffer = _bufnr,
                     group = group,
-                    callback = function(ev)
-                        if winid and vim.api.nvim_win_is_valid(winid) and ev.buf ~= bufnr then
-                            vim.api.nvim_win_close(winid, true)
-                            vim.api.nvim_clear_autocmds({ group = group })
-                        end
+                    callback = function()
+                        vim.api.nvim_create_autocmd("BufEnter", {
+                            once = true,
+                            group = group,
+                            callback = function(ev)
+                                if winid and vim.api.nvim_win_is_valid(winid) and ev.buf ~= bufnr then
+                                    vim.notify("close" .. tostring(winid))
+                                    vim.api.nvim_win_close(winid, true)
+                                    vim.api.nvim_clear_autocmds({ group = group })
+                                end
+                            end
+                        })
                     end
                 })
                 -- For RenderMarkdown

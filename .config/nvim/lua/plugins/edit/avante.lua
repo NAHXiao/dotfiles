@@ -21,7 +21,7 @@ return {
         -- },
     },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-    build = CC.is_win
+    build = GVars.is_win
             and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
         or "make",
     dependencies = {

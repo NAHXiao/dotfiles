@@ -1,13 +1,11 @@
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-CC.lazypath=lazypath
-if not vim.uv.fs_stat(lazypath) then
+if not vim.uv.fs_stat(GVars.lazypath) then
     vim.fn.system({
         "git",
         "clone",
         "--filter=blob:none",
         "https://github.com/folke/lazy.nvim.git",
         "--branch=stable",
-        lazypath,
+        GVars.lazypath,
     })
 end
 -- -- Hook
@@ -23,13 +21,14 @@ end
 -- 		return ret
 -- 	end,
 -- })
-vim.opt.rtp:prepend(lazypath)
+vim.opt.rtp:prepend(GVars.lazypath)
 local lazy = require("lazy")
 ---@param plugin_full_name string e.g. copilot.lua surround.vim
 function lazy.is_loaded(plugin_full_name)
     local plugin = require("lazy.core.config").plugins[plugin_full_name]
     return plugin ~= nil and plugin._.loaded ~= nil
 end
+
 require("tools.hl").setup()
 require("tools.lsp").setup()
 lazy.setup(

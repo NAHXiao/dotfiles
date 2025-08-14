@@ -16,6 +16,9 @@
 return {
     settings = {
         Lua = {
+            hint = {
+                enable = true,
+            },
             runtime = {
                 version = "LuaJIT",
             },
@@ -26,19 +29,19 @@ return {
         },
     },
     -- on_init = function()
-        -- vim.api.nvim_create_user_command("LspLualsUpdateVimRuntime", function()
-        --     local cfg = vim.lsp.config.lua_ls
-        --     cfg.settings = vim.tbl_deep_extend('force', cfg.settings, {
-        --         Lua = {
-        --             runtime = {
-        --                 version = "LuaJIT",
-        --             },
-        --             workspace = {
-        --                 checkThirdParty = false,
-        --                 library = get_library(),
-        --             },
-        --         },
-        --     })
-        -- end, {})
+    -- vim.api.nvim_create_user_command("LspLualsUpdateVimRuntime", function()
+    --     local cfg = vim.lsp.config.lua_ls
+    --     cfg.settings = vim.tbl_deep_extend('force', cfg.settings, {
+    --         Lua = {
+    --             runtime = {
+    --                 version = "LuaJIT",
+    --             },
+    --             workspace = {
+    --                 checkThirdParty = false,
+    --                 library = get_library(),
+    --             },
+    --         },
+    --     })
+    -- end, {})
     -- end
 }

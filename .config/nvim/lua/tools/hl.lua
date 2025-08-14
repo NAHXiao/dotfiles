@@ -15,7 +15,8 @@ local function clear_group(group)
     local groups = type(group) == "string" and { group } or group
     ---@cast groups string[]
     for _, v in ipairs(groups) do
-        local ok, prev_attrs = pcall(vim.api.nvim_get_hl_by_name, v, true)
+        -- local ok, prev_attrs = pcall(vim.api.nvim_get_hl_by_name, v, true)
+        local ok, prev_attrs = pcall(vim.api.nvim_get_hl, 0, { name = v })
         if ok and (prev_attrs.background or prev_attrs.bg or prev_attrs.ctermbg) then
             local attrs = vim.tbl_extend("force", prev_attrs, { bg = "NONE", ctermbg = "NONE" })
             attrs[true] = nil
@@ -59,7 +60,7 @@ end
 ---@param tbl HighlightTransformRegistMap
 function M.regist(tbl)
     for hlname, hlopts in pairs(tbl) do
-        config.__color_trans_tbl[hlname] = hlopts
+        config.color_trans_tbl[hlname] = hlopts
     end
     __mk_handle(tbl)()
 end
@@ -67,7 +68,7 @@ end
 ---@param tbl HighlightTransformRegistMap
 function M.regist_transparent(tbl)
     for hlname, hlopts in pairs(tbl) do
-        config.__transparent_trans_tbl[hlname] = hlopts
+        config.color_transparent_trans_tbl[hlname] = hlopts
     end
     if transparent_enabled then
         __mk_handle(tbl)()
@@ -84,12 +85,21 @@ local __handle = function()
     if vim.g.colors_name then
         pcall(vim.cmd.colorscheme, vim.g.colors_name)
     end
-    __mk_handle(config.__color_trans_tbl)()
-    if transparent_enabled then
-        __mk_handle(config.__transparent_trans_tbl)()
-        clear()
+    local clearcb = function()
+        __mk_handle(config.color_trans_tbl)()
+        if transparent_enabled then
+            __mk_handle(config.color_transparent_trans_tbl)()
+            clear()
+        end
+        __running = false
     end
-    __running = false
+    if M.UIEnter then --it's work but i don't know why (Fixed:ColorScheme switch)
+        vim.schedule(function()
+            clearcb()
+        end)
+    else
+        clearcb()
+    end
 end
 ---@return boolean
 function M.get_transparent()
@@ -107,6 +117,8 @@ function M.toggle_transparent(on)
     __handle()
 end
 
+M.UIEnter = false
+---should be called before colorscheme load
 function M.setup()
     readswitch()
     writeswitch()
@@ -121,6 +133,7 @@ function M.setup()
         M.toggle_transparent()
         require("utils").vim_echo(("Transparent: %s"):format(M.get_transparent() and "On" or "Off"))
     end, { desc = "Toggle transparent" })
+    require("utils").auc("UIEnter", { callback = function() M.UIEnter = true end })
 end
 
 return M

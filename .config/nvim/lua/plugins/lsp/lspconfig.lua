@@ -150,7 +150,7 @@ return {
 
             { "gD", vim.lsp.buf.declaration,      mode = "n", desc = "goto declaration" },
 
-            { "K",  vim.lsp.buf.hover,            mode = "n", desc = "show hover doc" },
+            { "K",  vim.lsp.buf.hover,            mode = "n", desc = "show hover doc" }, --TODO: gd...close
             -- { "<C-K>",       vim.lsp.buf.signature_help,   mode = "n" ,desc="show signature_help"},
             { "cn", vim.lsp.buf.rename,           mode = "n", desc = "symbol rename" },
             {

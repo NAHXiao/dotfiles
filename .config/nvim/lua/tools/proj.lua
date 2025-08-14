@@ -1,4 +1,4 @@
-local uv =  vim.uv
+local uv = vim.uv
 ---@alias path string
 
 ---@class Project
@@ -25,7 +25,7 @@ local M = {
                 return vim.fn.fnamemodify(path, ":t")
             end,
             path = function()
-                return require"utils".get_rootdir(0)
+                return require "utils".get_rootdir(0)
             end,
             -- {
             -- 	{ -- 第一列file窗口
@@ -85,10 +85,11 @@ M.__index = M
 function M:notify(msg, level, opts)
     vim.notify("proj: " .. msg, level, opts)
 end
+
 ---@return Projects
 function M:projreader()
     local projfile = self.config.projfile
-    if not vim.fn.filereadable(projfile) then
+    if 0 == vim.fn.filereadable(projfile) then
         return {}
     end
     local file = io.open(projfile, "r")
@@ -115,6 +116,7 @@ function M:projreader()
     end
     return projects
 end
+
 ---@param projects Projects
 function M:projwriter(projects)
     local projfile = self.config.projfile
@@ -179,7 +181,7 @@ function M:load(project)
                 vim.cmd("split")
                 vim.cmd("wincmd j")
             end
-            if vim.fn.filereadable(filepath) then
+            if 1 == vim.fn.filereadable(filepath) then
                 vim.cmd("edit " .. filepath)
             end
         end
@@ -201,7 +203,7 @@ function M:load(project)
     for _, filepath in ipairs(buffers) do
         local buf = vim.api.nvim_create_buf(false, false)
         vim.api.nvim_buf_call(buf, function()
-            if vim.fn.filereadable(filepath) then
+            if 1==vim.fn.filereadable(filepath) then
                 vim.cmd("edit " .. filepath)
             end
         end)
@@ -224,6 +226,7 @@ function M:load(project)
     end
     return true
 end
+
 function M:update()
     local project = self:mksession()
     local projects = self:projreader()
@@ -233,6 +236,7 @@ function M:update()
     projects[project.path] = project
     self:projwriter(projects)
 end
+
 function M:delbypath(path)
     local projects = self:projreader()
     if projects == nil or projects[path] == nil then
@@ -241,6 +245,7 @@ function M:delbypath(path)
     projects[path] = nil
     self:projwriter(projects)
 end
+
 ---@param callback fun(project:Project)
 function M:select(callback)
     local projects = self:projreader()
@@ -269,6 +274,7 @@ function M:select(callback)
         end
     end)
 end
+
 -- Create Autocmds
 -- Save/Update Proj When Exit , then set _setuped true
 function M:setup()
@@ -296,6 +302,7 @@ function M:setup()
         self._setuped = true
     end
 end
+
 function M:select_and_load()
     self:select(function(project)
         if project ~= nil then
@@ -303,6 +310,7 @@ function M:select_and_load()
         end
     end)
 end
+
 function M:select_and_del()
     self:select(function(project)
         if project ~= nil then
@@ -310,4 +318,5 @@ function M:select_and_del()
         end
     end)
 end
+
 return M

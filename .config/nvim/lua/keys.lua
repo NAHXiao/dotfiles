@@ -113,7 +113,7 @@ local function switch_file(direction)
     local current_name = vim.fs.basename(current)
     local files = {}
     for name, type in vim.fs.dir(dir) do
-        if type == "file" or (type == "link" and vim.uv.fs_stat(vim.fs.joinpath(dir,name)).type == "file") then
+        if type == "file" or (type == "link" and vim.uv.fs_stat(vim.fs.joinpath(dir, name)).type == "file") then
             table.insert(files, name)
         end
     end
@@ -148,18 +148,9 @@ end)
 map("n", "]f", function()
     switch_file(1)
 end)
----@type fun()[]
-CC.cleanui_funcs = {}
-CC.cleanui = function()
-    for _, f in ipairs(CC.cleanui_funcs) do
-        f()
-    end
-    vim.cmd("redraw!")
-    vim.cmd("nohlsearch")
-end
-map("n", "<C-l>", CC.cleanui)
+map("n", "<C-l>", GVars.cleanui)
 -- Fix common typos
-vim.cmd([[
+vim.cmd [[
     cnoreabbrev W! w!
     cnoreabbrev W1 w!
     cnoreabbrev w1 w!
@@ -190,4 +181,7 @@ vim.cmd([[
     cnoreabbrev wQA wqa
     cnoreabbrev wQa wqa
     cnoreabbrev wqA wqa
-]])
+]]
+vim.cmd [[
+    cnoreabbrev b! botright split new \| r!
+]]

@@ -15,8 +15,8 @@ local dap_config_tmpl =
 ---See [%s]
 ---See [%s]
 return {}]]):format(
-        vim.fs.joinpath(CC.lazypath, "mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/configurations.lua"),
-        vim.fs.joinpath(CC.lazypath, "mason-nvim-dap.nvim/lua/mason-nvim-dap/mappings/filetypes.lua"))
+        vim.fs.joinpath(GVars.lazy_plugin_path("mason-nvim-dap.nvim"), "lua/mason-nvim-dap/mappings/configurations.lua"),
+        vim.fs.joinpath(GVars.lazy_plugin_path("mason-nvim-dap.nvim"), "lua/mason-nvim-dap/mappings/filetypes.lua"))
 ---@type table<string,dap.Configuration>
 return {
     {
@@ -39,18 +39,18 @@ return {
                 desc = "Debug: Toggle breakpoint",
             },
             {
-                { CC.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
+                { GVars.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
                 function()
                     require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
                 end,
-                desc = "Debug: Set breakpoint" .. (CC.is_win and "" or " <Shift-F2>"),
+                desc = "Debug: Set breakpoint" .. (GVars.is_win and "" or " <Shift-F2>"),
             },
             {
-                { CC.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
+                { GVars.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
                 function()
                     require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
                 end,
-                desc = "Debug: Set log point" .. (CC.is_win and "" or " <Ctrl-F2>"),
+                desc = "Debug: Set log point" .. (GVars.is_win and "" or " <Ctrl-F2>"),
             },
 
             {
@@ -80,7 +80,7 @@ return {
                 "<F5>",
                 function()
                     local dap = require("dap")
-                    if vim.fn.filereadable(dap_config_path()) then
+                    if vim.fn.filereadable(dap_config_path()) == 1 then
                         local ok, config = pcall(dofile, dap_config_path())
                         if ok then
                             for ft, conf in pairs(config) do

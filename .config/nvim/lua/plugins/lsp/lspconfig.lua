@@ -189,8 +189,9 @@ return {
         config = function()
             local _open_floating_preview = vim.lsp.util.open_floating_preview
             vim.lsp.util.open_floating_preview = function(contents, syntax, opts)
-                opts = opts or {}
-                opts.border = opts.border
+                opts               = opts or {}
+                local _bufnr       = vim.api.nvim_get_current_buf()
+                opts.border        = opts.border
                     or {
                         { "╭", "FloatBorder" },
                         { "─", "FloatBorder" },
@@ -202,6 +203,18 @@ return {
                         { "│", "FloatBorder" },
                     }
                 local bufnr, winid = _open_floating_preview(contents, syntax, opts)
+                local group        = vim.api.nvim_create_augroup(
+                "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid), { clear = true })
+                vim.api.nvim_create_autocmd("BufLeave", {
+                    buffer = _bufnr,
+                    group = group,
+                    callback = function(ev)
+                        if winid and vim.api.nvim_win_is_valid(winid) and ev.buf ~= bufnr then
+                            vim.api.nvim_win_close(winid, true)
+                            vim.api.nvim_clear_autocmds({ group = group })
+                        end
+                    end
+                })
                 -- For RenderMarkdown
                 vim.api.nvim_set_option_value(
                     "winhighlight",
@@ -248,7 +261,7 @@ return {
     {
         "williamboman/mason-lspconfig.nvim",
         lazy = false,
-        event = "UIEnter",
+        event = "VeryLazy",
         dependencies = {
             "williamboman/mason.nvim",
             "neovim/nvim-lspconfig",
@@ -258,7 +271,6 @@ return {
                 ensure_installed = require("tools.config.lsp").mason_ensure_install,
                 automatic_enable = false
             })
-            --jdtls?
         end,
     }
 }

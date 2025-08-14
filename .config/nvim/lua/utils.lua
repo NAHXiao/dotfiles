@@ -9,7 +9,7 @@ function M.map(mode, lhs, rhs, opts)
     if mode == "*" then
         mode = { "i", "n", "s", "v", "t", "o" }
     end
-    local options = vim.tbl_extend("force", { silent = true, noremap = true }, opts or {})
+    local options = vim.tbl_extend("force", { silent = true }, opts or {})
     if type(lhs) == "string" then
         lhs = { lhs }
     end

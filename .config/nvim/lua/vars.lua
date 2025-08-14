@@ -7,7 +7,13 @@ g.background = "dark"
 --自定义变量
 GVars = {}
 ---@type fun()[]
-GVars.cleanui_funcs = {}
+GVars.cleanui_funcs = {
+    function()
+        vim.cmd.doautocmd("CursorMoved")
+        vim.cmd.doautocmd("CursorMovedI")
+        vim.cmd.noh()
+    end
+}
 GVars.cleanui = function()
     for _, f in ipairs(GVars.cleanui_funcs) do
         f()

@@ -987,7 +987,9 @@ local items = {}
 local function new(it)
     table.insert(items,it)
 end
-return items]]):format(vim.fs.joinpath(vim.fn.stdpath("config"), "lua/tools/config/task.lua"))
+return items]]):format(vim.fs.joinpath(
+            require("utils").prefix_replace(vim.fn.stdpath("config"), vim.uv.os_homedir(), "~"),
+            "lua/tools/config/task.lua"))
     local bufnr, _, already_focus, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
     if already_focus == true then
         local append_items = function(lines, items)

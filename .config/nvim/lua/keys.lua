@@ -151,36 +151,77 @@ end)
 map("n", "<C-l>", GVars.cleanui)
 -- Fix common typos
 vim.cmd [[
-    cnoreabbrev W! w!
-    cnoreabbrev W1 w!
-    cnoreabbrev w1 w!
-    cnoreabbrev Q! q!
-    cnoreabbrev Q1 q!
-    cnoreabbrev q1 q!
+cnoreabbrev W w
 
-    cnoreabbrev qa1 qa!
-    cnoreabbrev Qa qa
-    cnoreabbrev Qa! qa!
-    cnoreabbrev Qall qall
-    cnoreabbrev Qall! qall!
+cnoreabbrev W! w!
+cnoreabbrev w1 w!
+cnoreabbrev W1 w!
 
-    cnoreabbrev Wa wa
-    cnoreabbrev Wq wq
-    cnoreabbrev wQ wq
-    cnoreabbrev WQ wq
-    cnoreabbrev wq1 wq!
-    cnoreabbrev Wq1 wq!
-    cnoreabbrev wQ1 wq!
-    cnoreabbrev WQ1 wq!
-    cnoreabbrev W w
-    cnoreabbrev Q q
-    cnoreabbrev WQA wqa
-    cnoreabbrev WQa wqa
-    cnoreabbrev WqA wqa
-    cnoreabbrev Wqa wqa
-    cnoreabbrev wQA wqa
-    cnoreabbrev wQa wqa
-    cnoreabbrev wqA wqa
+cnoreabbrev Q q
+
+cnoreabbrev Q! q!
+cnoreabbrev q1 q!
+cnoreabbrev Q1 q!
+
+cnoreabbrev WQ wq
+cnoreabbrev Wq wq
+cnoreabbrev wQ wq
+
+cnoreabbrev WQ! wq!
+cnoreabbrev Wq! wq!
+cnoreabbrev wQ! wq!
+cnoreabbrev WQ1 wq!
+cnoreabbrev Wq1 wq!
+cnoreabbrev wQ1 wq!
+cnoreabbrev wq1 wq!
+
+cnoreabbrev WA wa
+cnoreabbrev Wa wa
+cnoreabbrev wA wa
+
+cnoreabbrev WA! wa!
+cnoreabbrev Wa! wa!
+cnoreabbrev wA! wa!
+cnoreabbrev WA1 wa!
+cnoreabbrev Wa1 wa!
+cnoreabbrev wA1 wa!
+cnoreabbrev wa1 wa!
+
+cnoreabbrev QA qa
+cnoreabbrev Qa qa
+cnoreabbrev qA qa
+
+cnoreabbrev QA! qa!
+cnoreabbrev Qa! qa!
+cnoreabbrev qA! qa!
+cnoreabbrev QA1 qa!
+cnoreabbrev Qa1 qa!
+cnoreabbrev qA1 qa!
+cnoreabbrev qa1 qa!
+
+cnoreabbrev WQA wqa
+cnoreabbrev WQa wqa
+cnoreabbrev WqA wqa
+cnoreabbrev Wqa wqa
+cnoreabbrev wQA wqa
+cnoreabbrev wQa wqa
+cnoreabbrev wqA wqa
+
+cnoreabbrev WQA! wqa!
+cnoreabbrev WQa! wqa!
+cnoreabbrev WqA! wqa!
+cnoreabbrev Wqa! wqa!
+cnoreabbrev wQA! wqa!
+cnoreabbrev wQa! wqa!
+cnoreabbrev wqA! wqa!
+cnoreabbrev WQA1 wqa!
+cnoreabbrev WQa1 wqa!
+cnoreabbrev WqA1 wqa!
+cnoreabbrev Wqa1 wqa!
+cnoreabbrev wQA1 wqa!
+cnoreabbrev wQa1 wqa!
+cnoreabbrev wqA1 wqa!
+cnoreabbrev wqa1 wqa!
 ]]
 vim.cmd [[
     cnoreabbrev b! botright split new \| r!

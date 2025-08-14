@@ -496,6 +496,13 @@ function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
 
+function M.prefix_replace(str, prefix, replacement)
+    if str:sub(1, #prefix) == prefix then
+        return replacement .. str:sub(#prefix + 1)
+    end
+    return str
+end
+
 function M.range(...)
     local args = { ... }
     local start, end_, step

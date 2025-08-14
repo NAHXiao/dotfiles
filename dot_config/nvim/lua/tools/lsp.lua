@@ -33,32 +33,35 @@ function M.loadconfig(reload)
     end
 end
 
----Override/Extend
-function M.setup_lspconfig()
-    local config = M.config
-    if config.extend then
-        for lsp, conf in pairs(config.extend) do
-            vim.lsp.config(lsp, conf)
+---Override/Extend: should be called after <rtp>/lsp loaded,u
+---@param mode "autocmd"|"immediate"
+function M.setup_ulspconfig(mode)
+    vim.validate("mode", mode, function(it) return it == "autocmd" or it == "immediate" end)
+    local function setup_lspc()
+        local config = M.config
+        if config.ulsp_config_ok == true then
+            for lsp, conf in pairs(config.ulsp_config.extend) do
+                vim.lsp.config(lsp, conf)
+            end
+            for lsp, conf in pairs(config.ulsp_config.override) do
+                vim.lsp.config[lsp] = conf
+            end
+        elseif config.ulsp_config_ok == false then
+            vim.notify(("[LSP]: dofile %s error: %s"):format(config.ulsp_config_path(), config.ulsp_config),
+                vim.log.levels.ERROR)
         end
     end
-    if config.override then
-        for lsp, conf in pairs(config.override) do
-            vim.lsp.config[lsp] = conf
-        end
-    end
-    if config.ulsp_config_ok == true then
-        for lsp, conf in pairs(config.ulsp_config.extend) do
-            vim.lsp.config(lsp, conf)
-        end
-        for lsp, conf in pairs(config.ulsp_config.override) do
-            vim.lsp.config[lsp] = conf
-        end
-    elseif config.ulsp_config_ok == false then
-        vim.notify(("[LSP]: dofile %s error: %s"):format(config.ulsp_config_path(), config.ulsp_config),
-            vim.log.levels.ERROR)
+    if mode == "autocmd" then
+        require("utils").auc("User", {
+            pattern = "RTPAfterPluginLoad",
+            callback = setup_lspc
+        })
+    elseif mode == "immediate" then
+        setup_lspc()
     end
 end
 
+---g+u
 function M.enable_lsps()
     for _, lsp in ipairs(M.config.auto_enable) do
         if M.allow_enable(lsp) then
@@ -82,7 +85,7 @@ function M.allow_enable(lspname)
     return true
 end
 
----Should be setup after <rtp>/lsp loaded
+---Should be called earlyer,once
 function M.setup_disable()
     local _enable = vim.lsp.enable
     vim.lsp.enable = function(name, enable)
@@ -103,27 +106,53 @@ function M.setup_disable()
     end
 end
 
+function M.toggle_inlay_hints()
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+    require("utils").vim_echo(("[LSP.InlayHint]: %s"):format(vim.lsp.inlay_hint.is_enabled() and "Enabled" or "Disabled"))
+end
+
+---once
 function M.setup_keymap()
     require("utils").map("n", "<leader>el", function()
         utils.focus_or_new(M.config.ulsp_config_path(), M.config.ulsp_config_tmpl)
     end, { desc = "Edit: Lsp" })
+    require("utils").map("n", "<leader>\\i", M.toggle_inlay_hints, { desc = "Toggle inlay hints" })
+end
+
+---g,once
+function M.lsp_settings()
+    local config = M.config
+    vim.lsp.inlay_hint.enable(true)
+    vim.lsp.config('*', config.lsp_default_config)
+    if config.extend then
+        for lsp, conf in pairs(config.extend) do
+            vim.lsp.config(lsp, conf)
+        end
+    end
+    if config.override then
+        for lsp, conf in pairs(config.override) do
+            vim.lsp.config[lsp] = conf
+        end
+    end
 end
 
 function M.setup()
     M.loadconfig()
-    M.setup_lspconfig()
+    M.lsp_settings()
+    M.setup_ulspconfig("autocmd")
     M.setup_disable()
     M.enable_lsps()
-    M.setup_keymap()
     require("utils").auc("User", {
         pattern = "ProjRootChanged",
         callback = M.reload
     })
+
+    M.setup_keymap()
 end
 
 function M.reload()
     M.loadconfig(true)
-    M.setup_lspconfig()
+    M.setup_ulspconfig("immediate")
     M.enable_lsps()
 end
 

@@ -17,10 +17,10 @@ return {
             sign = false,
             virtual_text = false
         },
-        outline = {
-            close_after_jump = true,
-            layout = 'float'
-        },
+        -- outline = {
+            -- close_after_jump = true,
+            -- layout = 'float'
+        -- },
         symbol_in_winbar = {
             enable = false,
         },
@@ -28,7 +28,6 @@ return {
             enable = false,
         },
         ui = {
-            -- border = { '🭽', '▔', '🭾', '▕', '🭿', '▁', '🭼', '▏' }
             border = "rounded"
         }
     },
@@ -37,7 +36,7 @@ return {
         -- { "<Leader>lC", "<Cmd>Lspsaga outgoing_calls<CR>", mode = "n", desc = "Callees" },
         -- { "<Leader>ld", "<Cmd>Lspsaga peek_definition<CR>", mode = "n", desc = "Lspsaga peek_definition" },
         -- { "<Leader>lh", "<Cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Lspsaga hover_doc" },
-        -- { "<Leader>lo", "<Cmd>Lspsaga outline<CR>", mode = "n", desc = "Lspsaga outline" },
+        { "<Leader>s", "<Cmd>Lspsaga outline<CR>", mode = "n", desc = "Lspsaga outline" },
         -- { "<Leader>lr", "<Cmd>Lspsaga rename<CR>", mode = "n", desc = "Lspsaga rename" },
     }
 }

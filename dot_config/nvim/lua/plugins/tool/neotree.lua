@@ -3,7 +3,7 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     dependencies = {
         { "nvim-lua/plenary.nvim", lazy = true },
-        { "MunifTanjim/nui.nvim", lazy = true },
+        { "MunifTanjim/nui.nvim",  lazy = true },
         {
             "s1n7ax/nvim-window-picker",
             version = "2.*",
@@ -49,6 +49,12 @@ return {
             "NeoTreeTabSeparatorInactive",
             "NeoTreeWinSeparator",
         })
+        require("tools.hl").regist_transparent({
+            NeoTreeMessage = {
+                link = "NeoTreeFileName"
+            }
+        })
+        -- NeoTreeMessage
     end,
     config = function()
         require("neo-tree").setup({
@@ -65,12 +71,12 @@ return {
             enable_modified_markers = true,
             enable_opened_markers = true,
             enable_refresh_on_write = true,
-            open_files_in_last_window = true, -- false = open files in top left window
+            open_files_in_last_window = true,                                          -- false = open files in top left window
             open_files_do_not_replace_types = { "terminal", "Trouble", "qf", "edgy" }, -- when opening files, do not use windows containing these filetypes or buftypes
-            popup_border_style = "rounded", -- "NC","double", "none", "rounded", "shadow", "single" or "solid"
-            sort_case_insensitive = false, -- used when sorting files and directories in the tree
-            sort_function = nil, -- uses a custom function for sorting files and directories in the tree
-            use_popups_for_input = true, -- If false, inputs will use vim.ui.input() instead of custom floats.
+            popup_border_style = "rounded",                                            -- "NC","double", "none", "rounded", "shadow", "single" or "solid"
+            sort_case_insensitive = false,                                             -- used when sorting files and directories in the tree
+            sort_function = nil,                                                       -- uses a custom function for sorting files and directories in the tree
+            use_popups_for_input = true,                                               -- If false, inputs will use vim.ui.input() instead of custom floats.
             use_default_mappings = true,
             source_selector = {
                 winbar = true,
@@ -122,7 +128,7 @@ return {
                         height = "80%",
                         width = "50%",
                     },
-                    position = "50%", -- 50% means center it
+                    position = "50%",       -- 50% means center it
                     title = function(state) -- format the text that appears at the top of a popup window
                         return "Neo-tree " .. state.name:gsub("^%l", string.upper)
                     end,

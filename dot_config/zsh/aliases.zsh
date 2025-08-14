@@ -24,7 +24,7 @@ alias se='sudoedit'
 # alias rm='rm -vr'
 # command -v gio &>/dev/null && {
 command -v trash&>/dev/null && {
-    alias rm='echo rm is banned , please use rt'
+    alias rm='echo rm is banned , please use rt && return 1 || echo'
     # alias rt='gio trash'
     alias rt='trash'
     _trash() {

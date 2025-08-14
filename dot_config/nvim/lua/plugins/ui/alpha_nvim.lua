@@ -22,11 +22,11 @@ return {
         }
         local obsidianbutton
 
-        obsidianbutton = CC.obsidianPath
+        obsidianbutton = GVars.obsidianPath
                 and dashboard.button(
                     "o",
                     "  Obsidian",
-                    "<cmd>cd " .. CC.obsidianPath .. " <CR><cmd>edit .<cr>"
+                    "<cmd>cd " .. GVars.obsidianPath .. " <CR><cmd>edit .<cr>"
                 )
             or nil
         theta.buttons.val = {

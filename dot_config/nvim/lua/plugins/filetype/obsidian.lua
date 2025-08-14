@@ -4,8 +4,8 @@ return {
     lazy = true,
     -- ft = "markdown",
     event = {
-        CC.obsidianPath and "BufReadPre " .. CC.obsidianPath .. "/*.md" or nil,
-        CC.obsidianPath and "BufNewFile  " .. CC.obsidianPath .. "/*.md" or nil,
+        GVars.obsidianPath and "BufReadPre " .. GVars.obsidianPath .. "/*.md" or nil,
+        GVars.obsidianPath and "BufNewFile  " .. GVars.obsidianPath .. "/*.md" or nil,
     },
     dependencies = {
         "nvim-lua/plenary.nvim",
@@ -16,7 +16,7 @@ return {
         workspaces = {
             {
                 name = "main",
-                path =CC.obsidianPath,
+                path =GVars.obsidianPath,
             },
         },
         completion = {
@@ -174,12 +174,12 @@ return {
         -- URL it will be ignored but you can customize this behavior here.
         ---@param url string
         follow_url_func = function(url)
-            if CC.is_win then
+            if GVars.is_win then
                 vim.cmd(':silent exec "!start ' .. url .. '"')
-            elseif CC.is_nix then
-                if CC.is_mac then
+            elseif GVars.is_nix then
+                if GVars.is_mac then
                     vim.fn.jobstart({ "open", url })
-                elseif CC.is_android then
+                elseif GVars.is_android then
                     vim.fn.jobstart({
                         "am",
                         "start",
@@ -190,7 +190,7 @@ return {
                         "-d",
                         url,
                     })
-                elseif CC.is_wsl then
+                elseif GVars.is_wsl then
                     vim.fn.jobstart({ "wslopen", url })
                 else
                     vim.fn.jobstart({ "xdg-open", url })
@@ -204,12 +204,12 @@ return {
         -- file it will be ignored but you can customize this behavior here.
         ---@param img string
         follow_img_func = function(img)
-            if CC.is_win then
+            if GVars.is_win then
                 vim.cmd(':silent exec "!start ' .. img .. '"')
-            elseif CC.is_nix then
-                if CC.is_mac then
+            elseif GVars.is_nix then
+                if GVars.is_mac then
                     vim.fn.jobstart({ "qlmanage", "-p", img })
-                elseif CC.is_android then
+                elseif GVars.is_android then
                     vim.fn.jobstart({
                         "am",
                         "start",
@@ -220,7 +220,7 @@ return {
                         "-d",
                         img,
                     })
-                elseif CC.is_wsl then
+                elseif GVars.is_wsl then
                     vim.fn.jobstart({ "wslopen", img })
                 else
                     vim.fn.jobstart({ "xdg-open", img })
@@ -303,28 +303,28 @@ return {
         require("obsidian").setup(opts)
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
-        local commander = {
-            {
-                cat = "obsidian",
-                cmd = "<cmd>ObsidianSearch<cr>",
-                desc = "搜索关键词(Search keyword)",
-            },
-            {
-                cat = "obsidian",
-                cmd = "<cmd>ObsidianQuickSwitch<cr>",
-                desc = "搜索Obsidian文件(Search file)",
-            },
-            {
-                cat = "obsidian",
-                cmd = "<cmd>ObsidianTags<cr>",
-                desc = "搜索Obsidian Tag(Search tags)",
-            },
-            {
-                cat = "obsidian",
-                cmd = "<cmd>ObsidianToday<cr>",
-                desc = "打开/创建今日日记(Open/Create diary)",
-            },
-        }
-        require("commander").add(commander)
+        -- local commander = {
+        --     {
+        --         cat = "obsidian",
+        --         cmd = "<cmd>ObsidianSearch<cr>",
+        --         desc = "搜索关键词(Search keyword)",
+        --     },
+        --     {
+        --         cat = "obsidian",
+        --         cmd = "<cmd>ObsidianQuickSwitch<cr>",
+        --         desc = "搜索Obsidian文件(Search file)",
+        --     },
+        --     {
+        --         cat = "obsidian",
+        --         cmd = "<cmd>ObsidianTags<cr>",
+        --         desc = "搜索Obsidian Tag(Search tags)",
+        --     },
+        --     {
+        --         cat = "obsidian",
+        --         cmd = "<cmd>ObsidianToday<cr>",
+        --         desc = "打开/创建今日日记(Open/Create diary)",
+        --     },
+        -- }
+        -- require("commander").add(commander)
     end,
 }

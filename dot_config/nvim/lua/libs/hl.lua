@@ -111,13 +111,13 @@ local function transform_one(opts)
         assert(type(opts.mix) == "number", "interpolate requires `mix`")
         return color.interpolate(get_attr(opts.from[1]), get_attr(opts.from[2]), opts.mix)
     elseif transform == "middle" then
-        assert(type(opts.from) == "table" and #opts.from >= 2, "middle requires `from`")
+        assert(type(opts.from) == "table" and #opts.from >= 2, "middle requires `from` as table and `#from` should >= 2")
         assert(type(opts.mix) == "number", "middle requires `mix`")
         return color.middle(get_attr(opts.from[1]), get_attr(opts.from[2]))
     elseif transform == "blend" then
         assert(
             (type(opts.fg) == "string" or type(opts.fg) == "table")
-                and (type(opts.bg) == "string" or type(opts.bg) == "table"),
+            and (type(opts.bg) == "string" or type(opts.bg) == "table"),
             "blend requires `fg` and `bg`"
         )
         assert(type(opts.opacity) == "number", "blend requires `opacity`")

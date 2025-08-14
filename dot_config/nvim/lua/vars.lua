@@ -5,32 +5,42 @@ local uv = vim.uv
 g.t_co = 256
 g.background = "dark"
 --自定义变量
+GVars = {}
+---@type fun()[]
+GVars.cleanui_funcs = {}
+GVars.cleanui = function()
+    for _, f in ipairs(GVars.cleanui_funcs) do
+        f()
+    end
+    vim.cmd("redraw!")
+    vim.cmd("nohlsearch")
+end
 local osname = uv.os_uname().sysname
-CC.is_win = false
+GVars.is_win = false
 
-CC.is_nix = false
+GVars.is_nix = false
 
-CC.is_mac = false
+GVars.is_mac = false
 
-CC.is_wsl = false
-CC.is_android = false
+GVars.is_wsl = false
+GVars.is_android = false
 if osname == "Linux" or osname == "Darwin" then
     if osname == "Linux" then
         if os.getenv("WSL_DISTRO_NAME") then
-            CC.is_wsl = true
+            GVars.is_wsl = true
         elseif os.getenv("ANDROID_ROOT") then
-            CC.is_android = true
+            GVars.is_android = true
         end
     elseif osname == "Darwin" then
-        CC.is_mac = true
+        GVars.is_mac = true
     end
-    CC.is_nix = true
+    GVars.is_nix = true
 elseif osname == "Windows_NT" then
-    CC.is_win = true
+    GVars.is_win = true
 end
 
 vim.env.PATH = vim.env.PATH
-    .. (CC.is_nix and ":" or ";")
+    .. (GVars.is_nix and ":" or ";")
     .. (vim.fs.joinpath(vim.fn.stdpath("config"), "bin"))
 
 -- obsidian
@@ -39,7 +49,7 @@ do
     if osname == "Windows_NT" then
         obsidianpath = "E:/Obsidian/main"
     elseif osname == "Linux" then
-        if CC.is_wsl then
+        if GVars.is_wsl then
             obsidianpath = "/mnt/e/Obsidian/main"
         else
             obsidianpath = os.getenv("HOME") .. "/.local/Obsidian/main"
@@ -48,6 +58,17 @@ do
         obsidianpath = nil
     end
     if obsidianpath ~= nil and uv.fs_stat(obsidianpath) then
-        CC.obsidianPath = obsidianpath
+        GVars.obsidianPath = obsidianpath
     end
 end
+
+GVars.lazypath = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy/lazy.nvim")
+---@param expand_home? boolean default not
+function GVars.lazy_plugin_path(plugin_full_name, expand_home)
+    local path = vim.fs.joinpath(vim.fs.dirname(GVars.lazypath), plugin_full_name)
+    if not expand_home then
+        path = require("utils").prefix_replace(path, vim.uv.os_homedir(), "~")
+    end
+    return path
+end
+GVars.mason_install_root_dir = vim.fs.joinpath(vim.fn.stdpath "data", "mason")

@@ -988,7 +988,7 @@ local function new(it)
     table.insert(items,it)
 end
 return items]]):format(vim.fs.joinpath(vim.fn.stdpath("config"), "lua/tools/config/task.lua"))
-    local bufnr, already_focus, _, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
+    local bufnr, _, already_focus, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
     if already_focus == true then
         local append_items = function(lines, items)
             local insert_before
@@ -1119,7 +1119,7 @@ M.setup = function()
         T:refresh_local()
         M.run_select({ get_cur_ft() })
     end, { desc = "TaskSelectAndRun" })
-    map("n", { CC.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
+    map("n", { GVars.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
         M.edittask()
     end, { desc = "Edit: Task (Add Task)" })
 end

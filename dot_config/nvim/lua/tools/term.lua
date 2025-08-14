@@ -1166,7 +1166,7 @@ end
 --alias _addnode
 function panelbufcxt:append_default(parent)
     local cmds
-    if CC.is_win then
+    if GVars.is_win then
         cmds = { "pwsh", "-nologo" }
     else
         cmds = { vim.o.shell }

@@ -1,14 +1,61 @@
--- TODO:mrcjkb/rustaceanvim
+---TODO: <rtp>? keymap | runnable->term.lua |
+vim.g.rustaceanvim = function()
+    local extension_path = vim.fs.joinpath(GVars.mason_install_root_dir, 'packages/codelldb/extension')
+    local codelldb_path = extension_path .. 'adapter/codelldb'
+    local liblldb_path = extension_path .. 'lldb/lib/liblldb'
+    -- The path is different on Windows
+    if GVars.is_win then
+        codelldb_path = extension_path .. "adapter\\codelldb.exe"
+        liblldb_path = extension_path .. "lldb\\bin\\liblldb.dll"
+    else
+        -- The liblldb extension is .so for Linux and .dylib for MacOS
+        liblldb_path = liblldb_path .. (GVars.is_mac and ".dylib" or ".so")
+    end
+
+    local cfg = require('rustaceanvim.config')
+    return {
+        dap = {
+            adapter = cfg.get_codelldb_adapter(codelldb_path, liblldb_path),
+        },
+    }
+end
 return {
-    "simrat39/rust-tools.nvim",
-    version = "*",
-    lazy = true,
-    ft = "rust",
+    'mrcjkb/rustaceanvim',
+    version = '^6',
+    lazy = false,
+    dependencies = {
+        "mfussenegger/nvim-dap",
+    },
     config = function()
-        require("mason-lspconfig").setup_handlers({
-            ["rust_analyzer"] = function()
-                require("rust-tools").setup({})
-            end,
+        require("utils").auc("FileType", {
+            pattern = { "rust" },
+            callback = function(ev)
+                local map = function(mode, lhs, rhs, desc)
+                    require("utils").map(mode, lhs, rhs, { buffer = ev.buf, desc = desc })
+                end
+
+                map("n", "<leader><leader>d", function() vim.cmd.RustLsp('debuggables') end, "Rust Show Debuggables")
+                map("n", "<leader><leader>D", function() vim.cmd.RustLsp { 'debuggables', bang = true } end,
+                    "Rust Run Last Debuggables")
+                map("n", "<leader><leader>r", function() vim.cmd.RustLsp('runnables') end, "Rust Show Runnables")
+                map("n", "<leader><leader>R", function() vim.cmd.RustLsp { 'runnables', bang = true } end,
+                    "Rust Run Last Runnables")
+                map("n", "<leader><leader>t", function() vim.cmd.RustLsp('testables') end, "Rust Show Testables")
+                map("n", "<leader><leader>T", function() vim.cmd.RustLsp { 'testables', bang = true } end,
+                    "Rust Run Last Testables")
+
+
+                map("n", "<leader><leader>me", function() vim.cmd.RustLsp('expandMacro') end, "Rust Expand Macro")
+                map("n", "<leader><leader>mb", function() vim.cmd.RustLsp('rebuildProcMacros') end,
+                    "Rust Rebuild ProcMacros")
+
+
+                map("n", "<leader><leader>ca", function() vim.cmd.RustLsp('codeAction') end, "Rust codeAction")
+
+                map("n", "<leader><leader>cd", function() vim.cmd.RustLsp('relatedDiagnostics') end,
+                    "Rust relatedDiagnostics(quickfix)")
+                -- vim.cmd.RustAnalyzer { 'config', '{ checkOnSave = false }' }
+            end
         })
-    end,
+    end
 }

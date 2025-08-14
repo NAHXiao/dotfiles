@@ -74,6 +74,7 @@ return {
                         "-H",
                         "-I",
                         "--follow",
+                        "-t", "f"
                     },
                     no_ignore = true,
                     hidden = true,
@@ -326,6 +327,7 @@ return {
                         -- "-I",
                         "--exclude={.Trash-1000,.DS_Store,$RECYCLE.BIN,.git,.idea,.vscode,.sass-cache,.mypy_cache,node_modules,.gradle,build,.vscode-server,.virtualenvs,.cache,.ghcup,.conda,.rustup,.cargo,.local,target,.stfolder,.vs}",
                         "--follow",
+                        "-t", "f"
                     },
                 },
                 live_grep = {
@@ -344,10 +346,10 @@ return {
             },
             extensions = {
                 fzf = {
-                    fuzzy = true, -- false will only do exact matching
+                    fuzzy = true,                   -- false will only do exact matching
                     override_generic_sorter = true, -- override the generic sorter
-                    override_file_sorter = true, -- override the file sorter
-                    case_mode = "smart_case", -- or "ignore_case" or "respect_case"
+                    override_file_sorter = true,    -- override the file sorter
+                    case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
                     -- the default case_mode is "smart_case"
                 },
                 ["ui-select"] = {

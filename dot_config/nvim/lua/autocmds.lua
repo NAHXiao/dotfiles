@@ -95,7 +95,7 @@ if
     (GVars.is_wsl and stat and stat.type == "file" and require("bit").band(stat.mode, 73) ~= 0)
     or (GVars.is_win and stat and stat.type == "file")
 then
-    local enabled = true
+    local enabled = false
     require("utils").aug("IME_Control", true)
     local locked = false
     local latest_call = nil

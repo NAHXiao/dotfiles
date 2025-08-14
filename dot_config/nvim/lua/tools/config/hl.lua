@@ -36,6 +36,9 @@ M.color_transparent_trans_tbl = {
     Linenr = { fg = "Normal.fg" },
     CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
     Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
-    LspInlayHint = { bg = { transform = "lighten", from = "LspInlayHint.bg", amount = 0.5, } },
+    LspInlayHint = {
+        bg = { transform = "darken", from = "Cursor.bg", amount = 0.1, },
+        fg = "Cursor.fg",
+    },
 }
 return M

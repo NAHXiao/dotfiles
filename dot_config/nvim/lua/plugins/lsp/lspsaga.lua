@@ -2,7 +2,7 @@ return {
     "nvimdev/lspsaga.nvim",
     dependencies = {
         'nvim-treesitter/nvim-treesitter',
-        "echasnovski/mini.icons",
+        'nvim-tree/nvim-web-devicons'
     },
     event = "LspAttach",
     opts = {
@@ -17,10 +17,13 @@ return {
             sign = false,
             virtual_text = false
         },
-        -- outline = {
-            -- close_after_jump = true,
-            -- layout = 'float'
-        -- },
+        outline = {
+            keys = {
+                toggle_or_jump = 'o',
+                quit = 'q',
+                jump = '<CR>',
+            },
+        },
         symbol_in_winbar = {
             enable = false,
         },

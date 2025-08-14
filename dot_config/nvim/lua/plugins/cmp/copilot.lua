@@ -12,6 +12,8 @@ return {
                 if disabled then
                     require("copilot.command").enable()
                 else
+                    vim.b.copilot_suggestion_hidden = false
+                    vim.cmd("doautocmd CursorMovedI")
                     require("copilot.command").disable()
                 end
                 require("utils").vim_echo(

@@ -12,6 +12,7 @@ GVars.cleanui_funcs = {
         vim.cmd.doautocmd("CursorMoved")
         vim.cmd.doautocmd("CursorMovedI")
         vim.cmd.noh()
+        vim.snippet.stop()
     end
 }
 GVars.cleanui = function()

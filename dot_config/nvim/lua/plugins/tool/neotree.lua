@@ -40,21 +40,6 @@ return {
         vim.g.loaded_netrwPlugin = 1
         vim.g.loaded_netrwSettings = 1
         vim.g.loaded_netrwFileHandlers = 1
-        require("tools.hl").add_transparent_groups({
-            "NeoTreeNormalNC",
-            "NeoTreeNormal",
-            "NeoTreeTabActive",
-            "NeoTreeTabInactive",
-            "NeoTreeTabSeparatorActive",
-            "NeoTreeTabSeparatorInactive",
-            "NeoTreeWinSeparator",
-        })
-        require("tools.hl").regist_transparent({
-            NeoTreeMessage = {
-                link = "NeoTreeFileName"
-            }
-        })
-        -- NeoTreeMessage
     end,
     config = function()
         require("neo-tree").setup({
@@ -273,6 +258,20 @@ return {
             --         },
             --     },
             -- },
+        })
+        require("tools.hl").add_transparent_groups({
+            "NeoTreeNormalNC",
+            "NeoTreeNormal",
+            "NeoTreeTabActive",
+            "NeoTreeTabInactive",
+            "NeoTreeTabSeparatorActive",
+            "NeoTreeTabSeparatorInactive",
+            "NeoTreeWinSeparator",
+        })
+        require("tools.hl").regist_transparent({
+            NeoTreeMessage = {
+                link = "NeoTreeFileName"
+            }
         })
     end,
 }

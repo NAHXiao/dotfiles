@@ -20,11 +20,9 @@ return {
     },
     cmd = "Trouble",
     lazy = true,
-    init = function()
-        require("tools.hl").regist({ TroubleNormal = { link = "Normal" } })
-    end,
     config = function()
         require("trouble").setup()
+        require("tools.hl").regist({ TroubleNormal = { link = "Normal" } })
     end,
 }
 --[[

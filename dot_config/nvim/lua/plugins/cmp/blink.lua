@@ -154,9 +154,6 @@ return {
         },
         snippets = {},
     },
-    init = function()
-        require("tools.hl").add_transparent_groups({ "BlinkCmpMenuBorder" })
-    end,
     config = function(_, opts)
         require("blink.cmp").setup(opts)
         vim.api.nvim_create_autocmd("User", {
@@ -173,7 +170,8 @@ return {
                 vim.cmd("doautocmd CursorMovedI")
             end,
         })
-        require("tools.hl").regist_transparent({
+        require("tools.hl").add_transparent_groups({ "BlinkCmpMenuBorder" })
+        require("tools.hl").regist_transparent_once({
             BlinkCmpMenuSelection = {
                 bg = {
                     transform = "lighten",

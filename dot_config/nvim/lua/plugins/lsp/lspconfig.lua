@@ -214,7 +214,6 @@ return {
                             group = group,
                             callback = function(ev)
                                 if winid and vim.api.nvim_win_is_valid(winid) and ev.buf ~= bufnr then
-                                    vim.notify("close" .. tostring(winid))
                                     vim.api.nvim_win_close(winid, true)
                                     vim.api.nvim_clear_autocmds({ group = group })
                                 end

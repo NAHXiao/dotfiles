@@ -2,19 +2,18 @@
 
 local color = require("libs.color")
 
----@param hl_fallback_list string | string[]
+---@param hl_fallback_list string | number| (number|string)[]
 ---Example
 ---```lua
----local fg = get_attr({"Visual.fg","CursorLine.fg"})
----local fg = get_attr({"Visual.fg","#ffffaa","Red"})
+---local fg = get_attr({"Visual.fg","CursorLine.fg","red","#ff0000",16113884})
 ---```
-local function get_attr(hl_fallback_list)
-    if type(hl_fallback_list) == "string" then
+local function get_color_attr(hl_fallback_list)
+    if type(hl_fallback_list) == "string" or type(hl_fallback_list) == "number" then
         hl_fallback_list = { hl_fallback_list }
     end
     for _, hl_fallback in ipairs(hl_fallback_list) do
-        for _, hl_name_dot_attr in ipairs(vim.split(hl_fallback, ",", { trimempty = true })) do
-            local name, attr = hl_name_dot_attr:match("^([^%.]+)%.([^%.]+)$")
+        if type(hl_fallback) == "string" then
+            local name, attr = hl_fallback:match("^([^%.]+)%.([^%.]+)$")
             if name and attr then
                 local hl = vim.api.nvim_get_hl(0, { name = name, link = false })
                 if hl.reverse == true and attr == "fg" and hl.fg then
@@ -25,13 +24,15 @@ local function get_attr(hl_fallback_list)
                     return hl[attr]
                 end
             elseif ---"Red" "#ffffaa"
-                not hl_name_dot_attr:find(".", 1, true)
-                and vim.api.nvim_get_color_by_name(hl_name_dot_attr) ~= -1
+                not hl_fallback:find(".", 1, true)
+                and vim.api.nvim_get_color_by_name(hl_fallback) ~= -1
             then
-                return vim.api.nvim_get_color_by_name(hl_name_dot_attr)
+                return vim.api.nvim_get_color_by_name(hl_fallback)
             else
-                error("Invalid highlight color: " .. hl_name_dot_attr)
+                error("Invalid highlight color: " .. hl_fallback)
             end
+        elseif type(hl_fallback) == "number" then
+            return hl_fallback
         end
     end
 end
@@ -78,42 +79,31 @@ local function transform_one(opts)
     if type(opts) == "function" then
         opts = opts()
     end
-
-    local count = 0
-    for _, t in ipairs({ "lighten", "darken", "emboss", "deboss", "interpolate", "middle", "blend" }) do
-        if opts.transform == t then
-            count = count + 1
-        end
-    end
-    if count > 1 then --TODO:?
-        error("Multiple transforms is not supported: " .. vim.inspect(opts))
-    end
-
-    local transform = opts.transform or opts[1]
+    local transform = opts.transform
     if transform == "lighten" then
         assert(type(opts.from) == "string" or type(opts.from) == "table", "lighten requires `from`")
         assert(type(opts.amount) == "number", "lighten requires `amount`")
-        return color.lighten(get_attr(opts.from), opts.amount)
+        return color.lighten(get_color_attr(opts.from), opts.amount)
     elseif transform == "darken" then
         assert(type(opts.from) == "string" or type(opts.from) == "table", "darken requires `from`")
         assert(type(opts.amount) == "number", "darken requires `amount`")
-        return color.darken(get_attr(opts.from), opts.amount)
+        return color.darken(get_color_attr(opts.from), opts.amount)
     elseif transform == "emboss" then
         assert(type(opts.from) == "string" or type(opts.from) == "table", "emboss requires `from`")
         assert(type(opts.amount) == "number", "emboss requires `amount`")
-        return color.emboss(get_attr(opts.from), opts.amount)
+        return color.emboss(get_color_attr(opts.from), opts.amount)
     elseif transform == "deboss" then
         assert(type(opts.from) == "string" or type(opts.from) == "table", "deboss requires `from`")
         assert(type(opts.amount) == "number", "deboss requires `amount`")
-        return color.deboss(get_attr(opts.from), opts.amount)
+        return color.deboss(get_color_attr(opts.from), opts.amount)
     elseif transform == "interpolate" then
         assert(type(opts.from) == "table" and #opts.from >= 2, "interpolate requires `from`")
         assert(type(opts.mix) == "number", "interpolate requires `mix`")
-        return color.interpolate(get_attr(opts.from[1]), get_attr(opts.from[2]), opts.mix)
+        return color.interpolate(get_color_attr(opts.from[1]), get_color_attr(opts.from[2]), opts.mix)
     elseif transform == "middle" then
-        assert(type(opts.from) == "table" and #opts.from >= 2, "middle requires `from` as table and `#from` should >= 2")
+        assert(type(opts.from) == "table" and #opts.from == 2, "middle requires `from` as table and `#from` should == 2")
         assert(type(opts.mix) == "number", "middle requires `mix`")
-        return color.middle(get_attr(opts.from[1]), get_attr(opts.from[2]))
+        return color.middle(get_color_attr(opts.from[1]), get_color_attr(opts.from[2]))
     elseif transform == "blend" then
         assert(
             (type(opts.fg) == "string" or type(opts.fg) == "table")
@@ -121,25 +111,32 @@ local function transform_one(opts)
             "blend requires `fg` and `bg`"
         )
         assert(type(opts.opacity) == "number", "blend requires `opacity`")
-        return color.blend(get_attr(opts.fg), get_attr(opts.bg), opts.opacity)
+        return color.blend(get_color_attr(opts.fg), get_color_attr(opts.bg), opts.opacity)
     else
         error("Invalid highlight transform: " .. vim.inspect(opts))
     end
 end
----@alias HighlightTransformRegistMap table<string, HighlightTransformTable |fun():HighlightTransformTable>
----@alias HighlightTransformDef string | string[] | HighlightTransform
+---sp,default,ctermfg,ctermebg,cterm not support
+---@alias HighlightTransformDef string | number | (string|number)[] | HighlightTransform
 ---@class HighlightTransformTable
 ---@field  fg? (HighlightTransformDef | fun():HighlightTransformDef)
 ---@field  bg? (HighlightTransformDef | fun():HighlightTransformDef)
----@field  link? string
----@field  bold? boolean | string
----@field  italic? boolean | string
----@field  underline? boolean | string
----@field  undercurl? boolean | string
+---@field  blend? integer
+---@field  bold? boolean
+---@field  standout? boolean
+---@field  underline? boolean
+---@field  undercurl? boolean
+---@field  underdouble? boolean
+---@field  underdotted? boolean
+---@field  underdashed? boolean
 ---@field  strikethrough? boolean | string
+---@field  italic? boolean
+---@field  reverse? boolean | string
+---@field  nocombine? boolean | string
+---@field  link? string
+---@alias HighlightTransformRegistMap table<string, HighlightTransformTable |fun():HighlightTransformTable>
 ---@param tbl HighlightTransformRegistMap
 ---@return fun()
----string:字典序赋值
 local function __mk_handle(tbl)
     return function()
         local keys = {}
@@ -153,34 +150,30 @@ local function __mk_handle(tbl)
             if type(hl_opts) == "function" then
                 hl_opts = hl_opts()
             end
-            if hl_opts then
-                for attr, opts in pairs(hl_opts) do
+            ---@cast hl_opts HighlightTransformTable
+            for attr, opts in pairs(hl_opts or {}) do
+                if attr == "fg" or attr == "bg" then
                     if type(opts) == "function" then
                         opts = opts()
                     end
-                    --type(opts)==boolean/string/string[]/HighlightTransform
-                    if type(opts) == "table" and #opts == 0 then
-                        --HighlightTransform
+                    ---@cast opts string | string[] | HighlightTransform
+                    if type(opts) == "table" and opts.transform then
+                        ---@cast opts HighlightTransform
                         result[attr] = transform_one(opts)
-                    elseif
-                        (type(opts) == "string" and attr ~= "link")
-                        or ((attr == "fg" or attr == "bg") and type(opts) == "table" and #opts ~= 0)
-                    then
-                        --string/string[]
-                        result[attr] = get_attr(opts)
                     else
-                        --boolean
-                        result[attr] = opts
+                        result[attr] = get_color_attr(opts)
                     end
+                else
+                    result[attr] = opts
                 end
-                result.force = true
-                vim.api.nvim_set_hl(0, hl_name, result)
             end
+            result.force = true
+            vim.api.nvim_set_hl(0, hl_name, result)
         end
     end
 end
 return {
-    get_attr = get_attr,
+    get_color_attr = get_color_attr,
     transform_one = transform_one,
     mkhandle = __mk_handle,
 }

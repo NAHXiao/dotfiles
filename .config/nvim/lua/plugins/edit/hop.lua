@@ -7,15 +7,13 @@ return {
         { "HF", "<cmd>HopPatternMW<cr>",   desc = "jump to pattern" },
         { "HL", "<cmd>HopLineStartMW<cr>", desc = "jump to line" },
     },
-    init = function()
+    config = function()
+        require("hop").setup()
         require("tools.hl").add_transparent_groups({
             "HopUnmatched",
             "HopNextKey",
             "HopNextKey1",
             "HopNextKey2",
         })
-    end,
-    config = function()
-        require("hop").setup()
     end,
 }

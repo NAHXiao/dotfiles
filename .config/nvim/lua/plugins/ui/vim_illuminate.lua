@@ -11,13 +11,6 @@ return {
             desc = "Toggle Illuminate(Same Word Highlight)",
         },
     },
-    init = function()
-        require("tools.hl").regist_transparent({
-            IlluminatedWordWrite = { underline = true },
-            IlluminatedWordText = { underline = true },
-            IlluminatedWordRead = { underline = true },
-        })
-    end,
     config = function()
         require("illuminate").configure({
             providers = {
@@ -36,6 +29,11 @@ return {
                 })
             end,
             disable_keymaps = true,
+        })
+        require("tools.hl").regist_transparent({
+            IlluminatedWordWrite = { underline = true },
+            IlluminatedWordText = { underline = true },
+            IlluminatedWordRead = { underline = true },
         })
     end,
 }

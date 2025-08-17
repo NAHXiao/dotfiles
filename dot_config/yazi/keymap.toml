@@ -1,4 +1,13 @@
+"$schema" = "https://yazi-rs.github.io/schemas/keymap.json"
 [mgr]
+
 prepend_keymap = [
-	{ on = "<Backspace>", run = "toggle hidden", desc = "Toggle the visibility of hidden files" },
+	{ on = "i", run = "spot", desc = "Spot hovered file" },
+	{ on = "<Tab>", run = "tab_switch 1 --relative",  desc = "Switch to next tab" },
+	{ on = "<S-Tab>", run = "tab_switch -1 --relative", desc = "Switch to previous tab" }
+]
+    
+[spot]
+prepend_keymap = [
+	{ on = "i", run = "close", desc = "Close the spot" },
 ]

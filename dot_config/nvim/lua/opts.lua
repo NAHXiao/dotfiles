@@ -28,6 +28,15 @@ opt.tabstop = 4
 opt.splitright = true
 opt.splitbelow = true
 opt.clipboard = "unnamedplus"
+if vim.env.SSH_CLIENT ~= nil then
+    vim.g.clipboard = {
+        name = "osc52",
+        copy = { ["+"] = require("vim.ui.clipboard.osc52").copy("+"), ["*"] = require("vim.ui.clipboard.osc52").copy("*") },
+        paste = { ["+"] = require("vim.ui.clipboard.osc52").paste("+"), ["*"] = require("vim.ui.clipboard.osc52").paste("*") },
+    }
+end
+
+
 --折叠
 opt.hidden = true
 opt.foldenable = false
@@ -42,9 +51,9 @@ opt.cursorlineopt = "number"
 vim.cmd([[
 set spelllang=en_us
 ]])
-vim.opt.exrc=true --autoload $(cwd)/.nvim.lua
+vim.opt.exrc = true --autoload $(cwd)/.nvim.lua
 vim.o.sessionoptions =
-    "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+"blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 --[[
 set viminfo=%,<800,'10,/50,:100,h,f0,n~/.vim/cache/.viminfo
 "           | |    |   |   |    | |  + viminfo file path

@@ -59,6 +59,9 @@ return {
     },
     config = function(_, opts)
         require("dropbar").setup(opts)
-        require("tools.hl").add_transparent_groups({ "WinBar", "WinBarNC" })
+        vim.api.nvim_set_hl(0, "WinBar", { link = "Normal" })
+        vim.api.nvim_set_hl(0, "WinBarNC", { link = "Normal" })
+        require "tools.hl".register_transparent({ "WinBar", "WinBarNC"
+        }, { dependency = "inner<-inner", type = "transparent" })
     end,
 }

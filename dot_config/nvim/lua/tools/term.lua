@@ -1735,10 +1735,10 @@ function M.send(lines, node)
 end
 
 function M.setup()
-    require("tools.hl").regist({
+    require("tools.hl").register({
         TermCurIndex = { link = "CursorLine" },
         TermCursorLine = { link = "Visual" },
-    })
+    }, { dependency = "outer<-inner", type = "colorscheme" })
     vim.keymap.set({ "n", "t" }, "<M-`>", function()
         M.toggle()
     end)

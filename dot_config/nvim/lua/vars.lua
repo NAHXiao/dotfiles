@@ -68,7 +68,6 @@ do
         GVars.obsidianPath = obsidianpath
     end
 end
-
 GVars.lazypath = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy/lazy.nvim")
 ---@param expand_home? boolean default not
 function GVars.lazy_plugin_path(plugin_full_name, expand_home)

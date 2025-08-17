@@ -373,5 +373,10 @@ return {
         end
         require("telescope").load_extension("ui-select")
         require("telescope").load_extension("fzf")
+        require("tools.hl").register({
+            TelescopeNormal = { link = "Normal" },
+            TelescopeBorder = { link = "FloatBorder" },
+            TelescopeSelection = { link = "CursorLine" }
+        }, { dependency = "outer<-inner", type = "colorscheme" })
     end,
 }

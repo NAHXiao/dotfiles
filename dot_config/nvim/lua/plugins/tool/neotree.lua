@@ -259,19 +259,19 @@ return {
             --     },
             -- },
         })
-        require("tools.hl").add_transparent_groups({
-            "NeoTreeNormalNC",
-            "NeoTreeNormal",
+        require("tools.hl").register({
+            NeoTreeNormal = { link = "Normal" },
+            NeoTreeNormalNC = { link = "NormalNC" }
+        }, { dependency = "outer<-inner", type = "colorscheme" })
+        require("tools.hl").register_transparent({
             "NeoTreeTabActive",
             "NeoTreeTabInactive",
             "NeoTreeTabSeparatorActive",
             "NeoTreeTabSeparatorInactive",
             "NeoTreeWinSeparator",
-        })
-        require("tools.hl").regist_transparent({
-            NeoTreeMessage = {
-                link = "NeoTreeFileName"
-            }
-        })
+        }, { dependency = "outer<-inner", type = "transparent" })
+        require("tools.hl").register({
+            NeoTreeMessage = { link = "NeoTreeFileName" }
+        }, { dependency = "outer<-inner", type = "transparent" })
     end,
 }

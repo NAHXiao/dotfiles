@@ -30,10 +30,10 @@ return {
             end,
             disable_keymaps = true,
         })
-        require("tools.hl").regist_transparent({
+        require("tools.hl").register({
             IlluminatedWordWrite = { underline = true },
             IlluminatedWordText = { underline = true },
             IlluminatedWordRead = { underline = true },
-        })
+        }, { dependency = "outer<-inner", type = "colorscheme" })
     end,
 }

@@ -9,11 +9,11 @@ return {
     },
     config = function()
         require("hop").setup()
-        require("tools.hl").add_transparent_groups({
+        require("tools.hl").register_transparent({
             "HopUnmatched",
             "HopNextKey",
             "HopNextKey1",
             "HopNextKey2",
-        })
+        }, { dependency = "outer<-outer", type = "transparent" })
     end,
 }

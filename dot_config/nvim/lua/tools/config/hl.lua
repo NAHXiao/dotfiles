@@ -1,20 +1,21 @@
 local M = {}
----@type HighlightTransformRegistMap
-M.color_trans_tbl = {}
----@type HighlightTransformRegistMap
-M.color_transparent_trans_tbl = {
+---@type table<string,HighlightTable|fun():HighlightTable>
+M.colorscheme_idi = {
+    FoldColumn = { link = "Normal" }
+}
+
+---@type table<string,HighlightTable|fun():HighlightTable>
+M.transparent_idi = {
     Linenr = { fg = "Normal.fg" },
     CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
     Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
     LspInlayHint = {
-        bg = { transform = "darken", from = "Cursor.bg", amount = 0.15, },
-        fg = "Cursor.fg",
+        bg = { transform = "darken", from = { "Cursor.bg", "Normal.fg" }, amount = 0.15, },
+        fg = { "Cursor.fg", "Normal.bg" },
     },
 }
----@type HighlightTransformRegistMap
-M.color_transparent_changed_tbl = {}
-
-M.transparent_groups = {
+---@type table<string>
+M.transparent_groups_idi = {
     "Normal",
     "NormalNC",
     "Comment",
@@ -43,9 +44,10 @@ M.transparent_groups = {
 
     "FloatBorder",
     "FloatFooter",
-    "FloatTitle"
-}
+    "FloatTitle",
 
--- M.transparent_extra_groups = {}
--- M.transparent_group_prefix_list = {}
+    "NormalFloat",
+    "Pmenu",
+    "PmenuExtra"
+}
 return M

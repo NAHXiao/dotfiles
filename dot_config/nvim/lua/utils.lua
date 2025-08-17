@@ -45,6 +45,7 @@ M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
     local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
+    info=nil
     if info then
         pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
     else

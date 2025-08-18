@@ -1,7 +1,6 @@
 return {
     "Bekaboo/dropbar.nvim",
     event = { "BufReadPost", "BufWritePost", "BufNewFile" },
-    cond = vim.fn.has("nvim-0.11") == 1,
     keys = {
         {
             "HP",
@@ -55,6 +54,7 @@ return {
                     }),
                 }
             end,
+            update_debounce = 300
         },
     },
     config = function(_, opts)

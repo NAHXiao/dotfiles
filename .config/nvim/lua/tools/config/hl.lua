@@ -1,5 +1,21 @@
 local M = {}
-M.transparent_groups = {
+---@type table<string,HighlightTable|fun():HighlightTable>
+M.colorscheme_idi = {
+    FoldColumn = { link = "Normal" }
+}
+
+---@type table<string,HighlightTable|fun():HighlightTable>
+M.transparent_idi = {
+    Linenr = { fg = "Normal.fg" },
+    CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
+    Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
+    LspInlayHint = {
+        bg = { transform = "darken", from = { "Cursor.bg", "Normal.fg" }, amount = 0.15, },
+        fg = { "Cursor.fg", "Normal.bg" },
+    },
+}
+---@type table<string>
+M.transparent_groups_idi = {
     "Normal",
     "NormalNC",
     "Comment",
@@ -25,17 +41,13 @@ M.transparent_groups = {
     "StatusLine",
     "StatusLineNC",
     "EndOfBuffer",
-}
 
-M.transparent_extra_groups = {}
-M.transparent_group_prefix_list = {}
----@type HighlightTransformRegistMap
-M.color_trans_tbl = {}
----@type HighlightTransformRegistMap
-M.color_transparent_trans_tbl = {
-    Linenr = { fg = "Normal.fg" },
-    CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
-    Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
-    LspInlayHint = { bg = { transform = "lighten", from = "LspInlayHint.bg", amount = 0.5, } },
+    "FloatBorder",
+    "FloatFooter",
+    "FloatTitle",
+
+    "NormalFloat",
+    "Pmenu",
+    "PmenuExtra"
 }
 return M

@@ -9,7 +9,7 @@ function M.map(mode, lhs, rhs, opts)
     if mode == "*" then
         mode = { "i", "n", "s", "v", "t", "o" }
     end
-    local options = vim.tbl_extend("force", { silent = true, noremap = true }, opts or {})
+    local options = vim.tbl_extend("force", { silent = true }, opts or {})
     if type(lhs) == "string" then
         lhs = { lhs }
     end
@@ -45,6 +45,7 @@ M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
     local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
+    info=nil
     if info then
         pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
     else
@@ -678,15 +679,15 @@ function M.transparent_bg_test()
         local hl = vim.api.nvim_get_hl(0, { name = group, link = false })
 
         if hl.bg and hl.bg ~= 0 then
-            local original_bg = hl.bg
+            -- local original_bg = hl.bg
             vim.api.nvim_set_hl(0, group, { bg = "none" })
             vim.notify(group)
             M.log(group)
             vim.defer_fn(function()
-                vim.api.nvim_set_hl(0, group, { bg = original_bg })
+                -- vim.api.nvim_set_hl(0, group, { bg = original_bg })
                 index = index + 1
                 process_next()
-            end, 1000)
+            end, 500)
         else
             index = index + 1
             process_next()

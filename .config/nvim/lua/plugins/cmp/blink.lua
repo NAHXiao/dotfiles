@@ -170,5 +170,20 @@ return {
                 vim.cmd("doautocmd CursorMovedI")
             end,
         })
+        require("tools.hl").register_transparent({ "BlinkCmpMenuBorder" }, {
+            type = "transparent",
+            dependency =
+            "outer<-outer"
+        })
+        require("tools.hl").register({
+            BlinkCmpMenuSelection = {
+                link = "CursorLine"
+                -- bg = {
+                --     transform = "lighten",
+                --     from = "BlinkCmpMenuSelection.bg",
+                --     amount = 0.3
+                -- }
+            }
+        }, { dependency = "outer<-inner", type = "colorscheme" })
     end,
 }

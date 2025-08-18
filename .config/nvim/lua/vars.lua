@@ -7,7 +7,14 @@ g.background = "dark"
 --自定义变量
 GVars = {}
 ---@type fun()[]
-GVars.cleanui_funcs = {}
+GVars.cleanui_funcs = {
+    function()
+        vim.cmd.doautocmd("CursorMoved")
+        vim.cmd.doautocmd("CursorMovedI")
+        vim.cmd.noh()
+        vim.snippet.stop()
+    end
+}
 GVars.cleanui = function()
     for _, f in ipairs(GVars.cleanui_funcs) do
         f()
@@ -61,7 +68,6 @@ do
         GVars.obsidianPath = obsidianpath
     end
 end
-
 GVars.lazypath = vim.fs.joinpath(vim.fn.stdpath("data"), "lazy/lazy.nvim")
 ---@param expand_home? boolean default not
 function GVars.lazy_plugin_path(plugin_full_name, expand_home)

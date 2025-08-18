@@ -2,17 +2,21 @@
 ## PATH && ENV Var
 ##
 ########################################### UTILS ###################################################
-# arg1: varname arg2: path(willBechk) arg3(optional): value 
-# e.g. export_chkexist WAYDROIR_SDCARD "$HOME/.local/share/waydroid/data/media/0"
-function export_chkexist()
-{
-    if [[ -d "$2" ]];then
-        if  [[ -z "$3" ]];then
-            export $1="$2"
-        else
-            export $1="$3"
-        fi
-    fi
+function export_chk(){
+    local val="${1#*=}"
+    [[ -e "$val" ]] && export "$1" || return 1
+}
+function prepend_path(){
+    export PATH="$1:$PATH"
+}
+function append_path(){
+    export PATH="$PATH:$1"
+}
+function prepend_path_chk(){
+    [[ -e "$1" ]] && prepend_path "$1" || return 1
+}
+function append_path_chk(){
+    [[ -e "$1" ]] && append_path "$1" || return 1
 }
 ############################################# XDG ##################################################
 export XDG_DESKTOP_DIR="$HOME/Desktop"
@@ -39,16 +43,16 @@ if [ ! $ISANDROID ] ;then #Termux不支持
     export LC_ALL=zh_CN.UTF-8
 fi
 ############################################# PATH #################################################
-export_chkexist PATH "$PNPM_HOME"                               "$PNPM_HOME:$PATH"
-export_chkexist PATH "$HOME/.local/share/fnm"                   "$HOME/.local/share/fnm:$PATH"
-export_chkexist PATH "$HOME/.scripts"                           "$HOME/.scripts:$PATH"
-export_chkexist PATH "$HOME/.local/bin"                         "$HOME/.local/bin:$PATH"
-export_chkexist PATH "$HOME/.cargo/bin"                         "$HOME/.cargo/bin:$PATH"
-export_chkexist PATH "$HOME/.local/share/gem/ruby/3.0.0/bin"    "$HOME/.local/share/gem/ruby/3.0.0/bin:$PATH"
-export_chkexist PATH "$HOME/.local/share/npm/bin"               "$HOME/.local/share/npm/bin:$PATH"
-export_chkexist PATH "/snap/bin"                                "/snap/bin:$PATH"
-export_chkexist PATH "/usr/local/go/bin"                        "/usr/local/go/bin:$PATH"
-export_chkexist PATH "$HOME/.nix-profile/bin"                   "$HOME/.nix-profile/bin:$PATH"
+prepend_path_chk "$PNPM_HOME"
+prepend_path_chk "$HOME/.local/share/fnm"
+prepend_path_chk "$HOME/.scripts"
+prepend_path_chk "$HOME/.local/bin"
+prepend_path_chk "$HOME/.cargo/bin"
+prepend_path_chk "$HOME/.local/share/gem/ruby/3.0.0/bin"
+prepend_path_chk "$HOME/.local/share/npm/bin"
+prepend_path_chk "/snap/bin"
+prepend_path_chk "/usr/local/go/bin"
+prepend_path_chk "$HOME/.nix-profile/bin"
 
 ############################################ ZSH CONF ##############################################
 ##APP:FZF
@@ -107,22 +111,22 @@ command -v nvim &>/dev/null && {
     export VISUAL="nvim"
     export EDITOR="nvim"
 }
-export_chkexist MANDOCPATH "$HOME/.local/Obsidian/main/CLIMAN"
+
+export_chk MANDOCPATH="$HOME/.local/Obsidian/main/CLIMAN"
 
 ############################################# APPS #################################################
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
 command -v thefuck &>/dev/null && eval $(thefuck --alias) && alias fk='fuck'
-export_chkexist PNPM_HOME "$HOME/.local/share/pnpm"
-
+export_chk PNPM_HOME="$HOME/.local/share/pnpm"
+export_chk MANDOCPATH="$HOME/.local/share/Obsidian/main/计算机/CLIMAN"
 ############################################# PROJ #################################################
 
-export_chkexist NEMU_HOME "$HOME/workspace/2.lab/pa/ics2023/nemu"
-export_chkexist AM_HOME "$HOME/workspace/3.project/jyy_os/os-workbench/abstract-machine"
-export_chkexist XV6_HOME "$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
+export_chk NEMU_HOME="$HOME/workspace/2.lab/pa/ics2023/nemu"
+export_chk AM_HOME="$HOME/workspace/3.project/jyy_os/os-workbench/abstract-machine"
+export_chk XV6_HOME="$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
 
 ############################################# BUGFIX ###############################################
 export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 
 ############################################# END ##################################################
-unfunction export_chkexist
 # vim:ft=zsh:nowrap

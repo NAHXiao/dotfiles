@@ -1739,7 +1739,7 @@ function M.setup()
         TermCurIndex = { link = "CursorLine" },
         TermCursorLine = { link = "Visual" },
     }, { dependency = "outer<-inner", type = "colorscheme" })
-    vim.keymap.set({ "n", "t" }, "<M-`>", function()
+    vim.keymap.set({ "n", "t", "v" }, "<M-`>", function()
         M.toggle()
     end)
     vim.keymap.set("v", "<cr>", function()

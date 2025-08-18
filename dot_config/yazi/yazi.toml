@@ -28,3 +28,11 @@ edit= [
 	{ run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
 	{ run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
+extract = [
+  { run = '7z x "$@"', desc = "7z extract ", for = "unix" },
+  { run = '7z x %*', desc = "7z extract", for = "windows" },
+  { run = 'tar -xf "$@"', desc = "tar extract", for = "unix" },
+  { run = 'tar -xf %*', desc = "tar extract", for = "windows" },
+  { run = 'unzip "$@"', desc = "zip extract", for = "unix" },
+  { run = 'unzip %*', desc = "zip extract", for = "windows" }
+]

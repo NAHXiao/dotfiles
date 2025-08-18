@@ -72,7 +72,7 @@ alias viml='nvim leetcode'
 alias nviml='nvim leetcode'
 
 alias viz='nvim $HOME/.config/zsh'
-alias vimz='nvim $HOME/.config/zsh'
+alias vimz="nvim --cmd \"cd $HOME/.config/zsh\""
 alias nvimz='nvim $HOME/.config/zsh'
 
 _workspaceRoot="$HOME/workspace"

@@ -214,8 +214,10 @@ function MAN(){
     Mandocpath=$(__getmanpath__) || return 1
     
     if [[ $# -eq 0 ]];then 
-        ${EDITOR:-vim} $Mandocpath
-        return 0;
+        command -v nvim && nvim --cmd "cd $Mandocpath" $Mandocpath && return 0
+        command -v vim && vim --cmd "cd $Mandocpath" $Mandocpath && return 0
+        ${EDITOR} $Mandocpath && return 0
+        echo "no editor to edit $Mandocpath" && return 1
     fi
     if [[ $# -eq 1 && ($1 == '-h'||$1 == '--help') ]];then
         echo 'usage:'

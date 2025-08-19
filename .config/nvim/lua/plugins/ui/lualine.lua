@@ -1,7 +1,7 @@
 local icons = require("tools.icons")
 local shorten_path = function(filepath, max_len)
     return require("utils").shorten_path(
-        require('utils').prefix_replace(vim.fs.normalize(filepath), vim.uv.os_homedir(), "~"),
+        require('utils').prefix_replace(vim.fs.normalize(filepath), vim.fs.normalize(vim.uv.os_homedir()), "~"),
         max_len)
 end
 

@@ -1,9 +1,10 @@
 local icons = require("tools.icons")
 local shorten_path = function(filepath, max_len)
-    return require('utils').prefix_replace(vim.fs.normalize(
-        require("utils").shorten_path(filepath, max_len)
-    ), vim.uv.os_homedir(), "~")
+    return require("utils").shorten_path(
+        require('utils').prefix_replace(vim.fs.normalize(filepath), vim.fs.normalize(vim.uv.os_homedir()), "~"),
+        max_len)
 end
+
 local shorten_filepath = true
 local colors = {
     bg = "#202328",

@@ -39,7 +39,7 @@ edit= [
 	{ run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
 ]
 "7z x"=[
-  { run = "7z x %* '-o*'", desc = "7z extract to folder", for = "windows" },
+  { run = "7z x %* -o*", desc = "7z extract to folder", for = "windows" },
   { run = '7z x %*', desc = "7z extract here", for = "windows" },
   { run = "7z x \"$@\" '-o*'", desc = "7z extract to folder", for = "unix" },
   { run = '7z x "$@"', desc = "7z extract here", for = "unix" },

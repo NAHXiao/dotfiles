@@ -1,12 +1,11 @@
 return {
     "williamboman/mason.nvim",
     version = "*",
-    lazy = false,
-    event = "VeryLazy",
+    lazy = true,
     dependencies = {},
     config = function()
         require("mason").setup({
-            install_root_dir = GVars.mason_install_root_dir,
+            install_root_dir = Globals.mason_install_root_dir,
             ui = {
                 icons = {
                     package_installed = "✓",

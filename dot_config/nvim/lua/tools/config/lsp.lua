@@ -57,7 +57,7 @@ local keys_method = {
             self[#self + 1] = item
         end
         return self
-    end
+    end,
 }
 local function keys(...)
     local allkeys = {}
@@ -65,7 +65,7 @@ local function keys(...)
         vim.list_extend(allkeys, vim.tbl_keys(tbl))
     end
     setmetatable(allkeys, {
-        __index = keys_method
+        __index = keys_method,
     })
     ---@class LspNames : LspNamesMethod
     return allkeys
@@ -112,7 +112,7 @@ M.extend = {
         settings = { json = { validate = { enable = true } } },
         on_attach = function(client)
             client.config.settings.json.schemas = require("schemastore").json.schemas()
-        end
+        end,
     },
     yamlls = {
         settings = {
@@ -128,13 +128,27 @@ M.extend = {
         },
         on_attach = function(client)
             client.config.settings.yaml.schemas = require("schemastore").yaml.schemas()
-        end
+        end,
     },
     taplo = {},
-    basedpyright = { settings = { basedpyright = { analysis = { typeCheckingMode = "recommended" } } } },
+    basedpyright = {
+        settings = { basedpyright = { analysis = { typeCheckingMode = "recommended" } } },
+    },
     neocmake = {},
     cmake = {},
-    bashls = {},
+    bashls = {
+        filetypes = {
+            "sh",
+            "bash",
+            "zsh",
+            "fish",
+            "ksh",
+            "csh",
+            "tcsh",
+            "bashrc",
+            "bash_profile",
+        },
+    },
     rust_analyzer = {},
     jdtls = {},
     dockerls = {},
@@ -217,33 +231,56 @@ M.extend = {
             },
         },
     },
-    sqls = { on_attach = function(client, bufnr) require("sqls").on_attach(client, bufnr) end },
+    sqls = {
+        on_attach = function(client, bufnr)
+            require("sqls").on_attach(client, bufnr)
+        end,
+    },
 }
-M.auto_enable = keys(M.extend, M.override):exclude(compact {
+M.auto_enable = keys(M.extend, M.override):exclude(compact({
     "jdtls",
     "rust_analyzer",
     ifArch("aarch64", "neocmake", "cmake"),
-})
-M.mason_ensure_install = keys(M.extend, M.override):exclude(compact {
+}))
+M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact({
     ifArch("aarch64", "clangd"),
     ifArch("aarch64", "lua_ls"),
     ifArch("aarch64", "rust_analyzer"),
-    vim.fn.executable('go') == 0 and 'gopls' or nil,
-    vim.fn.executable('go') == 0 and 'sqls' or nil,
+    ifArch("aarch64", "basedpyright"), --npm install -g basedpyright
+    vim.fn.executable("go") == 0 and "gopls" or nil,
+    vim.fn.executable("go") == 0 and "sqls" or nil,
     ifArch("aarch64", "neocmake", "cmake"),
-})
+}))
+M.mason_ensure_install_dap = {
+    "python",
+    "cppdbg",
+    "bash",
+    "codelldb",
+}
+M.mason_ensure_install_extra = {
+    "stylua",
+    "asmfmt",
+    "clang-format",
+    "google-java-format",
+    "pyink",
+    "standardjs",
+    "yamlfmt",
+    "beautysh"
+}
 
 -----------------------------------------------------------
 ---@type vim.lsp.Config
 M.lsp_default_config = {
-    root_markers = { ".git" }
+    root_markers = { ".git" },
 }
-M.ulsp_config_path = function() return vim.fs.joinpath(utils.get_rootdir() or vim.fn.getcwd(), ".vim", "lsp.lua") end
+M.ulsp_config_path = function()
+    return vim.fs.joinpath(utils.get_rootdir() or vim.fn.getcwd(), ".vim", "lsp.lua")
+end
 ---@type lsp_config
 M.ulsp_config = nil
 M.ulsp_config_tmpl = ([[---vim will attempt to prevent vim.lsp.enable() for all LSPs that are in the disable list but not in disable_exclude.
 ---You need to restart vim to apply the changes.
 ---@type {disable?:table<string>|true,disable_exclude?:table<string>,extend?:table<string,vim.lsp.Config>,override?:table<string,vim.lsp.Config>}
 ---See [%s]
-return {}]]):format(vim.fs.joinpath(GVars.lazy_plugin_path("nvim-lspconfig"), "lsp"))
+return {}]]):format(vim.fs.joinpath(Globals.lazy_plugin_path("nvim-lspconfig"), "lsp"))
 return M

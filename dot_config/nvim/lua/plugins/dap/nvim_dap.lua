@@ -7,16 +7,22 @@ vim.fn.sign_define("DapBreakpointRejected", { text = "" })
 local dap_config_path = function()
     return vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "dap.lua")
 end
-local dap_config_tmpl =
-    ([[local dap = require('dap')
+local dap_config_tmpl = ([[local dap = require('dap')
 ---@alias ft string
 ---@type table<ft,dap.Configuration[]>
 ---See `:help dap-configuration`
 ---See [%s]
 ---See [%s]
 return {}]]):format(
-        vim.fs.joinpath(GVars.lazy_plugin_path("mason-nvim-dap.nvim"), "lua/mason-nvim-dap/mappings/configurations.lua"),
-        vim.fs.joinpath(GVars.lazy_plugin_path("mason-nvim-dap.nvim"), "lua/mason-nvim-dap/mappings/filetypes.lua"))
+    vim.fs.joinpath(
+        Globals.lazy_plugin_path "mason-nvim-dap.nvim",
+        "lua/mason-nvim-dap/mappings/configurations.lua"
+    ),
+    vim.fs.joinpath(
+        Globals.lazy_plugin_path "mason-nvim-dap.nvim",
+        "lua/mason-nvim-dap/mappings/filetypes.lua"
+    )
+)
 ---@type table<string,dap.Configuration>
 return {
     {
@@ -26,11 +32,11 @@ return {
             "theHamsta/nvim-dap-virtual-text",
 
             "jay-babu/mason-nvim-dap.nvim", -- ensure dap configurated by mason-nvim-dap
-            "rcarriga/nvim-dap-ui",         -- ensure dap-ui loaded when dap
+            "rcarriga/nvim-dap-ui", -- ensure dap-ui loaded when dap
         },
         lazy = true,
         --d bBprioO
-        keys = require("utils").lazy_keymap({
+        keys = require("utils").lazy_keymap {
             {
                 { "<F2>", "<leader>db" },
                 function()
@@ -39,18 +45,18 @@ return {
                 desc = "Debug: Toggle breakpoint",
             },
             {
-                { GVars.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
+                { Globals.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
                 function()
-                    require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
+                    require("dap").set_breakpoint(vim.fn.input "Breakpoint condition: ")
                 end,
-                desc = "Debug: Set breakpoint" .. (GVars.is_win and "" or " <Shift-F2>"),
+                desc = "Debug: Set breakpoint" .. (Globals.is_win and "" or " <Shift-F2>"),
             },
             {
-                { GVars.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
+                { Globals.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
                 function()
-                    require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
+                    require("dap").set_breakpoint(nil, nil, vim.fn.input "Log point message: ")
                 end,
-                desc = "Debug: Set log point" .. (GVars.is_win and "" or " <Ctrl-F2>"),
+                desc = "Debug: Set log point" .. (Globals.is_win and "" or " <Ctrl-F2>"),
             },
 
             {
@@ -73,13 +79,13 @@ return {
                 function()
                     require("utils").focus_or_new(dap_config_path(), dap_config_tmpl)
                 end,
-                desc = "Edit: Dap"
+                desc = "Edit: Dap",
             },
 
             {
                 "<F5>",
                 function()
-                    local dap = require("dap")
+                    local dap = require "dap"
                     if vim.fn.filereadable(dap_config_path()) == 1 then
                         local ok, config = pcall(dofile, dap_config_path())
                         if ok then
@@ -87,7 +93,10 @@ return {
                                 dap.configurations[ft] = conf
                             end
                         else
-                            vim.notify(("[Dap]: load configuration error: %s"):format(config), vim.log.levels.ERROR)
+                            vim.notify(
+                                ("[Dap]: load configuration error: %s"):format(config),
+                                vim.log.levels.ERROR
+                            )
                         end
                     end
                     dap.continue()
@@ -116,7 +125,7 @@ return {
                 end,
                 desc = "Debug: Step out Function/Method",
             },
-        }),
+        },
     },
 
     {
@@ -128,9 +137,10 @@ return {
         lazy = true,
         config = function()
             --见列表: https://github.com/jay-babu/mason-nvim-dap.nvim/blob/main/lua/mason-nvim-dap/mappings/source.lua
-            require("mason-nvim-dap").setup({
-                ensure_installed = { "python", "cppdbg", "bash", "codelldb" },
-                automatic_installation = true,
+            require("mason-nvim-dap").setup {
+                -- ensure_installed = require("tools.config.lsp").mason_ensure_install_dap,
+                ensure_installed = {},
+                automatic_installation = false,
                 handlers = {
                     function(config)
                         -- config = { name = "调试器名", adapters = {调试器配置}, configurations = {{启动方式;启动设置}}, filetypes = {} },
@@ -138,8 +148,9 @@ return {
                     end,
                     python = function() end, --python: dap-python
                 },
-            })
+            }
             -- require("dap").configurations
         end,
     },
 }
+-- mason,deepseekapi,

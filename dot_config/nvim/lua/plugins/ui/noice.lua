@@ -20,7 +20,7 @@ return {
                 top_down = true,
             })
             vim.notify = notify.notify
-            vim.list_extend(GVars.cleanui_funcs, {
+            vim.list_extend(Globals.cleanui_funcs, {
                 function()
                     require("notify").dismiss()
                 end,
@@ -81,7 +81,7 @@ return {
                     end
                 end
             end)
-            GVars.cleanui_funcs[#GVars.cleanui_funcs + 1] = function()
+            Globals.cleanui_funcs[#Globals.cleanui_funcs + 1] = function()
                 vim.cmd("NoiceDismiss")
             end
         end,

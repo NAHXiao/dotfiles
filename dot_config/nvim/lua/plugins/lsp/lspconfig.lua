@@ -265,20 +265,5 @@ return {
                 kinds[i] = lspkind.symbolic(kind, { mode = "symbol" }) or kind
             end
         end,
-    },
-    {
-        "williamboman/mason-lspconfig.nvim",
-        lazy = false,
-        event = "VeryLazy",
-        dependencies = {
-            "williamboman/mason.nvim",
-            "neovim/nvim-lspconfig",
-        },
-        config = function()
-            require("mason-lspconfig").setup({
-                ensure_installed = require("tools.config.lsp").mason_ensure_install,
-                automatic_enable = false
-            })
-        end,
     }
 }

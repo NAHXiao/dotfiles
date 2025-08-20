@@ -10,8 +10,10 @@ return {
     "folke/todo-comments.nvim",
     version = "*",
     lazy = true,
-    event = "VeryLazy",
-    dependencies = { "nvim-lua/plenary.nvim" },
+    dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-telescope/telescope.nvim",
+    },
     keys = {
         { "<leader>qt", "<cmd>TodoQuickFix<cr>", mode = "n" },
         {
@@ -38,7 +40,7 @@ return {
         },
     },
     config = function()
-        require("todo-comments").setup({
+        require("todo-comments").setup {
             keywords = {
                 FIX = {
                     icon = " ", -- icon used for the sign, and in search results
@@ -63,10 +65,10 @@ return {
                     "--with-filename",
                     "--line-number",
                     "--column",
-                    "--follow"
+                    "--follow",
                 },
                 pattern = [[\b(KEYWORDS):]],
             },
-        })
+        }
     end,
 }

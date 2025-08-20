@@ -1121,7 +1121,7 @@ M.setup = function()
         T:refresh_local()
         M.run_select({ get_cur_ft() })
     end, { desc = "TaskSelectAndRun" })
-    map("n", { GVars.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
+    map("n", { Globals.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
         M.edittask()
     end, { desc = "Edit: Task (Add Task)" })
 end

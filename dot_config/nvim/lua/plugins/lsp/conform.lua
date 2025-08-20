@@ -1,4 +1,4 @@
-local utils = require("utils")
+local utils = require "utils"
 return {
     "stevearc/conform.nvim",
     branch = "master",
@@ -29,17 +29,23 @@ return {
     },
     dependencies = {},
     config = function()
-        require("conform").setup({
+        require("conform").setup {
             formatters_by_ft = {
                 lua = { "stylua" },
                 python = { "pyink" },
                 javascript = { "standardjs" },
                 asm = { "asmfmt" },
-                cpp = { "clang-format-" },
-                c = { "clang-format-" },
+                cpp = { "clang-format-custom" },
+                c = { "clang-format-custom" },
                 yaml = { "yamlfmt" },
                 java = { "google-java-format" },
                 rust = { "rustfmt" },
+                bash = { "beautysh" },
+                csh = { "beautysh" },
+                ksh = { "beautysh" },
+                zsh = { "beautysh" },
+                sh = { "beautysh" },
+                ["*"] = {},
             },
             default_format_opts = {
                 lsp_format = "fallback",
@@ -49,10 +55,10 @@ return {
             },
             notify_on_error = false,
             formatters = {
-                ["clang-format-"] = {
+                ["clang-format-custom"] = {
                     command = "clang-format",
                     args = function()
-                        local local_clang_format_path = vim.fn.stdpath("config")
+                        local local_clang_format_path = vim.fn.stdpath "config"
                             .. "/lua/plugins/lsp/.clang-format"
                         local local_clang_format_valid = vim.fn.filereadable(
                             local_clang_format_path
@@ -64,15 +70,13 @@ return {
                             return_dirname = false,
                         })
                         local args = {
-                            "--assume-filename=" .. (vim.fn.expand("%:t") or "example.cpp"),
+                            "--assume-filename=" .. (vim.fn.expand "%:t" or "example.cpp"),
                         }
                         if confpath == nil then
-                            args[#args + 1] = "--style="
-                                .. (
-                                    local_clang_format_valid
-                                        and ("file:" .. local_clang_format_path)
+                            args[#args + 1] = ("--style=%s"):format(
+                                local_clang_format_valid and ("file:" .. local_clang_format_path)
                                     or "Google"
-                                )
+                            )
                         end
                         return args
                     end,
@@ -85,7 +89,7 @@ return {
                 },
             },
             -- formatters = vim.tbl_extend("force", formatters_clang_format, {})
-        })
+        }
         vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
     end,
 }

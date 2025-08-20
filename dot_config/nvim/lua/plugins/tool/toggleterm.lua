@@ -1,4 +1,4 @@
-local key = GVars.is_win and "<c-\\>" or "<c-space>"
+local key = Globals.is_win and "<c-\\>" or "<c-space>"
 return {
     "akinsho/toggleterm.nvim",
     version = "*",

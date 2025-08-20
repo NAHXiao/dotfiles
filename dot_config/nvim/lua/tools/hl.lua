@@ -209,16 +209,16 @@ end
 local __running
 ---@param colorscheme_changed boolean
 ---@param transparent_changed boolean
-local apply = function(colorscheme_changed, transparent_changed)
+local function apply(colorscheme_changed, transparent_changed)
     assert(colorscheme_changed or transparent_changed)
     assert(not (colorscheme_changed and transparent_changed))
     if __running then
         return
     end
     __running = true
-    if vim.g.colors_name and not colorscheme_changed and transparent_changed and not transparent_enabled then
-        pcall(vim.cmd.colorscheme, vim.g.colors_name)
-    end
+    -- if vim.g.colors_name and not colorscheme_changed and transparent_changed and not transparent_enabled then
+    --     pcall(vim.cmd.colorscheme, vim.g.colors_name)
+    -- end
 
     local clearcb = function()
         for _, dependency_type in ipairs({ "inner<-inner", "outer<-inner", "outer<-outer" }) do

@@ -75,7 +75,6 @@ return {
         vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Folds: OpenAll" })
         vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Folds: CloseAll" })
 
-        require("utils").aug("ufo.filetype", true)
         vim.api.nvim_create_autocmd({ "FileType" }, {
             pattern = "*",
             callback = function(ev)
@@ -87,7 +86,6 @@ return {
                 end
             end,
         })
-        vim.cmd.doautoall("ufo.filetype FileType")
         vim.api.nvim_set_hl(0, "UfoFoldedEllipsis", { bg = nil })
     end,
 }

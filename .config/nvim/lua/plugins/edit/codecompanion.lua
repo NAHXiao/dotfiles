@@ -36,6 +36,7 @@ return {
         },
         display = {
             chat = {
+                -- start_in_insert_mode = true,
                 window = {
                     position = "right",
                 }
@@ -85,7 +86,7 @@ When given a task:
     keys = {
         { "<leader>cc", "<Cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = "CodeCompanionChat Toggle" },
         { "<leader>ca", "<Cmd>CodeCompanionChat Add<CR>",    mode = { "n", "v" }, desc = "CodeCompanionChat Add" },
-        { "<M-i>",      ":CodeCompanionChat",                mode = { "v" },      desc = "CodeCompanionChat" },
+        { "<M-i>",      ":CodeCompanionChat ",                mode = { "v" },      desc = "CodeCompanionChat" },
         { "<leader>c/", "<Cmd>CodeCompanionActions<CR>",     mode = { "n", "v" }, desc = "CodeCompanionActions" },
     }
 }

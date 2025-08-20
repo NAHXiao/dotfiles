@@ -1086,7 +1086,7 @@ M.setup = function()
     end
     -- log(T.data)
     local map = require("utils").map
-    map("n", "<F9>", function()
+    map("n", { "<F9>", "<S-F9>", "<F21>" }, function()
         T:refresh_local()
         if default_build then
             if T:istask(default_build) then
@@ -1098,7 +1098,7 @@ M.setup = function()
             M.run_name("build", true)
         end
     end, { desc = "Build" })
-    map("n", "<F10>", function()
+    map("n", { "<F10>", "<S-F10>", "<F22>" }, function()
         T:refresh_local()
         if default_run then
             if T:istask(default_run) then

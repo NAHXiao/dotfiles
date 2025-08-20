@@ -224,31 +224,6 @@ aucmd("TermOpen", {
 
 --禁用保存后的提示
 vim.cmd("autocmd BufWritePost * silent! !clear")
-
--- popup
-if vim.fn.has("nvim-0.11") == 1 then
-    vim.cmd([[
-set mousemodel=popup
-aunmenu PopUp.How-to\ disable\ mouse
-aunmenu PopUp.-2-
-function! s:copy_to_clipboards(text)
-  let cb = &clipboard
-  if cb =~# 'unnamedplus'
-    call setreg('+', a:text)
-  endif
-  if cb =~# 'unnamed'
-    call setreg('*', a:text)
-  endif
-  call setreg('"', a:text)
-endfunction
-autocmd BufEnter * if expand('%:p') !=# '' |
-      \ silent! aunmenu PopUp.Copy\ file\ path |
-      \ silent! aunmenu PopUp.Copy\ file\ name |
-      \ amenu PopUp.Copy\ file\ path <cmd>call <SID>copy_to_clipboards(expand('%:p'))<CR> |
-      \ amenu PopUp.Copy\ file\ name <cmd>call <SID>copy_to_clipboards(expand('%:t'))<CR> |
-      \ endif
-]])
-end
 ---仅剩这些window时将尝试:wqa
 local fts = {
     "qf",

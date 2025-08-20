@@ -153,6 +153,13 @@ end
 function M.reload()
     M.loadconfig(true)
     M.setup_ulspconfig("immediate")
+    --NOTE: internel API
+    for nm, _ in pairs(vim.lsp._enabled_configs) do
+        for _, client in ipairs(vim.lsp.get_clients({ name = nm })) do
+            client:stop()
+        end
+    end
+    vim.lsp._enabled_configs = {}
     M.enable_lsps()
 end
 

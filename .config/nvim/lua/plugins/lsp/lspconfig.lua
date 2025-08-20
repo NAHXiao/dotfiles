@@ -12,6 +12,8 @@ return {
             },
         },
     },
+    { "b0o/SchemaStore.nvim", ft = { "json", "yaml" } },
+    { "nanotee/sqls.nvim",    ft = "sql" },
     {
         "neovim/nvim-lspconfig",
         version = "*",

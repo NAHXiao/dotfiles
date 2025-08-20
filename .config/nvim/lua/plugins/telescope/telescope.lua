@@ -83,7 +83,7 @@ return {
             desc = "Find All files",
         },
         {
-            "<leader>fa",
+            "<leader>fA",
             clean_call("Find All Files", function()
                 require("telescope.builtin").find_files({
                     find_command = {
@@ -91,6 +91,7 @@ return {
                         "-H",
                         "-I",
                         "--follow",
+                        "-t", "f"
                     },
                     no_ignore = true,
                     hidden = true,

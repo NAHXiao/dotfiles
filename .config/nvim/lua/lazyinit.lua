@@ -1,11 +1,11 @@
-if not vim.uv.fs_stat(GVars.lazypath) then
+if not vim.uv.fs_stat(Globals.lazypath) then
     vim.fn.system({
         "git",
         "clone",
         "--filter=blob:none",
         "https://github.com/folke/lazy.nvim.git",
         "--branch=stable",
-        GVars.lazypath,
+        Globals.lazypath,
     })
 end
 -- -- Hook
@@ -21,7 +21,7 @@ end
 -- 		return ret
 -- 	end,
 -- })
-vim.opt.rtp:prepend(GVars.lazypath)
+vim.opt.rtp:prepend(Globals.lazypath)
 local lazy = require("lazy")
 ---@param plugin_full_name string e.g. copilot.lua surround.vim
 function lazy.is_loaded(plugin_full_name)

@@ -140,8 +140,14 @@ local function setup_termbuf(bufnr)
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            if vim.fn.jobwait({ vim.b.terminal_job_id }, 0)[1] == -1 then
+            local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
+            if is_running then
                 vim.cmd.startinsert()
+                vim.schedule(function()
+                    if vim.api.nvim_get_current_buf() ~= bufnr then
+                        vim.cmd.stopinsert()
+                    end
+                end)
                 vim.defer_fn(function()
                     if vim.api.nvim_get_current_buf() ~= bufnr then
                         vim.cmd.stopinsert()
@@ -156,7 +162,8 @@ local function setup_termbuf(bufnr)
         buffer = bufnr,
         callback = function()
             local mode = vim.fn.mode()
-            if vim.fn.jobwait({ vim.b.terminal_job_id }, 0)[1] ~= -1 then
+            local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
+            if not is_running then
                 if mode == "t" then
                     vim.cmd.stopinsert()
                 end
@@ -1176,7 +1183,7 @@ end
 --alias _addnode
 function panelbufcxt:append_default(parent)
     local cmds
-    if GVars.is_win then
+    if Globals.is_win then
         cmds = { "pwsh", "-nologo" }
     else
         cmds = { vim.o.shell }

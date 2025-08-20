@@ -1,11 +1,11 @@
-local utils = require("utils")
+local utils = require "utils"
 local M = {}
 ---@param reload? boolean
 function M.loadconfig(reload)
     if reload then
         package.loaded["tools.config.lsp"] = nil
     end
-    M.config = require("tools.config.lsp")
+    M.config = require "tools.config.lsp"
     M.config.ulsp_config_ok = nil
     local config = M.config
     if vim.uv.fs_stat(config.ulsp_config_path()) then
@@ -16,7 +16,7 @@ function M.loadconfig(reload)
             end, true)
             vim.validate("ulsp_config.disable_exclude", ulsp_config.disable_exclude, "table", true)
             vim.validate("ulsp_config.extend", ulsp_config.extend, "table", true)
-            vim.validate("ulsp_config.override", ulsp_config.override, 'table', true)
+            vim.validate("ulsp_config.override", ulsp_config.override, "table", true)
             ulsp_config.disable = ulsp_config.disable or {}
             ulsp_config.disable_exclude = ulsp_config.disable_exclude or {}
             ulsp_config.extend = ulsp_config.extend or {}
@@ -36,7 +36,9 @@ end
 ---Override/Extend: should be called after <rtp>/lsp loaded,u
 ---@param mode "autocmd"|"immediate"
 function M.setup_ulspconfig(mode)
-    vim.validate("mode", mode, function(it) return it == "autocmd" or it == "immediate" end)
+    vim.validate("mode", mode, function(it)
+        return it == "autocmd" or it == "immediate"
+    end)
     local function setup_lspc()
         local config = M.config
         if config.ulsp_config_ok == true then
@@ -47,14 +49,16 @@ function M.setup_ulspconfig(mode)
                 vim.lsp.config[lsp] = conf
             end
         elseif config.ulsp_config_ok == false then
-            vim.notify(("[LSP]: dofile %s error: %s"):format(config.ulsp_config_path(), config.ulsp_config),
-                vim.log.levels.ERROR)
+            vim.notify(
+                ("[LSP]: dofile %s error: %s"):format(config.ulsp_config_path(), config.ulsp_config),
+                vim.log.levels.ERROR
+            )
         end
     end
     if mode == "autocmd" then
         require("utils").auc("User", {
             pattern = "RTPAfterPluginLoad",
-            callback = setup_lspc
+            callback = setup_lspc,
         })
     elseif mode == "immediate" then
         setup_lspc()
@@ -77,8 +81,8 @@ function M.allow_enable(lspname)
         if ulsp_config.disable == true then
             pass = vim.list_contains(ulsp_config.disable_exclude, lspname)
         else
-            pass = (not vim.list_contains(ulsp_config.disable, lspname)) or
-                vim.list_contains(ulsp_config.disable_exclude, lspname)
+            pass = (not vim.list_contains(ulsp_config.disable, lspname))
+                or vim.list_contains(ulsp_config.disable_exclude, lspname)
         end
         return pass
     end
@@ -89,18 +93,20 @@ end
 function M.setup_disable()
     local _enable = vim.lsp.enable
     vim.lsp.enable = function(name, enable)
-        vim.validate('name', name, { 'string', 'table' })
+        vim.validate("name", name, { "string", "table" })
         if type(name) == "string" then
             name = { name }
         end
         if enable == nil or enable == true then
-            name = vim.iter(name):filter(function(it)
-                local pass = M.allow_enable(it)
-                if not pass then
-                    vim.notify(("[LSP]: %s has been disabled"):format(it), vim.log.levels.WARN)
-                end
-                return pass
-            end):totable()
+            name = vim.iter(name)
+                :filter(function(it)
+                    local pass = M.allow_enable(it)
+                    if not pass then
+                        vim.notify(("[LSP]: %s has been disabled"):format(it), vim.log.levels.WARN)
+                    end
+                    return pass
+                end)
+                :totable()
         end
         return _enable(name, enable)
     end
@@ -108,7 +114,9 @@ end
 
 function M.toggle_inlay_hints()
     vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-    require("utils").vim_echo(("[LSP.InlayHint]: %s"):format(vim.lsp.inlay_hint.is_enabled() and "Enabled" or "Disabled"))
+    require("utils").vim_echo(
+        ("[LSP.InlayHint]: %s"):format(vim.lsp.inlay_hint.is_enabled() and "Enabled" or "Disabled")
+    )
 end
 
 ---once
@@ -123,7 +131,7 @@ end
 function M.lsp_settings()
     local config = M.config
     vim.lsp.inlay_hint.enable(true)
-    vim.lsp.config('*', config.lsp_default_config)
+    vim.lsp.config("*", config.lsp_default_config)
     if config.extend then
         for lsp, conf in pairs(config.extend) do
             vim.lsp.config(lsp, conf)
@@ -136,26 +144,48 @@ function M.lsp_settings()
     end
 end
 
+function M.mason_auto_install()
+    local function install(pkg_name)
+        local pkg = vim.F.npcall(require("mason-registry").get_package, pkg_name)
+        if pkg and not pkg:is_installed() then
+            pkg:install()
+        end
+    end
+    for _, pkg_name in ipairs(M.config.mason_ensure_install_lsp) do
+        install(pkg_name)
+    end
+    for _, pkg_name in ipairs(M.config.mason_ensure_install_dap) do
+        install(pkg_name)
+    end
+    for _, pkg_name in ipairs(M.config.mason_ensure_install_extra) do
+        install(pkg_name)
+    end
+end
+
 function M.setup()
     M.loadconfig()
     M.lsp_settings()
-    M.setup_ulspconfig("autocmd")
+    M.setup_ulspconfig "autocmd"
     M.setup_disable()
     M.enable_lsps()
     require("utils").auc("User", {
         pattern = "ProjRootChanged",
-        callback = M.reload
+        callback = M.reload,
     })
 
     M.setup_keymap()
+    require("utils").auc("User", {
+        pattern = "RTPAfterPluginLoad",
+        callback = M.mason_auto_install,
+    })
 end
 
 function M.reload()
     M.loadconfig(true)
-    M.setup_ulspconfig("immediate")
+    M.setup_ulspconfig "immediate"
     --NOTE: internel API
     for nm, _ in pairs(vim.lsp._enabled_configs) do
-        for _, client in ipairs(vim.lsp.get_clients({ name = nm })) do
+        for _, client in ipairs(vim.lsp.get_clients { name = nm }) do
             client:stop()
         end
     end

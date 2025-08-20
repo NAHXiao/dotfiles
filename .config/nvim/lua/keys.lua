@@ -1,18 +1,29 @@
 local map = require("utils").map
 -- [[ keys.lua ]]
 
--- format encoding? (\r\n -> \n)
-map("n", "<leader>fe", ":%s#\\r##g<CR>", { silent = true })
+--文本操作
+map(
+    "n",
+    "<leader>;<CR>",
+    "<cmd>%s#\\r\\n#\\r#g<CR>",
+    { silent = true, desc = "Replace \\r\\n with \\r" }
+)
+map(
+    "n",
+    "<leader>;u",
+    [[<cmd>:%s/\\u\(\x\{4,6\}\)/\=nr2char(str2nr(submatch(1), 16))/g<cr>]],
+    { silent = true, desc = "Decode unicode \\uxxxx / \\uxxxxxx" }
+)
 -- 翻页
 map({ "n", "i" }, "<C-f>", "<PageDown>")
 map({ "n", "i" }, "<C-b>", "<PageUp>")
 
 map("n", "<leader>P", "ggVGp")
 map("v", "p", function()
-    vim.cmd("normal! P")
+    vim.cmd "normal! P"
 end, { remap = true })
 map("v", "P", function()
-    vim.cmd("normal! p")
+    vim.cmd "normal! p"
 end, { remap = true })
 map("v", "<C-S-V>", "p")
 map("v", "<C-S-C>", "y")
@@ -39,13 +50,13 @@ map("t", "<C-[>", "<C-\\><C-n>")
 map("n", "H", "h")
 --Nop
 -- map("i", "<C-i>", "<Nop>") --C-i和Tab的键码是同一个.?
-map('*', "<F1>", "<Nop>")
-map('v', "K", "<Nop>")
+map("*", "<F1>", "<Nop>")
+map("v", "K", "<Nop>")
 
 map("i", "<C-h>", function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = vim.api.nvim_get_current_line()
-    local first_non_blank = line:find("%S") or 1
+    local first_non_blank = line:find "%S" or 1
     vim.api.nvim_win_set_cursor(0, { row, first_non_blank - 1 })
 end, { desc = "<HOME>" })
 
@@ -68,10 +79,10 @@ local function jump_next_line(where)
     end
 end
 map("i", "<C-CR>", function()
-    jump_next_line("start")
+    jump_next_line "start"
 end, { noremap = true, silent = true })
 map("i", "<S-CR>", function()
-    jump_next_line("end")
+    jump_next_line "end"
 end, { noremap = true, silent = true })
 --ctrl s保存
 map("i", "<C-s>", "<C-[>:wa<CR>")
@@ -84,12 +95,12 @@ map("i", "<C-l>", function()
     vim.api.nvim_win_set_cursor(0, { row, line_length })
 end, { desc = "<END>" })
 map({ "i", "s" }, "<C-j>", function()
-    if vim.snippet.active({ direction = 1 }) then
+    if vim.snippet.active { direction = 1 } then
         vim.snippet.jump(1)
     end
 end, { desc = "snippet next" })
 map({ "i", "s" }, "<C-k>", function()
-    if vim.snippet.active({ direction = -1 }) then
+    if vim.snippet.active { direction = -1 } then
         vim.snippet.jump(-1)
     end
 end, { desc = "snippet prev" })
@@ -113,7 +124,10 @@ local function switch_file(direction)
     local current_name = vim.fs.basename(current)
     local files = {}
     for name, type in vim.fs.dir(dir) do
-        if type == "file" or (type == "link" and vim.uv.fs_stat(vim.fs.joinpath(dir, name)).type == "file") then
+        if
+            type == "file"
+            or (type == "link" and vim.uv.fs_stat(vim.fs.joinpath(dir, name)).type == "file")
+        then
             table.insert(files, name)
         end
     end
@@ -148,7 +162,7 @@ end)
 map("n", "]f", function()
     switch_file(1)
 end)
-map("n", "<C-l>", GVars.cleanui)
+map("n", "<C-l>", Globals.cleanui)
 -- Fix common typos
 vim.cmd [[
 cnoreabbrev W w

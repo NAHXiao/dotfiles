@@ -26,26 +26,27 @@ function get_winHome(){
 }
 function wsl_auto_proxy(){
     local cmd=''
-    local port=7890
-    if command -v curl &>/dev/null;then
-        cmd='curl --connect-timeout 0.5 -s -x $ip:$port http://baidu.com -o/dev/null'
-    elif command -v nc &>/dev/null ;then 
+    local ports=(7890 7891 1080 8080)
+    if command -v curl &>/dev/null; then
+        cmd='curl --max-time 1 -s -x $ip:$port http://baidu.com -o/dev/null'
+    elif command -v nc &>/dev/null; then 
         cmd='nc -vz $ip $port' 
     else
+        echo "No curl or nc found, cannot auto detect proxy." >&2
         return
     fi
-    local grep_exe=$(get_winbin grep.exe)
-    [[ -z ${grep_exe} ]] && return
     local ipconfig_exe=$(get_winbin ipconfig.exe)
     [[ -z ${ipconfig_exe} ]] && return
-    echo "cmd=$cmd"
-    local arr=("127.0.0.1" $($ipconfig_exe | $grep_exe -i 'IPv4' | cut -d ':' -f 2 |tr '\r\n' ' '))
-    for ip in ${arr[@]};do
-       if eval $cmd &>/dev/null ; then
-           set_proxy $ip:$port
-           echo "set proxy to $ip:$port"
-           break
-       fi
+    local arr=("127.0.0.1" $($ipconfig_exe | grep --binary-files=text -i 'IPV4'|grep -Eo '([0-9]{1,3}\.){3}([0-9]{1,3})'))
+    for ip in ${arr[@]}; do
+        for port in ${ports[@]}; do
+            echo "try: $ip:$port"
+            if eval $cmd &>/dev/null; then
+                set_proxy $ip:$port
+                echo "set proxy to $ip:$port"
+                return
+            fi
+        done
     done
 }
 function wsl_notify(){

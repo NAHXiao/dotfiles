@@ -87,7 +87,7 @@ local config = {
             {
                 name = "run",
                 cmds = {
-                    "$(VIM_PATHNOEXT)" .. (GVars.is_win and ".exe" or ""),
+                    "$(VIM_PATHNOEXT)" .. (Globals.is_win and ".exe" or ""),
                 },
                 filetypes = { "c", "cpp" },
                 type = "file",

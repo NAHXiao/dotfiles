@@ -5,7 +5,7 @@ return {
     lazy = true,
     event = { "BufRead Cargo.toml" },
     config = function()
-        require("crates").setup({
+        require("crates").setup {
             lsp = {
                 enabled = true,
                 on_attach = function(client, bufnr)
@@ -36,6 +36,6 @@ return {
             --         },
             --     },
             -- }
-        })
+        }
     end,
 }

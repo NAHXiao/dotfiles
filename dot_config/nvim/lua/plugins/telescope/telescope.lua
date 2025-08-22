@@ -68,34 +68,36 @@ return {
         {
             "<leader>fa",
             resume_call("Find All Files", function()
-                require("telescope.builtin").find_files({
+                require("telescope.builtin").find_files {
                     find_command = {
                         fdpath,
                         "-H",
                         "-I",
                         "--follow",
-                        "-t", "f"
+                        "-t",
+                        "f",
                     },
                     no_ignore = true,
                     hidden = true,
-                })
+                }
             end),
             desc = "Find All files",
         },
         {
             "<leader>fA",
             clean_call("Find All Files", function()
-                require("telescope.builtin").find_files({
+                require("telescope.builtin").find_files {
                     find_command = {
                         fdpath,
                         "-H",
                         "-I",
                         "--follow",
-                        "-t", "f"
+                        "-t",
+                        "f",
                     },
                     no_ignore = true,
                     hidden = true,
-                })
+                }
             end),
             desc = "Find All files(clean)",
         },
@@ -201,7 +203,7 @@ return {
         {
             "<leader>fo",
             function()
-                require("telescope.builtin").vim_options({
+                require("telescope.builtin").vim_options {
                     attach_mappings = function(_, map)
                         local function select_and_esc()
                             local selection =
@@ -234,7 +236,7 @@ return {
                         end)
                         return true
                     end,
-                })
+                }
             end,
             desc = "Find Vim Options",
         },
@@ -291,7 +293,7 @@ return {
         function vim.ui.select(...)
             if not require("lazy").is_loaded("telescope.nvim") then
                 vim.ui.select = _select
-                require("lazy").load({ plugins = "telescope.nvim" })
+                require("lazy").load { plugins = "telescope.nvim" }
                 vim.ui.select(...)
             end
         end
@@ -304,7 +306,7 @@ return {
         end
         fdpath = fd == "" and fdfind or fd
         local actions = require("telescope.actions")
-        require("telescope").setup({
+        require("telescope").setup {
             defaults = {
                 cache_picker = {
                     num_pickers = 1,
@@ -328,7 +330,8 @@ return {
                         -- "-I",
                         "--exclude={.Trash-1000,.DS_Store,$RECYCLE.BIN,.git,.idea,.vscode,.sass-cache,.mypy_cache,node_modules,.gradle,build,.vscode-server,.virtualenvs,.cache,.ghcup,.conda,.rustup,.cargo,.local,target,.stfolder,.vs}",
                         "--follow",
-                        "-t", "f"
+                        "-t",
+                        "f",
                     },
                 },
                 live_grep = {
@@ -347,10 +350,10 @@ return {
             },
             extensions = {
                 fzf = {
-                    fuzzy = true,                   -- false will only do exact matching
+                    fuzzy = true, -- false will only do exact matching
                     override_generic_sorter = true, -- override the generic sorter
-                    override_file_sorter = true,    -- override the file sorter
-                    case_mode = "smart_case",       -- or "ignore_case" or "respect_case"
+                    override_file_sorter = true, -- override the file sorter
+                    case_mode = "smart_case", -- or "ignore_case" or "respect_case"
                     -- the default case_mode is "smart_case"
                 },
                 ["ui-select"] = {
@@ -363,7 +366,7 @@ return {
                     },
                 },
             },
-        })
+        }
         local picker = require("telescope.pickers")
         local _close_windows = picker._Picker.close_windows
         picker._Picker.close_windows = function(...)
@@ -377,7 +380,7 @@ return {
         require("tools.hl").register({
             TelescopeNormal = { link = "Normal" },
             TelescopeBorder = { link = "FloatBorder" },
-            TelescopeSelection = { link = "CursorLine" }
+            TelescopeSelection = { link = "CursorLine" },
         }, { dependency = "outer<-inner", type = "colorscheme" })
     end,
 }

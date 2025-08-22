@@ -26,7 +26,7 @@ return {
         },
     },
     config = function()
-        require("copilot").setup({
+        require("copilot").setup {
             panel = {
                 enabled = false, -- NOTE: blink.cmp 函数补全
                 auto_refresh = false,
@@ -70,7 +70,7 @@ return {
             },
             copilot_node_command = "node", -- Node.js version must be > 18.x
             server_opts_overrides = {},
-        })
+        }
         local wrap_uiselect = function(old_uiselect)
             return function(items, opts, on_choice)
                 if
@@ -82,8 +82,8 @@ return {
                     local year, month, day = opts.prompt:match("(%d%d%d%d)%-(%d%d)%-(%d%d)")
                     vim.notify(
                         "Copilot: "
-                        .. opts.prompt:match(".*limit%.")
-                        .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
+                            .. opts.prompt:match(".*limit%.")
+                            .. ("(Will be reset on %d-%d-%d)"):format(year, month, day),
                         vim.log.levels.ERROR
                     )
                     require("copilot.command").disable()

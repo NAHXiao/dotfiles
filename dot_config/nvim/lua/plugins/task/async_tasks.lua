@@ -193,9 +193,9 @@ local function setup_telescope()
             pickers
                 .new(opts, {
                     prompt_title = "Tasks",
-                    finder = finders.new_table({
+                    finder = finders.new_table {
                         results = tasks_formatted,
-                    }),
+                    },
                     sorter = sorters.get_generic_fuzzy_sorter(),
                     attach_mappings = function(prompt_bufnr, map)
                         local start_task = function()
@@ -231,8 +231,8 @@ return {
         {
             "<F9>",
             function()
-                if not reqiure("lazy").is_loaded("asynctasks.vim") then
-                    require("lazy").load({ plugins = "asynctasks.vim" })
+                if not require("lazy").is_loaded("asynctasks.vim") then
+                    require("lazy").load { plugins = "asynctasks.vim" }
                 end
                 local taskname
                 if vim.g.asynctasks_config == "auto" then -- project-build -> file-build
@@ -275,8 +275,8 @@ return {
         {
             "<F10>",
             function()
-                if not reqire("lazy").is_loaded("asynctasks.vim") then
-                    require("lazy").load({ plugins = "asynctasks.vim" })
+                if not require("lazy").is_loaded("asynctasks.vim") then
+                    require("lazy").load { plugins = "asynctasks.vim" }
                 end
                 -- local old_asynctasks_term_focus = vim.g.asynctasks_term_focus
                 -- vim.g.asynctasks_term_focus = 1
@@ -320,7 +320,7 @@ return {
             "<F11>",
             function()
                 if not require("lazy").is_loaded("asynctasks.vim") then
-                    require("lazy").load({ plugins = "asynctasks.vim" })
+                    require("lazy").load { plugins = "asynctasks.vim" }
                 end
                 vim.cmd(
                     "AsyncTaskProfile "
@@ -333,7 +333,7 @@ return {
             vim.g.is_win and "<S-F11>" or "<F23>",
             function()
                 if not require("lazy").is_loaded("asynctasks.vim") then
-                    require("lazy").load({ plugins = "asynctasks.vim" })
+                    require("lazy").load { plugins = "asynctasks.vim" }
                 end
                 local old = vim.g.asynctasks_config
                 vim.g.asynctasks_config = (function(o)
@@ -375,7 +375,7 @@ return {
             noremap = true,
         },
     },
-    cond=false,
+    cond = false,
     cmd = {
         "AsyncRun",
         "AsyncStop",

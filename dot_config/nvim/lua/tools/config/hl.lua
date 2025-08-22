@@ -1,7 +1,7 @@
 local M = {}
 ---@type table<string,HighlightTable|fun():HighlightTable>
 M.colorscheme_idi = {
-    FoldColumn = { link = "Normal" }
+    FoldColumn = { link = "Normal" },
 }
 
 ---@type table<string,HighlightTable|fun():HighlightTable>
@@ -10,7 +10,7 @@ M.transparent_idi = {
     CursorLineNr = { fg = { transform = "lighten", from = "Normal.fg", amount = 5 } },
     Visual = { bg = { transform = "lighten", from = "Visual.bg", amount = 0.2 } },
     LspInlayHint = {
-        bg = { transform = "darken", from = { "Cursor.bg", "Normal.fg" }, amount = 0.15, },
+        bg = { transform = "darken", from = { "Cursor.bg", "Normal.fg" }, amount = 0.15 },
         fg = { "Cursor.fg", "Normal.bg" },
     },
 }
@@ -48,6 +48,6 @@ M.transparent_groups_idi = {
 
     "NormalFloat",
     "Pmenu",
-    "PmenuExtra"
+    "PmenuExtra",
 }
 return M

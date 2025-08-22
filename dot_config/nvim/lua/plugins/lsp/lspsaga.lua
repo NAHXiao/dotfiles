@@ -1,8 +1,8 @@
 return {
     "nvimdev/lspsaga.nvim",
     dependencies = {
-        'nvim-treesitter/nvim-treesitter',
-        'nvim-tree/nvim-web-devicons'
+        "nvim-treesitter/nvim-treesitter",
+        "nvim-tree/nvim-web-devicons",
     },
     event = "LspAttach",
     opts = {
@@ -11,17 +11,17 @@ return {
             show_server_name = true,
         },
         diagnostic = {
-            diagnostic_only_current = false
+            diagnostic_only_current = false,
         },
         lightbulb = {
             sign = false,
-            virtual_text = false
+            virtual_text = false,
         },
         outline = {
             keys = {
-                toggle_or_jump = 'o',
-                quit = 'q',
-                jump = '<CR>',
+                toggle_or_jump = "o",
+                quit = "q",
+                jump = "<CR>",
             },
         },
         symbol_in_winbar = {
@@ -31,8 +31,8 @@ return {
             enable = false,
         },
         ui = {
-            border = "rounded"
-        }
+            border = "rounded",
+        },
     },
     keys = {
         -- { "<Leader>lc", "<Cmd>Lspsaga incomping_calls<CR>", mode = "n", desc = "Callers" },
@@ -41,5 +41,5 @@ return {
         -- { "<Leader>lh", "<Cmd>Lspsaga hover_doc<CR>", mode = "n", desc = "Lspsaga hover_doc" },
         { "<Leader>s", "<Cmd>Lspsaga outline<CR>", mode = "n", desc = "Lspsaga outline" },
         -- { "<Leader>lr", "<Cmd>Lspsaga rename<CR>", mode = "n", desc = "Lspsaga rename" },
-    }
+    },
 }

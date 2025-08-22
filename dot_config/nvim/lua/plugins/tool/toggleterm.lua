@@ -1,4 +1,5 @@
-local key = Globals.is_win and "<c-\\>" or "<c-space>"
+-- local key = Globals.is_win and "<c-\\>" or "<c-space>"
+local key = "<c-space>"
 return {
     "akinsho/toggleterm.nvim",
     version = "*",
@@ -17,7 +18,7 @@ return {
     },
     config = function()
         local start_in_insert = true
-        require("toggleterm").setup({
+        require("toggleterm").setup {
             size = function(term)
                 if term.direction == "horizontal" then
                     return 15
@@ -39,7 +40,7 @@ return {
                 -- winblend = 3,
                 title_pos = "center",
             },
-        })
+        }
 
         local focus_next_term = function()
             local term = require("toggleterm.terminal")

@@ -2,9 +2,9 @@ return {
     "williamboman/mason.nvim",
     version = "*",
     lazy = true,
-    dependencies = {},
+    cmd = "Mason",
     config = function()
-        require("mason").setup({
+        require("mason").setup {
             install_root_dir = Globals.mason_install_root_dir,
             ui = {
                 icons = {
@@ -12,7 +12,8 @@ return {
                     package_pending = "➜",
                     package_uninstalled = "✗",
                 },
+                border = "rounded",
             },
-        })
+        }
     end,
 }

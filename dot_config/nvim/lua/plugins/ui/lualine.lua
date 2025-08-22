@@ -1,8 +1,13 @@
 local icons = require("tools.icons")
 local shorten_path = function(filepath, max_len)
     return require("utils").shorten_path(
-        require('utils').prefix_replace(vim.fs.normalize(filepath), vim.fs.normalize(vim.uv.os_homedir()), "~"),
-        max_len)
+        require("utils").prefix_replace(
+            vim.fs.normalize(filepath),
+            vim.fs.normalize(vim.uv.os_homedir()),
+            "~"
+        ),
+        max_len
+    )
 end
 
 local shorten_filepath = true
@@ -46,7 +51,7 @@ return {
         local refresh = function()
             require("lualine").refresh()
         end
-        require("lualine").setup({
+        require("lualine").setup {
             options = {
                 ignore_focus = { "neo-tree" }, --be drawn as inactive statusline
                 component_separators = "",
@@ -85,7 +90,10 @@ return {
                             local buf_path = vim.api.nvim_buf_get_name(0)
                             local maxlen = shorten_filepath and math.floor(vim.o.columns / 4) or 1e9
                             if root_dir then
-                                return shorten_path(require("utils").relpath(root_dir, buf_path), maxlen)
+                                return shorten_path(
+                                    require("utils").relpath(root_dir, buf_path),
+                                    maxlen
+                                )
                             else
                                 return shorten_path(buf_path, maxlen)
                             end
@@ -106,7 +114,7 @@ return {
                         symbols = {
                             error = icons.diagnostics.error[1],
                             warn = icons.diagnostics.warn[1],
-                            info = icons.diagnostics.info[1]
+                            info = icons.diagnostics.info[1],
                         },
                         diagnostics_color = {
                             color_error = { fg = colors.red },
@@ -161,8 +169,13 @@ return {
 
                 lualine_x = {
                     {
-                        require("noice").api.status.command.get,
-                        cond = require("noice").api.status.command.has,
+                        function()
+                            return require("noice").api.status.command.get()
+                        end,
+                        cond = function()
+                            return package.loaded.noice
+                                and require("noice").api.status.command.has()
+                        end,
                         color = { fg = colors.orange },
                     },
                     {
@@ -278,6 +291,6 @@ return {
                 lualine_y = {},
                 lualine_z = {},
             },
-        })
+        }
     end,
 }

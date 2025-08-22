@@ -37,13 +37,13 @@ return {
         },
     },
     config = function()
-        require("smart-splits").setup({
+        require("smart-splits").setup {
             ignored_buftypes = {
                 "prompt",
             },
             ignored_filetypes = {},
             default_amount = 3,
             at_edge = "stop",
-        })
+        }
     end,
 }

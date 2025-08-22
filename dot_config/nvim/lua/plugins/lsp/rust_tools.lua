@@ -13,7 +13,7 @@ vim.g.rustaceanvim = function()
         liblldb_path = liblldb_path .. (Globals.is_mac and ".dylib" or ".so")
     end
 
-    local cfg = require "rustaceanvim.config"
+    local cfg = require("rustaceanvim.config")
     return {
         dap = {
             adapter = cfg.get_codelldb_adapter(codelldb_path, liblldb_path),
@@ -36,37 +36,37 @@ return {
                 end
 
                 map("n", "<leader><leader>d", function()
-                    vim.cmd.RustLsp "debuggables"
+                    vim.cmd.RustLsp("debuggables")
                 end, "Rust Show Debuggables")
                 map("n", "<leader><leader>D", function()
                     vim.cmd.RustLsp { "debuggables", bang = true }
                 end, "Rust Run Last Debuggables")
                 map("n", "<leader><leader>r", function()
-                    vim.cmd.RustLsp "runnables"
+                    vim.cmd.RustLsp("runnables")
                 end, "Rust Show Runnables")
                 map("n", "<leader><leader>R", function()
                     vim.cmd.RustLsp { "runnables", bang = true }
                 end, "Rust Run Last Runnables")
                 map("n", "<leader><leader>t", function()
-                    vim.cmd.RustLsp "testables"
+                    vim.cmd.RustLsp("testables")
                 end, "Rust Show Testables")
                 map("n", "<leader><leader>T", function()
                     vim.cmd.RustLsp { "testables", bang = true }
                 end, "Rust Run Last Testables")
 
                 map("n", "<leader><leader>me", function()
-                    vim.cmd.RustLsp "expandMacro"
+                    vim.cmd.RustLsp("expandMacro")
                 end, "Rust Expand Macro")
                 map("n", "<leader><leader>mb", function()
-                    vim.cmd.RustLsp "rebuildProcMacros"
+                    vim.cmd.RustLsp("rebuildProcMacros")
                 end, "Rust Rebuild ProcMacros")
 
                 map("n", "<leader><leader>ca", function()
-                    vim.cmd.RustLsp "codeAction"
+                    vim.cmd.RustLsp("codeAction")
                 end, "Rust codeAction")
 
                 map("n", "<leader><leader>cd", function()
-                    vim.cmd.RustLsp "relatedDiagnostics"
+                    vim.cmd.RustLsp("relatedDiagnostics")
                 end, "Rust relatedDiagnostics(quickfix)")
                 -- vim.cmd.RustAnalyzer { 'config', '{ checkOnSave = false }' }
             end,

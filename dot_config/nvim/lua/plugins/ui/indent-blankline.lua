@@ -2,7 +2,7 @@ return {
     "lukas-reineke/indent-blankline.nvim",
     version = "*",
     main = "ibl",
-    cond=false,
+    cond = false,
     lazy = true,
     -- cond=false,
     ft = {
@@ -55,7 +55,7 @@ return {
             "<leader>\\b",
             function()
                 local enabled = require("ibl.config").get_config(-1).enabled
-                require("ibl").update({ enabled = not enabled })
+                require("ibl").update { enabled = not enabled }
                 require("utils").vim_echo("IBL: " .. (enabled and "Disabled" or "Enabled"))
             end,
             desc = "Toggle IBL",

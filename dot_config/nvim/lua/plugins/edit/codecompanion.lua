@@ -22,8 +22,8 @@ return {
                     },
                     close = {
                         modes = { n = "q", i = "<C-d>" },
-                    }
-                }
+                    },
+                },
             },
             inline = {
                 adaptor = "copilot",
@@ -39,12 +39,11 @@ return {
                 -- start_in_insert_mode = true,
                 window = {
                     position = "right",
-                }
-            }
+                },
+            },
         },
         system_prompt = function(_)
-            return
-            [[You are an AI programming assistant named "CodeCompanion". You are currently plugged in to the Neovim text editor on a user's machine.
+            return [[You are an AI programming assistant named "CodeCompanion". You are currently plugged in to the Neovim text editor on a user's machine.
 
 Your core tasks include:
 - Answering general programming questions.
@@ -78,15 +77,35 @@ When given a task:
 3. You should always generate short suggestions for the next user turns that are relevant to the conversation.
 4. You can only give one reply for each conversation turn.
 ]]
-        end
+        end,
     },
     init = function()
         vim.cmd([[cab cc CodeCompanion]])
     end,
     keys = {
-        { "<leader>cc", "<Cmd>CodeCompanionChat Toggle<CR>", mode = { "n", "v" }, desc = "CodeCompanionChat Toggle" },
-        { "<leader>ca", "<Cmd>CodeCompanionChat Add<CR>",    mode = { "n", "v" }, desc = "CodeCompanionChat Add" },
-        { "<M-i>",      ":CodeCompanionChat ",                mode = { "v" },      desc = "CodeCompanionChat" },
-        { "<leader>c/", "<Cmd>CodeCompanionActions<CR>",     mode = { "n", "v" }, desc = "CodeCompanionActions" },
-    }
+        {
+            "<leader>cc",
+            "<Cmd>CodeCompanionChat Toggle<CR>",
+            mode = { "n", "v" },
+            desc = "CodeCompanionChat Toggle",
+        },
+        {
+            "<leader>ca",
+            "<Cmd>CodeCompanionChat Add<CR>",
+            mode = { "n", "v" },
+            desc = "CodeCompanionChat Add",
+        },
+        {
+            "<M-i>",
+            ":CodeCompanionChat ",
+            mode = { "v" },
+            desc = "CodeCompanionChat",
+        },
+        {
+            "<leader>c/",
+            "<Cmd>CodeCompanionActions<CR>",
+            mode = { "n", "v" },
+            desc = "CodeCompanionActions",
+        },
+    },
 }

@@ -3,26 +3,7 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     dependencies = {
         { "nvim-lua/plenary.nvim", lazy = true },
-        { "MunifTanjim/nui.nvim",  lazy = true },
-        {
-            "s1n7ax/nvim-window-picker",
-            version = "2.*",
-            config = function()
-                require("window-picker").setup({
-                    filter_rules = {
-                        include_current_win = false,
-                        autoselect_one = true,
-                        -- filter using buffer options
-                        bo = {
-                            -- if the file type is one of following, the window will be ignored
-                            filetype = { "neo-tree", "neo-tree-popup", "notify" },
-                            -- if the buffer type is one of following, the window will be ignored
-                            buftype = { "terminal", "quickfix" },
-                        },
-                    },
-                })
-            end,
-        },
+        { "MunifTanjim/nui.nvim", lazy = true },
     },
     lazy = false,
     cmd = "Neotree",
@@ -42,7 +23,7 @@ return {
         vim.g.loaded_netrwFileHandlers = 1
     end,
     config = function()
-        require("neo-tree").setup({
+        require("neo-tree").setup {
             sources = {
                 "filesystem",
                 "buffers",
@@ -56,12 +37,12 @@ return {
             enable_modified_markers = true,
             enable_opened_markers = true,
             enable_refresh_on_write = true,
-            open_files_in_last_window = true,                                          -- false = open files in top left window
+            open_files_in_last_window = true, -- false = open files in top left window
             open_files_do_not_replace_types = { "terminal", "Trouble", "qf", "edgy" }, -- when opening files, do not use windows containing these filetypes or buftypes
-            popup_border_style = "rounded",                                            -- "NC","double", "none", "rounded", "shadow", "single" or "solid"
-            sort_case_insensitive = false,                                             -- used when sorting files and directories in the tree
-            sort_function = nil,                                                       -- uses a custom function for sorting files and directories in the tree
-            use_popups_for_input = true,                                               -- If false, inputs will use vim.ui.input() instead of custom floats.
+            popup_border_style = "rounded", -- "NC","double", "none", "rounded", "shadow", "single" or "solid"
+            sort_case_insensitive = false, -- used when sorting files and directories in the tree
+            sort_function = nil, -- uses a custom function for sorting files and directories in the tree
+            use_popups_for_input = true, -- If false, inputs will use vim.ui.input() instead of custom floats.
             use_default_mappings = true,
             source_selector = {
                 winbar = true,
@@ -113,7 +94,7 @@ return {
                         height = "80%",
                         width = "50%",
                     },
-                    position = "50%",       -- 50% means center it
+                    position = "50%", -- 50% means center it
                     title = function(state) -- format the text that appears at the top of a popup window
                         return "Neo-tree " .. state.name:gsub("^%l", string.upper)
                     end,
@@ -258,10 +239,10 @@ return {
             --         },
             --     },
             -- },
-        })
+        }
         require("tools.hl").register({
             NeoTreeNormal = { link = "Normal" },
-            NeoTreeNormalNC = { link = "NormalNC" }
+            NeoTreeNormalNC = { link = "NormalNC" },
         }, { dependency = "outer<-inner", type = "colorscheme" })
         require("tools.hl").register_transparent({
             "NeoTreeTabActive",
@@ -271,7 +252,7 @@ return {
             "NeoTreeWinSeparator",
         }, { dependency = "outer<-inner", type = "transparent" })
         require("tools.hl").register({
-            NeoTreeMessage = { link = "NeoTreeFileName" }
+            NeoTreeMessage = { link = "NeoTreeFileName" },
         }, { dependency = "outer<-inner", type = "transparent" })
     end,
 }

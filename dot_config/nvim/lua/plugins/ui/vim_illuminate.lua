@@ -12,7 +12,7 @@ return {
         },
     },
     config = function()
-        require("illuminate").configure({
+        require("illuminate").configure {
             providers = {
                 "treesitter",
                 "lsp",
@@ -29,7 +29,7 @@ return {
                 })
             end,
             disable_keymaps = true,
-        })
+        }
         require("tools.hl").register({
             IlluminatedWordWrite = { underline = true },
             IlluminatedWordText = { underline = true },

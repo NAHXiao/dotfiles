@@ -28,10 +28,10 @@ return {
                 end
                 return vim.bo[buf].ft == "markdown"
                     or pcall(vim.treesitter.get_parser, buf)
-                    or not vim.tbl_isempty(vim.lsp.get_clients({
+                    or not vim.tbl_isempty(vim.lsp.get_clients {
                         bufnr = buf,
                         method = "textDocument/documentSymbol",
-                    }))
+                    })
             end,
             sources = function(buf, _)
                 local sources = require("dropbar.sources")
@@ -48,20 +48,22 @@ return {
                 local utils = require("dropbar.utils")
                 return {
                     filename,
-                    utils.source.fallback({
+                    utils.source.fallback {
                         sources.lsp,
                         sources.treesitter,
-                    }),
+                    },
                 }
             end,
-            update_debounce = 300
+            update_debounce = 300,
         },
     },
     config = function(_, opts)
         require("dropbar").setup(opts)
         vim.api.nvim_set_hl(0, "WinBar", { link = "Normal" })
         vim.api.nvim_set_hl(0, "WinBarNC", { link = "Normal" })
-        require "tools.hl".register_transparent({ "WinBar", "WinBarNC"
-        }, { dependency = "inner<-inner", type = "transparent" })
+        require("tools.hl").register_transparent(
+            { "WinBar", "WinBarNC" },
+            { dependency = "inner<-inner", type = "transparent" }
+        )
     end,
 }

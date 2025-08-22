@@ -13,7 +13,7 @@ return {
         },
     },
     { "b0o/SchemaStore.nvim", ft = { "json", "yaml" } },
-    { "nanotee/sqls.nvim",    ft = "sql" },
+    { "nanotee/sqls.nvim", ft = "sql" },
     {
         "neovim/nvim-lspconfig",
         version = "*",
@@ -25,7 +25,7 @@ return {
                 function()
                     vim.diagnostic.enable(not vim.diagnostic.is_enabled())
                 end,
-                desc = "Toggle diagnostic show"
+                desc = "Toggle diagnostic show",
             },
             --[] + (d|w|e|i|h)
             --g + c|s|w|d|D|r
@@ -33,11 +33,11 @@ return {
             {
                 "[w",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = -1,
                         float = true,
                         severity = vim.diagnostic.severity.WARN,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto prev diagnostic(WARN)",
@@ -45,11 +45,11 @@ return {
             {
                 "]w",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = 1,
                         float = true,
                         severity = vim.diagnostic.severity.WARN,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto next diagnostic(WARN)",
@@ -57,11 +57,11 @@ return {
             {
                 "[e",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = -1,
                         float = true,
                         severity = vim.diagnostic.severity.ERROR,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto prev diagnostic(ERROR)",
@@ -69,11 +69,11 @@ return {
             {
                 "]e",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = 1,
                         float = true,
                         severity = vim.diagnostic.severity.ERROR,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto next diagnostic(ERROR)",
@@ -81,11 +81,11 @@ return {
             {
                 "[i",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = -1,
                         float = true,
                         severity = vim.diagnostic.severity.INFO,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto prev diagnostic(INFO)",
@@ -93,11 +93,11 @@ return {
             {
                 "]i",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = 1,
                         float = true,
                         severity = vim.diagnostic.severity.INFO,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto next diagnostic(INFO)",
@@ -105,11 +105,11 @@ return {
             {
                 "[h",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = -1,
                         float = true,
                         severity = vim.diagnostic.severity.HINT,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto prev diagnostic(HINT)",
@@ -117,11 +117,11 @@ return {
             {
                 "]h",
                 function()
-                    vim.diagnostic.jump({
+                    vim.diagnostic.jump {
                         count = 1,
                         float = true,
                         severity = vim.diagnostic.severity.HINT,
-                    })
+                    }
                 end,
                 mode = "n",
                 desc = "goto next diagnostic(HINT)",
@@ -129,7 +129,7 @@ return {
             {
                 "[d",
                 function()
-                    vim.diagnostic.jump({ count = -1, float = true })
+                    vim.diagnostic.jump { count = -1, float = true }
                 end,
                 mode = "n",
                 desc = "goto prev diagnostic",
@@ -137,24 +137,24 @@ return {
             {
                 "]d",
                 function()
-                    vim.diagnostic.jump({ count = 1, float = true })
+                    vim.diagnostic.jump { count = 1, float = true }
                 end,
                 mode = "n",
                 desc = "goto next diagnostic",
             },
 
-            { "gs", vim.lsp.buf.document_symbol,  mode = "n", desc = "list document_symbol" },
+            { "gs", vim.lsp.buf.document_symbol, mode = "n", desc = "list document_symbol" },
             { "gw", vim.lsp.buf.workspace_symbol, mode = "n", desc = "query workspace_symbol" },
 
-            { "gd", vim.lsp.buf.definition,       mode = "n", desc = "goto definition" },
-            { "gr", vim.lsp.buf.references,       mode = "n", desc = "goto references" },
-            { "gi", vim.lsp.buf.incoming_calls,   mode = "n", desc = "list incoming_calls" },
+            { "gd", vim.lsp.buf.definition, mode = "n", desc = "goto definition" },
+            { "gr", vim.lsp.buf.references, mode = "n", desc = "goto references" },
+            { "gi", vim.lsp.buf.incoming_calls, mode = "n", desc = "list incoming_calls" },
 
-            { "gD", vim.lsp.buf.declaration,      mode = "n", desc = "goto declaration" },
+            { "gD", vim.lsp.buf.declaration, mode = "n", desc = "goto declaration" },
 
-            { "K",  vim.lsp.buf.hover,            mode = "n", desc = "show hover doc" }, --TODO: gd...close
+            { "K", vim.lsp.buf.hover, mode = "n", desc = "show hover doc" }, --TODO: gd...close
             -- { "<C-K>",       vim.lsp.buf.signature_help,   mode = "n" ,desc="show signature_help"},
-            { "cn", vim.lsp.buf.rename,           mode = "n", desc = "symbol rename" },
+            { "cn", vim.lsp.buf.rename, mode = "n", desc = "symbol rename" },
             {
                 "ca",
                 vim.lsp.buf.code_action,
@@ -191,9 +191,9 @@ return {
         config = function()
             local _open_floating_preview = vim.lsp.util.open_floating_preview
             vim.lsp.util.open_floating_preview = function(contents, syntax, opts)
-                opts               = opts or {}
-                local _bufnr       = vim.api.nvim_get_current_buf()
-                opts.border        = opts.border
+                opts = opts or {}
+                local _bufnr = vim.api.nvim_get_current_buf()
+                opts.border = opts.border
                     or {
                         { "╭", "FloatBorder" },
                         { "─", "FloatBorder" },
@@ -205,8 +205,10 @@ return {
                         { "│", "FloatBorder" },
                     }
                 local bufnr, winid = _open_floating_preview(contents, syntax, opts)
-                local group        = vim.api.nvim_create_augroup(
-                    "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid), { clear = true })
+                local group = vim.api.nvim_create_augroup(
+                    "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid),
+                    { clear = true }
+                )
                 vim.api.nvim_create_autocmd("BufLeave", {
                     buffer = _bufnr,
                     group = group,
@@ -215,25 +217,29 @@ return {
                             once = true,
                             group = group,
                             callback = function(ev)
-                                if winid and vim.api.nvim_win_is_valid(winid) and ev.buf ~= bufnr then
+                                if
+                                    winid
+                                    and vim.api.nvim_win_is_valid(winid)
+                                    and ev.buf ~= bufnr
+                                then
                                     vim.api.nvim_win_close(winid, true)
-                                    vim.api.nvim_clear_autocmds({ group = group })
+                                    vim.api.nvim_clear_autocmds { group = group }
                                 end
-                            end
+                            end,
                         })
-                    end
+                    end,
                 })
                 -- For RenderMarkdown
-                vim.api.nvim_set_option_value(
-                    "winhighlight",
-                    "RenderMarkdownCode:TRANSPARENT",
-                    { win = winid }
-                )
+                -- vim.api.nvim_set_option_value(
+                --     "winhighlight",
+                --     "RenderMarkdownCode:TRANSPARENT",
+                --     { win = winid }
+                -- )
                 return bufnr, winid
             end
             local diagnostic = vim.diagnostic
             local icons = require("tools.icons")
-            diagnostic.config({
+            diagnostic.config {
                 virtual_text = true,
                 signs = {
                     text = {
@@ -258,12 +264,12 @@ return {
                     prefix = "- ",
                     border = "rounded",
                 },
-            })
+            }
             local kinds = vim.lsp.protocol.CompletionItemKind
             local lspkind = require("lspkind")
             for i, kind in ipairs(kinds) do
                 kinds[i] = lspkind.symbolic(kind, { mode = "symbol" }) or kind
             end
         end,
-    }
+    },
 }

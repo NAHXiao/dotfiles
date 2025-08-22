@@ -45,7 +45,7 @@ M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
     local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
-    info=nil
+    info = nil
     if info then
         pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
     else
@@ -98,7 +98,7 @@ function M.is_bigfile(bufnr, opt)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
     opt = vim.tbl_extend("force", {
         line_limit = 5000,
-        size_limit = 10 * 1024 * 1024,   -- 10MB
+        size_limit = 10 * 1024 * 1024, -- 10MB
         avg_linesize_limit = 100 * 1024, -- 平均每行 100 KB
     }, opt or {})
 
@@ -586,7 +586,9 @@ end
 function M.get_rootdir(bufnr)
     if bufnr and vim.bo[bufnr].buftype == "" then
         local root_dir = vim.b[bufnr].projroot
-        if not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), vim.g.projroot) then
+        if
+            not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), vim.g.projroot)
+        then
             root_dir = vim.g.projroot
         end
         return root_dir
@@ -622,18 +624,23 @@ function M.focus_or_new(filepath, new_content, split)
         new_content = ""
     end
     ---@diagnostic disable-next-line: redefined-local
-    split = split or function(bufnr, filepath)
-        vim.validate("focus_or_new: split args", { bufnr = bufnr, filepath = filepath }, function(it)
-            return (type(it.bufnr) == "number" and vim.api.nvim_buf_is_valid(it.bufnr)) or
-                (type(it.filepath) == "string" and it.filepath ~= "")
-        end)
-        if bufnr then
-            vim.cmd("botright vsplit #" .. bufnr)
-        else
-            vim.cmd("botright vsplit " .. filepath)
+    split = split
+        or function(bufnr, filepath)
+            vim.validate(
+                "focus_or_new: split args",
+                { bufnr = bufnr, filepath = filepath },
+                function(it)
+                    return (type(it.bufnr) == "number" and vim.api.nvim_buf_is_valid(it.bufnr))
+                        or (type(it.filepath) == "string" and it.filepath ~= "")
+                end
+            )
+            if bufnr then
+                vim.cmd("botright vsplit #" .. bufnr)
+            else
+                vim.cmd("botright vsplit " .. filepath)
+            end
+            return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
         end
-        return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
-    end
     local lines = vim.split(new_content, "\r?\n") or { "" }
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr and bufnr ~= -1

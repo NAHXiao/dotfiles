@@ -62,7 +62,7 @@ return {
             menu = {
                 draw = {
                     columns = {
-                        { "kind_icon", "label", "label_description", gap = 1 },
+                        { "kind_icon", "label", gap = 1 },
                         { "kind" },
                     },
                     treesitter = { "lsp" },
@@ -159,31 +159,31 @@ return {
         vim.api.nvim_create_autocmd("User", {
             pattern = "BlinkCmpMenuOpen",
             callback = function()
-                vim.b.copilot_suggestion_hidden = true
-                vim.cmd("doautocmd CursorMovedI")
+                if package.loaded.copilot then
+                    local disabled = require("copilot.client").is_disabled()
+                    if not disabled then
+                        vim.b.copilot_suggestion_hidden = true
+                        vim.cmd("doautocmd CursorMovedI")
+                    end
+                end
             end,
         })
         vim.api.nvim_create_autocmd("User", {
             pattern = "BlinkCmpMenuClose",
             callback = function()
-                vim.b.copilot_suggestion_hidden = false
-                vim.cmd("doautocmd CursorMovedI")
+                if package.loaded.copilot then
+                    local disabled = require("copilot.client").is_disabled()
+                    if not disabled then
+                        vim.b.copilot_suggestion_hidden = false
+                        vim.cmd("doautocmd CursorMovedI")
+                    end
+                end
             end,
         })
-        require("tools.hl").register_transparent({ "BlinkCmpMenuBorder" }, {
-            type = "transparent",
-            dependency =
-            "outer<-outer"
-        })
         require("tools.hl").register({
-            BlinkCmpMenuSelection = {
-                link = "CursorLine"
-                -- bg = {
-                --     transform = "lighten",
-                --     from = "BlinkCmpMenuSelection.bg",
-                --     amount = 0.3
-                -- }
-            }
+            BlinkCmpMenuSelection = { link = "CursorLine" },
+            BlinkCmpMenuBorder = { link = "FloatBorder" },
+            BlinkCmpLabelMatch = { fg = "#a9a1e1" },
         }, { dependency = "outer<-inner", type = "colorscheme" })
     end,
 }

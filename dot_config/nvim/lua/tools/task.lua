@@ -39,7 +39,7 @@ function T:utaskset2taskset(utaskset, field)
     local taskset = vim.tbl_deep_extend("force", self.taskset_base, utaskset, { field = field })
     for i, item in ipairs(taskset) do
         local taskname
-        local bg = false         --DEFAULT
+        local bg = false --DEFAULT
         local ignore_err = false --DEFAULT
         if type(item) == "string" then
             taskname = item
@@ -156,11 +156,11 @@ function T:items2lines(items)
             local env = item.opts.env and next(item.opts.env) and item.opts.env or nil
             if cwd or env or clear_env then
                 local optstr = "opts="
-                    .. vim.inspect({
+                    .. vim.inspect {
                         cwd = cwd,
                         clear_env = clear_env,
                         env = env,
-                    })
+                    }
                 for _, line in ipairs(vim.split(optstr, "[\r\n]")) do
                     lines[#lines + 1] = "    " .. line
                 end
@@ -590,7 +590,7 @@ function T:select(data, prompt, callback, field_option)
             if choice.below then
                 callback(data[choice.field][choice.below])
             else
-                callback({ choice })
+                callback { choice }
             end
         else
             callback(choice)
@@ -758,7 +758,7 @@ local run_task = function(task, jobopts)
     local task = vim.deepcopy(task)
     M.macro_replace(task)
     require("tools.term").newtask(
-        T:task2keys({ name = task.name, mode = task.mode, type = task.type, filetypes = {} }),
+        T:task2keys { name = task.name, mode = task.mode, type = task.type, filetypes = {} },
         { cmds = task.cmds, opts = vim.tbl_deep_extend("force", task.opts, jobopts or {}) },
         false,
         true,
@@ -778,12 +778,12 @@ local run_taskset = function(taskset)
         M.macro_replace(task)
         ---@cast task task
         tasks[#tasks + 1] = {
-            name = T:task2keys({
+            name = T:task2keys {
                 name = task.name,
                 mode = task.mode,
                 type = task.type,
                 filetypes = {},
-            }),
+            },
             jobinfo = {
                 cmds = task.cmds,
                 opts = task.opts,
@@ -955,8 +955,7 @@ M.run_select = function(fts)
     end, false)
 end
 M.edittask = function()
-    local tmpl =
-        ([[---@class task
+    local tmpl = ([[---@class task
 ---@field name string
 ---@field cmds string[]
 ---@field mode? ("debug"|"release"|"") default ""
@@ -987,9 +986,12 @@ local items = {}
 local function new(it)
     table.insert(items,it)
 end
-return items]]):format(vim.fs.joinpath(
+return items]]):format(
+        vim.fs.joinpath(
             require("utils").prefix_replace(vim.fn.stdpath("config"), vim.uv.os_homedir(), "~"),
-            "lua/tools/config/task.lua"))
+            "lua/tools/config/task.lua"
+        )
+    )
     local bufnr, _, already_focus, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
     if already_focus == true then
         local append_items = function(lines, items)
@@ -1010,7 +1012,8 @@ return items]]):format(vim.fs.joinpath(
             end
         end
         local function is_empty_buffer(bufnrr)
-            local byte_size = vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
+            local byte_size =
+                vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
             return byte_size == 0 or byte_size == 1
         end
         local data =
@@ -1119,7 +1122,7 @@ M.setup = function()
     )
     map("n", "<F12>", function()
         T:refresh_local()
-        M.run_select({ get_cur_ft() })
+        M.run_select { get_cur_ft() }
     end, { desc = "TaskSelectAndRun" })
     map("n", { Globals.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
         M.edittask()

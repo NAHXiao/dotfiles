@@ -36,7 +36,7 @@ return {
         -- },
     },
     config = function()
-        require("nvim_aider").setup({
+        require("nvim_aider").setup {
             aider_cmd = "aider",
             args = {
                 "--no-auto-commits",
@@ -45,6 +45,6 @@ return {
                 "--model",
                 "deepseek/deepseek-chat",
             },
-        })
+        }
     end,
 }

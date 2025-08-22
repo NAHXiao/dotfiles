@@ -1,11 +1,9 @@
-local utils = require "utils"
 return {
     "stevearc/conform.nvim",
     branch = "master",
-    event = "UIEnter",
-    keys = {
+    keys = require("utils").lazy_keymap {
         {
-            "gQ",
+            { "gq", "gQ" },
             function()
                 require("conform").format({ async = true }, function(err)
                     if not err then
@@ -29,6 +27,7 @@ return {
     },
     dependencies = {},
     config = function()
+        local utils = require("utils")
         require("conform").setup {
             formatters_by_ft = {
                 lua = { "stylua" },
@@ -50,7 +49,7 @@ return {
             default_format_opts = {
                 lsp_format = "fallback",
                 cwd = function()
-                    return require("utils").get_rootdir(0)
+                    return utils.get_rootdir(0)
                 end,
             },
             notify_on_error = false,
@@ -58,7 +57,7 @@ return {
                 ["clang-format-custom"] = {
                     command = "clang-format",
                     args = function()
-                        local local_clang_format_path = vim.fn.stdpath "config"
+                        local local_clang_format_path = vim.fn.stdpath("config")
                             .. "/lua/plugins/lsp/.clang-format"
                         local local_clang_format_valid = vim.fn.filereadable(
                             local_clang_format_path
@@ -70,7 +69,7 @@ return {
                             return_dirname = false,
                         })
                         local args = {
-                            "--assume-filename=" .. (vim.fn.expand "%:t" or "example.cpp"),
+                            "--assume-filename=" .. (vim.fn.expand("%:t") or "example.cpp"),
                         }
                         if confpath == nil then
                             args[#args + 1] = ("--style=%s"):format(

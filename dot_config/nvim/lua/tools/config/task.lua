@@ -22,7 +22,11 @@ local config = {
             },
             {
                 name = "cmake-create",
-                cmds = { "bash", vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmake_create.bash"), "$(-name:)" },
+                cmds = {
+                    "bash",
+                    vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmake_create.bash"),
+                    "$(-name:)",
+                },
                 type = "project",
             },
             --c/cpp

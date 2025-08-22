@@ -5,7 +5,7 @@ return {
     lazy = true,
     event = "VeryLazy",
     config = function()
-        require("Comment").setup({
+        require("Comment").setup {
             ---Add a space b/w comment and the line
             padding = true,
             ---Whether the cursor should stay at its position
@@ -47,6 +47,6 @@ return {
             pre_hook = nil,
             ---Function to call after (un)comment
             post_hook = nil,
-        })
+        }
     end,
 }

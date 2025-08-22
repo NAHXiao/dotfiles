@@ -51,7 +51,10 @@ local function register(tbl, opts)
                 assert(colorscheme_changed or transparent_changed)
                 assert(not (colorscheme_changed and transparent_changed))
                 local this = color_tbls[name]
-                if this.dependency_type == "inner<-inner" or this.dependency_type == "outer<-inner" then
+                if
+                    this.dependency_type == "inner<-inner"
+                    or this.dependency_type == "outer<-inner"
+                then
                     if this.color_hook_type == "colorscheme" then
                         assert(colorscheme_changed and not transparent_changed)
                         log("set", name, hltftbl)
@@ -99,7 +102,7 @@ local function register(tbl, opts)
                     end
                 end
                 assert(false, "unreachable code")
-            end
+            end,
         }
     end
     if opts.dependency_type == "inner<-inner" or opts.dependency_type == "outer<-inner" then
@@ -158,21 +161,19 @@ end
 ---@param tbl table<string,HighlightTable|fun():HighlightTable>
 ---@param opts {dependency:dependency_type,type:color_hook_type}
 function M.register(tbl, opts)
-    if opts.dependency == "inner<-inner"
-        or opts.dependency == "outer<-inner"
-    then
+    if opts.dependency == "inner<-inner" or opts.dependency == "outer<-inner" then
         if opts.type == "colorscheme" then
             register(tbl, {
                 dependency_type = opts.dependency,
                 color_hook_type = opts.type,
-                on_colorscheme = true
+                on_colorscheme = true,
             })
         elseif opts.type == "transparent" then
             register(tbl, {
                 dependency_type = opts.dependency,
                 color_hook_type = opts.type,
                 on_colorscheme = true,
-                on_transparent = true
+                on_transparent = true,
             })
         end
     elseif opts.dependency == "outer<-outer" then
@@ -182,7 +183,7 @@ function M.register(tbl, opts)
             register(tbl, {
                 dependency_type = opts.dependency,
                 color_hook_type = opts.type,
-                on_transparent = true
+                on_transparent = true,
             })
         end
     end
@@ -192,17 +193,20 @@ end
 ---@param opts {dependency:dependency_type,type:color_hook_type}
 function M.register_transparent(hilist, opts)
     -- assert(opts.dependency ~= "outer<-inner")
-    local tbl = vim.iter(hilist):map(function(it)
-        return it, function()
-            local hl = vim.api.nvim_get_hl(0, { name = it, link = false })
-            -- local hl = vim.api.nvim_get_hl(0, { name = it })
-            hl.bg = nil
-            return hl
-        end
-    end):fold({}, function(t, k, v)
-        t[k] = v
-        return t
-    end)
+    local tbl = vim.iter(hilist)
+        :map(function(it)
+            return it,
+                function()
+                    local hl = vim.api.nvim_get_hl(0, { name = it, link = false })
+                    -- local hl = vim.api.nvim_get_hl(0, { name = it })
+                    hl.bg = nil
+                    return hl
+                end
+        end)
+        :fold({}, function(t, k, v)
+            t[k] = v
+            return t
+        end)
     M.register(tbl, opts)
 end
 
@@ -221,14 +225,14 @@ local function apply(colorscheme_changed, transparent_changed)
     -- end
 
     local clearcb = function()
-        for _, dependency_type in ipairs({ "inner<-inner", "outer<-inner", "outer<-outer" }) do
+        for _, dependency_type in ipairs { "inner<-inner", "outer<-inner", "outer<-outer" } do
             local tbl = vim.iter(color_tbls)
                 :filter(function(k, v)
                     return v.dependency_type == dependency_type
                 end)
                 :filter(function(k, v)
-                    return (v.on_colorscheme and colorscheme_changed) or
-                        (v.on_transparent and transparent_changed)
+                    return (v.on_colorscheme and colorscheme_changed)
+                        or (v.on_transparent and transparent_changed)
                 end)
                 :map(function(k, v)
                     return k, v.hltransform_wrapped(colorscheme_changed, transparent_changed)
@@ -294,12 +298,13 @@ function M.setup()
     M.register(config.colorscheme_idi, { dependency = "inner<-inner", type = "colorscheme" })
     local tbl = vim.iter(config.transparent_groups_idi)
         :map(function(hlname)
-            return hlname, function()
-                -- local hl = vim.api.nvim_get_hl(0, { name = hlname, link = false })
-                local hl = vim.api.nvim_get_hl(0, { name = hlname, link = false })
-                hl.bg = nil
-                return hl
-            end
+            return hlname,
+                function()
+                    -- local hl = vim.api.nvim_get_hl(0, { name = hlname, link = false })
+                    local hl = vim.api.nvim_get_hl(0, { name = hlname, link = false })
+                    hl.bg = nil
+                    return hl
+                end
         end)
         :fold({}, function(tbl, k, v)
             tbl[k] = v
@@ -307,11 +312,11 @@ function M.setup()
         end)
     M.register(tbl, {
         dependency = "inner<-inner",
-        type = "transparent"
+        type = "transparent",
     })
     M.register(config.transparent_idi, {
         dependency = "inner<-inner",
-        type = "transparent"
+        type = "transparent",
     })
     -- vim.api.nvim_create_autocmd("OptionSet", {
     --     pattern = "background",
@@ -319,9 +324,15 @@ function M.setup()
     -- })
     require("utils").map("n", "<leader>\\\\", function()
         M.toggle_transparent()
-        require("utils").vim_echo(("Transparent: %s"):format(M.is_transparented() and "On" or "Off"))
+        require("utils").vim_echo(
+            ("Transparent: %s"):format(M.is_transparented() and "On" or "Off")
+        )
     end, { desc = "Toggle transparent" })
-    require("utils").auc("UIEnter", { callback = function() M.UIEnter = true end })
+    require("utils").auc("UIEnter", {
+        callback = function()
+            M.UIEnter = true
+        end,
+    })
 end
 
 if not enable then

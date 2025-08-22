@@ -10,7 +10,7 @@ return {
                     require("symbol-usage").refresh()
                 end
             end,
-            desc = "Toggle: CodeLens",
+            desc = "Toggle CodeLens",
         },
     },
 }

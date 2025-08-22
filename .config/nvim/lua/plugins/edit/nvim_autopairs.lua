@@ -5,6 +5,6 @@ return {
     event = "InsertEnter",
     dependencies = {},
     config = function()
-        require("nvim-autopairs").setup({})
+        require("nvim-autopairs").setup {}
     end,
 }

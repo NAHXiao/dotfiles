@@ -1,12 +1,12 @@
 if not vim.uv.fs_stat(Globals.lazypath) then
-    vim.fn.system({
+    vim.fn.system {
         "git",
         "clone",
         "--filter=blob:none",
         "https://github.com/folke/lazy.nvim.git",
         "--branch=stable",
         Globals.lazypath,
-    })
+    }
 end
 -- -- Hook
 -- local old_require = require
@@ -28,7 +28,6 @@ function lazy.is_loaded(plugin_full_name)
     local plugin = require("lazy.core.config").plugins[plugin_full_name]
     return plugin ~= nil and plugin._.loaded ~= nil
 end
-
 require("tools.hl").setup()
 require("tools.lsp").setup()
 lazy.setup(
@@ -55,6 +54,9 @@ lazy.setup(
         checker = {
             enable = true,
             frequency = 240, -- 10days
+        },
+        ui = {
+            border = "rounded",
         },
     }
 )

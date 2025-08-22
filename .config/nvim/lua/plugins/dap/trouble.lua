@@ -22,8 +22,10 @@ return {
     lazy = true,
     config = function()
         require("trouble").setup()
-        require("tools.hl").register({ TroubleNormal = { link = "Normal" } },
-            { dependency = "outer<-inner", type = "transparent" })
+        require("tools.hl").register(
+            { TroubleNormal = { link = "Normal" } },
+            { dependency = "outer<-inner", type = "transparent" }
+        )
     end,
 }
 --[[

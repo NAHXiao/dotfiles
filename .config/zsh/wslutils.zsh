@@ -28,7 +28,7 @@ function wsl_auto_proxy(){
     local cmd=''
     local ports=(7890 7891 1080 8080)
     if command -v curl &>/dev/null; then
-        cmd='curl --max-time 1 -s -x $ip:$port http://baidu.com -o/dev/null'
+        cmd='curl --max-time 1 -sf -x $ip:$port http://www.msftconnecttest.com/connecttest.txt -o/dev/null'
     elif command -v nc &>/dev/null; then 
         cmd='nc -vz $ip $port' 
     else

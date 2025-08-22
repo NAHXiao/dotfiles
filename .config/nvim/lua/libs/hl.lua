@@ -80,37 +80,56 @@ local function transform_one(opts)
     end
     local transform = opts.transform
     if transform == "lighten" then
-        assert(type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
-            "lighten requires `from`")
+        assert(
+            type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
+            "lighten requires `from`"
+        )
         assert(type(opts.amount) == "number", "lighten requires `amount`")
         return color.lighten(get_color_attr(opts.from), opts.amount)
     elseif transform == "darken" then
-        assert(type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
-            "darken requires `from`")
+        assert(
+            type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
+            "darken requires `from`"
+        )
         assert(type(opts.amount) == "number", "darken requires `amount`")
         return color.darken(get_color_attr(opts.from), opts.amount)
     elseif transform == "emboss" then
-        assert(type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
-            "emboss requires `from`")
+        assert(
+            type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
+            "emboss requires `from`"
+        )
         assert(type(opts.amount) == "number", "emboss requires `amount`")
         return color.emboss(get_color_attr(opts.from), opts.amount)
     elseif transform == "deboss" then
-        assert(type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
-            "deboss requires `from`")
+        assert(
+            type(opts.from) == "string" or type(opts.from) == "number" or type(opts.from) == "table",
+            "deboss requires `from`"
+        )
         assert(type(opts.amount) == "number", "deboss requires `amount`")
         return color.deboss(get_color_attr(opts.from), opts.amount)
     elseif transform == "interpolate" then
         assert(type(opts.from) == "table" and #opts.from == 2, "interpolate requires `from`")
         assert(type(opts.mix) == "number", "interpolate requires `mix`")
-        return color.interpolate(get_color_attr(opts.from[1]), get_color_attr(opts.from[2]), opts.mix)
+        return color.interpolate(
+            get_color_attr(opts.from[1]),
+            get_color_attr(opts.from[2]),
+            opts.mix
+        )
     elseif transform == "middle" then
-        assert(type(opts.from) == "table" and #opts.from == 2, "middle requires `from` as table and `#from` should == 2")
+        assert(
+            type(opts.from) == "table" and #opts.from == 2,
+            "middle requires `from` as table and `#from` should == 2"
+        )
         assert(type(opts.mix) == "number", "middle requires `mix`")
         return color.middle(get_color_attr(opts.from[1]), get_color_attr(opts.from[2]))
     elseif transform == "blend" then
         assert(
             (type(opts.fg) == "string" or type(opts.fg) == "number" or type(opts.fg) == "table")
-            and (type(opts.bg) == "string" or type(opts.fg) == "number" or type(opts.bg) == "table"),
+                and (
+                    type(opts.bg) == "string"
+                    or type(opts.fg) == "number"
+                    or type(opts.bg) == "table"
+                ),
             "blend requires `fg` and `bg`"
         )
         assert(type(opts.opacity) == "number", "blend requires `opacity`")

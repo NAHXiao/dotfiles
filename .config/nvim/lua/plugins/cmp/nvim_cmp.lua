@@ -53,7 +53,7 @@ return {
             return vim.api.nvim_replace_termcodes(str, true, true, true)
         end
         local cmp = require("cmp")
-        cmp.setup({
+        cmp.setup {
             preselect = cmp.PreselectMode.None,
             snippet = {
                 expand = function(args)
@@ -66,81 +66,81 @@ return {
                 documentation = cmp.config.window.bordered(),
             },
             mapping = {
-                ["<Tab>"] = cmp.mapping({
+                ["<Tab>"] = cmp.mapping {
                     c = function()
                         if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
                         else
                             cmp.complete()
                         end
                     end,
                     i = vim.schedule_wrap(function(fallback)
                         if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
                         else
                             fallback()
                         end
                     end),
-                }),
-                ["<S-Tab>"] = cmp.mapping({
+                },
+                ["<S-Tab>"] = cmp.mapping {
                     c = function()
                         if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
                         else
                             cmp.complete()
                         end
                     end,
                     i = function(fallback)
                         if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
                         else
                             fallback()
                         end
                     end,
-                }),
+                },
                 ["<Down>"] = cmp.mapping(
-                    cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Select }),
+                    cmp.mapping.select_next_item { behavior = cmp.SelectBehavior.Select },
                     { "i" }
                 ),
                 ["<Up>"] = cmp.mapping(
-                    cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Select }),
+                    cmp.mapping.select_prev_item { behavior = cmp.SelectBehavior.Select },
                     { "i" }
                 ),
-                ["<C-n>"] = cmp.mapping({
+                ["<C-n>"] = cmp.mapping {
                     c = function()
                         if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
                         else
                             vim.api.nvim_feedkeys(t("<Down>"), "n", true)
                         end
                     end,
                     i = function(fallback)
                         if cmp.visible() then
-                            cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_next_item { behavior = cmp.SelectBehavior.Select }
                         else
                             fallback()
                         end
                     end,
-                }),
-                ["<C-p>"] = cmp.mapping({
+                },
+                ["<C-p>"] = cmp.mapping {
                     c = function()
                         if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
                         else
                             vim.api.nvim_feedkeys(t("<Up>"), "n", true)
                         end
                     end,
                     i = function(fallback)
                         if cmp.visible() then
-                            cmp.select_prev_item({ behavior = cmp.SelectBehavior.Select })
+                            cmp.select_prev_item { behavior = cmp.SelectBehavior.Select }
                         else
                             fallback()
                         end
                     end,
-                }),
+                },
                 ["<C-b>"] = cmp.mapping(cmp.mapping.scroll_docs(-4), { "i", "c" }),
                 ["<C-f>"] = cmp.mapping(cmp.mapping.scroll_docs(4), { "i", "c" }),
-                ["<CR>"] = cmp.mapping.confirm({ select = false }),
+                ["<CR>"] = cmp.mapping.confirm { select = false },
                 ["<c-space>"] = function() -- 切换补全菜单:Copilot<Tab>在cmp.visible()==false时补全
                     if cmp.visible() then
                         cmp.abort()
@@ -195,7 +195,7 @@ return {
                     cmp.config.compare.order,
                 },
             },
-        })
+        }
 
         -- Set configuration for specific filetype.
         cmp.setup.filetype("gitcommit", {

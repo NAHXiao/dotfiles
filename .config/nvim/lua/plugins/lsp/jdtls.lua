@@ -20,7 +20,7 @@ return {
             vim.split(
                 vim.fn.glob(
                     vim.fn.stdpath("data")
-                    .. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"
+                        .. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar"
                 ),
                 "\n"
             )

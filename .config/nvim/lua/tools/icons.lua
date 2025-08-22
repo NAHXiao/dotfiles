@@ -3,10 +3,8 @@ M.diagnostics = {
     error = { " " },
     warn = { " " },
     info = { " " },
-    hint = { "󰌵 " }
+    hint = { "󰌵 " },
 }
-M.git = {
-
-}
+M.git = {}
 ---@type table<string,table<string,{[1]:icon,[2]:highlight}>>
 return M

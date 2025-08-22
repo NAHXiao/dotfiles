@@ -12,16 +12,24 @@ return {
             end
 
             -- Navigation
-            map('n', ']h', function()
-                if vim.wo.diff then return ']c' end
-                vim.schedule(function() gs.next_hunk() end)
-                return '<Ignore>'
+            map("n", "]h", function()
+                if vim.wo.diff then
+                    return "]c"
+                end
+                vim.schedule(function()
+                    gs.next_hunk()
+                end)
+                return "<Ignore>"
             end, { expr = true })
 
-            map('n', '[h', function()
-                if vim.wo.diff then return '[c' end
-                vim.schedule(function() gs.prev_hunk() end)
-                return '<Ignore>'
+            map("n", "[h", function()
+                if vim.wo.diff then
+                    return "[c"
+                end
+                vim.schedule(function()
+                    gs.prev_hunk()
+                end)
+                return "<Ignore>"
             end, { expr = true })
 
             -- Actions
@@ -38,7 +46,7 @@ return {
             -- map('n', '<leader>hd', gs.toggle_deleted)
 
             -- Text object
-            map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+            map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>")
         end,
         preview_config = {
             border = (function()
@@ -53,17 +61,80 @@ return {
             end)(),
             -- border = { '🭽', '▔', '🭾', '▕', '🭿', '▁', '🭼', '▏' },
             -- focusable = true,
-        }
+        },
     },
     keys = {
-        { "<Leader>gs", mode = "n", function() require("gitsigns").stage_hunk() end, desc = "Stage Hunk" },
-        { "<Leader>gr", mode = "n", function() require("gitsigns").reset_hunk() end, desc = "Reset Hunk" },
-        { "<Leader>gu", mode = "n", function() require("gitsigns").undo_stage_hunk() end, desc = "Undo Stage Hunk" },
-        { "<Leader>gS", mode = "n", function() require("gitsigns").stage_buffer() end, desc = "Stage Buffer" },
-        { "<Leader>gR", mode = "n", function() require("gitsigns").reset_buffer() end, desc = "Reset Buffer" },
-        { "<Leader>gp", mode = "n", function() require("gitsigns").preview_hunk() end, desc = "Preview Hunk" },
-        { "<Leader>gb", mode = "n", function() require("gitsigns").blame_line() end, desc = "Blame Line" },
-        { "<Leader>gB", mode = "n", function() require("gitsigns").toggle_current_line_blame() end, desc = "Toggle Blame for Current Line" },
-        { "<Leader>gd", mode = "n", function() require("gitsigns").toggle_deleted() end, desc = "Toggle Deleted" }
-    }
+        {
+            "<Leader>gs",
+            mode = "n",
+            function()
+                require("gitsigns").stage_hunk()
+            end,
+            desc = "Stage Hunk",
+        },
+        {
+            "<Leader>gr",
+            mode = "n",
+            function()
+                require("gitsigns").reset_hunk()
+            end,
+            desc = "Reset Hunk",
+        },
+        {
+            "<Leader>gu",
+            mode = "n",
+            function()
+                require("gitsigns").undo_stage_hunk()
+            end,
+            desc = "Undo Stage Hunk",
+        },
+        {
+            "<Leader>gS",
+            mode = "n",
+            function()
+                require("gitsigns").stage_buffer()
+            end,
+            desc = "Stage Buffer",
+        },
+        {
+            "<Leader>gR",
+            mode = "n",
+            function()
+                require("gitsigns").reset_buffer()
+            end,
+            desc = "Reset Buffer",
+        },
+        {
+            "<Leader>gp",
+            mode = "n",
+            function()
+                require("gitsigns").preview_hunk()
+            end,
+            desc = "Preview Hunk",
+        },
+        {
+            "<Leader>gb",
+            mode = "n",
+            function()
+                require("gitsigns").blame_line()
+            end,
+            desc = "Blame Line",
+        },
+        {
+            "<Leader>gB",
+            mode = "n",
+            function()
+                require("gitsigns").toggle_current_line_blame()
+            end,
+            desc = "Toggle Blame for Current Line",
+        },
+        {
+            "<Leader>gd",
+            mode = "n",
+            function()
+                require("gitsigns").toggle_deleted()
+            end,
+            desc = "Toggle Deleted",
+        },
+    },
 }

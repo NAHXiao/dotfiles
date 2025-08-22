@@ -9,21 +9,21 @@ return {
         {
             "<F1>",
             function()
-                require("dapui").toggle({})
+                require("dapui").toggle {}
             end,
             desc = "Debug: Toggle UI",
         },
         {
             "<leader>du",
             function()
-                require("dapui").toggle({ layout = 1 })
+                require("dapui").toggle { layout = 1 }
             end,
             desc = "Debug: Toggle UI sidebar",
         },
         {
             "<leader>dc",
             function()
-                require("dapui").toggle({ layout = 2 })
+                require("dapui").toggle { layout = 2 }
             end,
             desc = "Debug: Toggle console",
         },
@@ -97,7 +97,9 @@ return {
         -- end
         --注册命令DapuiClose,DapuiOpen
         vim.cmd("command! DapUiToggle lua require('dapui').toggle()")
-        vim.cmd([[ autocmd FileType,BufNewFile,BufRead,BufEnter * if match(&filetype, '^dapui') >= 0 | setlocal nofoldenable foldcolumn=0 | endif ]])
+        vim.cmd(
+            [[ autocmd FileType,BufNewFile,BufRead,BufEnter * if match(&filetype, '^dapui') >= 0 | setlocal nofoldenable foldcolumn=0 | endif ]]
+        )
         vim.cmd([[ autocmd FileType dap-float nnoremap <buffer> <silent> q <C-w>q ]])
     end,
 }

@@ -1,7 +1,7 @@
 return {
     "luukvbaal/statuscol.nvim",
     enabled = true,
-    event = { "VeryLazy","BufReadPost", "BufWritePost", "BufNewFile" },
+    event = { "VeryLazy", "BufReadPost", "BufWritePost", "BufNewFile" },
     config = function()
         local builtin = require("statuscol.builtin")
         local ffi = require("statuscol.ffidef")
@@ -17,10 +17,10 @@ return {
 
             return builtin.foldfunc(args)
         end
-        require("statuscol").setup({
+        require("statuscol").setup {
             relculright = true,
             ft_ignore = { "neo-tree", "neotree" },
-            bt_ignore = {'acwrite','help','nofile','nowrite','quickfix','terminal','prompt'},
+            bt_ignore = { "acwrite", "help", "nofile", "nowrite", "quickfix", "terminal", "prompt" },
             segments = {
                 {
                     sign = {
@@ -39,6 +39,6 @@ return {
                 { text = { foldfunc }, click = "v:lua.ScFa" },
                 { text = { " " } },
             },
-        })
+        }
     end,
 }

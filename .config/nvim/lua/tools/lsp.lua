@@ -1,11 +1,11 @@
-local utils = require "utils"
+local utils = require("utils")
 local M = {}
 ---@param reload? boolean
 function M.loadconfig(reload)
     if reload then
         package.loaded["tools.config.lsp"] = nil
     end
-    M.config = require "tools.config.lsp"
+    M.config = require("tools.config.lsp")
     M.config.ulsp_config_ok = nil
     local config = M.config
     if vim.uv.fs_stat(config.ulsp_config_path()) then
@@ -57,7 +57,8 @@ function M.setup_ulspconfig(mode)
     end
     if mode == "autocmd" then
         require("utils").auc("User", {
-            pattern = "RTPAfterPluginLoad",
+            -- pattern = "RTPAfterPluginLoad",
+            pattern = "VeryLazy",
             callback = setup_lspc,
         })
     elseif mode == "immediate" then
@@ -66,6 +67,9 @@ function M.setup_ulspconfig(mode)
 end
 
 ---g+u
+---由于enable会导致resolved config生成,因此需要运行在<rtp>加载后
+---[我也不知道为什么setup放到lazy加载前并使nvim_lspconfig lazy=false就能保证doautoall在nvim_lspconfig的<rtp>加载后执行,doautoall在下一个loop执行?]
+---[我也不知道为什么将nvim_lspconfig完全禁用并只在enable_lsps前prepend_rtp会存在bug:使用nvim <filename>打开时第一次的FileType事件丢失了]
 function M.enable_lsps()
     for _, lsp in ipairs(M.config.auto_enable) do
         if M.allow_enable(lsp) then
@@ -165,7 +169,7 @@ end
 function M.setup()
     M.loadconfig()
     M.lsp_settings()
-    M.setup_ulspconfig "autocmd"
+    M.setup_ulspconfig("autocmd")
     M.setup_disable()
     M.enable_lsps()
     require("utils").auc("User", {
@@ -175,14 +179,14 @@ function M.setup()
 
     M.setup_keymap()
     require("utils").auc("User", {
-        pattern = "RTPAfterPluginLoad",
+        pattern = "VeryLazy",
         callback = M.mason_auto_install,
     })
 end
 
 function M.reload()
     M.loadconfig(true)
-    M.setup_ulspconfig "immediate"
+    M.setup_ulspconfig("immediate")
     --NOTE: internel API
     for nm, _ in pairs(vim.lsp._enabled_configs) do
         for _, client in ipairs(vim.lsp.get_clients { name = nm }) do

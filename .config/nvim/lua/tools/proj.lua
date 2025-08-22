@@ -25,7 +25,7 @@ local M = {
                 return vim.fn.fnamemodify(path, ":t")
             end,
             path = function()
-                return require "utils".get_rootdir(0)
+                return require("utils").get_rootdir(0)
             end,
             -- {
             -- 	{ -- 第一列file窗口
@@ -203,7 +203,7 @@ function M:load(project)
     for _, filepath in ipairs(buffers) do
         local buf = vim.api.nvim_create_buf(false, false)
         vim.api.nvim_buf_call(buf, function()
-            if 1==vim.fn.filereadable(filepath) then
+            if 1 == vim.fn.filereadable(filepath) then
                 vim.cmd("edit " .. filepath)
             end
         end)

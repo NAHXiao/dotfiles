@@ -20,7 +20,7 @@ return {
         local branches = require("ide.components.branches")
         local bookmarks = require("ide.components.bookmarks")
 
-        require("ide").setup({
+        require("ide").setup {
             -- The global icon set to use.
             -- values: "nerd", "codicon", "default"
             icon_set = "default",
@@ -76,6 +76,6 @@ return {
                 right = 30,
                 bottom = 15,
             },
-        })
+        }
     end,
 }

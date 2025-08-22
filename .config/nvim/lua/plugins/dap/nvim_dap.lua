@@ -15,11 +15,11 @@ local dap_config_tmpl = ([[local dap = require('dap')
 ---See [%s]
 return {}]]):format(
     vim.fs.joinpath(
-        Globals.lazy_plugin_path "mason-nvim-dap.nvim",
+        Globals.lazy_plugin_path("mason-nvim-dap.nvim"),
         "lua/mason-nvim-dap/mappings/configurations.lua"
     ),
     vim.fs.joinpath(
-        Globals.lazy_plugin_path "mason-nvim-dap.nvim",
+        Globals.lazy_plugin_path("mason-nvim-dap.nvim"),
         "lua/mason-nvim-dap/mappings/filetypes.lua"
     )
 )
@@ -47,14 +47,14 @@ return {
             {
                 { Globals.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
                 function()
-                    require("dap").set_breakpoint(vim.fn.input "Breakpoint condition: ")
+                    require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
                 end,
                 desc = "Debug: Set breakpoint" .. (Globals.is_win and "" or " <Shift-F2>"),
             },
             {
                 { Globals.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
                 function()
-                    require("dap").set_breakpoint(nil, nil, vim.fn.input "Log point message: ")
+                    require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
                 end,
                 desc = "Debug: Set log point" .. (Globals.is_win and "" or " <Ctrl-F2>"),
             },
@@ -85,7 +85,7 @@ return {
             {
                 "<F5>",
                 function()
-                    local dap = require "dap"
+                    local dap = require("dap")
                     if vim.fn.filereadable(dap_config_path()) == 1 then
                         local ok, config = pcall(dofile, dap_config_path())
                         if ok then

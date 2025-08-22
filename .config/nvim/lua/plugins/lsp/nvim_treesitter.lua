@@ -95,7 +95,7 @@ return {
                 end,
             })
         else
-            require("nvim-treesitter.configs").setup({
+            require("nvim-treesitter.configs").setup {
                 ensure_installed = ensure_install,
                 sync_install = false,
                 ignore_install = {},
@@ -116,7 +116,7 @@ return {
                     },
                 },
                 indent = { enable = true },
-            })
+            }
             vim.o.foldmethod = "expr"
             vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
             vim.api.nvim_create_autocmd("LspAttach", {

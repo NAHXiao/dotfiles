@@ -13,7 +13,7 @@ Globals.cleanui_funcs = {
         vim.cmd.doautocmd("CursorMovedI")
         vim.cmd.noh()
         vim.snippet.stop()
-    end
+    end,
 }
 Globals.cleanui = function()
     for _, f in ipairs(Globals.cleanui_funcs) do
@@ -77,4 +77,4 @@ function Globals.lazy_plugin_path(plugin_full_name, expand_home)
     end
     return path
 end
-Globals.mason_install_root_dir = vim.fs.joinpath(vim.fn.stdpath "data", "mason")
+Globals.mason_install_root_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "mason")

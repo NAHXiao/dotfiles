@@ -16,7 +16,7 @@ return {
         workspaces = {
             {
                 name = "main",
-                path =Globals.obsidianPath,
+                path = Globals.obsidianPath,
             },
         },
         completion = {
@@ -178,9 +178,9 @@ return {
                 vim.cmd(':silent exec "!start ' .. url .. '"')
             elseif Globals.is_nix then
                 if Globals.is_mac then
-                    vim.fn.jobstart({ "open", url })
+                    vim.fn.jobstart { "open", url }
                 elseif Globals.is_android then
-                    vim.fn.jobstart({
+                    vim.fn.jobstart {
                         "am",
                         "start",
                         "--user",
@@ -189,11 +189,11 @@ return {
                         "android.intent.action.VIEW",
                         "-d",
                         url,
-                    })
+                    }
                 elseif Globals.is_wsl then
-                    vim.fn.jobstart({ "wslopen", url })
+                    vim.fn.jobstart { "wslopen", url }
                 else
-                    vim.fn.jobstart({ "xdg-open", url })
+                    vim.fn.jobstart { "xdg-open", url }
                 end
             else
                 vim.notify("Obsidian: follow_url_func(): Unsupported OS")
@@ -208,9 +208,9 @@ return {
                 vim.cmd(':silent exec "!start ' .. img .. '"')
             elseif Globals.is_nix then
                 if Globals.is_mac then
-                    vim.fn.jobstart({ "qlmanage", "-p", img })
+                    vim.fn.jobstart { "qlmanage", "-p", img }
                 elseif Globals.is_android then
-                    vim.fn.jobstart({
+                    vim.fn.jobstart {
                         "am",
                         "start",
                         "--user",
@@ -219,11 +219,11 @@ return {
                         "android.intent.action.VIEW",
                         "-d",
                         img,
-                    })
+                    }
                 elseif Globals.is_wsl then
-                    vim.fn.jobstart({ "wslopen", img })
+                    vim.fn.jobstart { "wslopen", img }
                 else
-                    vim.fn.jobstart({ "xdg-open", img })
+                    vim.fn.jobstart { "xdg-open", img }
                 end
             else
                 vim.notify("Obsidian: follow_img_func(): Unsupported OS")

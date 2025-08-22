@@ -20,10 +20,10 @@ map({ "n", "i" }, "<C-b>", "<PageUp>")
 
 map("n", "<leader>P", "ggVGp")
 map("v", "p", function()
-    vim.cmd "normal! P"
+    vim.cmd("normal! P")
 end, { remap = true })
 map("v", "P", function()
-    vim.cmd "normal! p"
+    vim.cmd("normal! p")
 end, { remap = true })
 map("v", "<C-S-V>", "p")
 map("v", "<C-S-C>", "y")
@@ -56,7 +56,7 @@ map("v", "K", "<Nop>")
 map("i", "<C-h>", function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = vim.api.nvim_get_current_line()
-    local first_non_blank = line:find "%S" or 1
+    local first_non_blank = line:find("%S") or 1
     vim.api.nvim_win_set_cursor(0, { row, first_non_blank - 1 })
 end, { desc = "<HOME>" })
 
@@ -79,10 +79,10 @@ local function jump_next_line(where)
     end
 end
 map("i", "<C-CR>", function()
-    jump_next_line "start"
+    jump_next_line("start")
 end, { noremap = true, silent = true })
 map("i", "<S-CR>", function()
-    jump_next_line "end"
+    jump_next_line("end")
 end, { noremap = true, silent = true })
 --ctrl s保存
 map("i", "<C-s>", "<C-[>:wa<CR>")
@@ -164,7 +164,7 @@ map("n", "]f", function()
 end)
 map("n", "<C-l>", Globals.cleanui)
 -- Fix common typos
-vim.cmd [[
+vim.cmd([[
 cnoreabbrev W w
 
 cnoreabbrev W! w!
@@ -236,7 +236,7 @@ cnoreabbrev wQA1 wqa!
 cnoreabbrev wQa1 wqa!
 cnoreabbrev wqA1 wqa!
 cnoreabbrev wqa1 wqa!
-]]
-vim.cmd [[
+]])
+vim.cmd([[
     cnoreabbrev b! botright split new \| r!
-]]
+]])

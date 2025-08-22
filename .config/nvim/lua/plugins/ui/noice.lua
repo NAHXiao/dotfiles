@@ -14,11 +14,11 @@ return {
         },
         config = function()
             local notify = require("notify")
-            notify.setup({
+            notify.setup {
                 render = "minimal",
                 stages = "static", --"fade",
                 top_down = true,
-            })
+            }
             vim.notify = notify.notify
             vim.list_extend(Globals.cleanui_funcs, {
                 function()
@@ -37,11 +37,11 @@ return {
         },
         opts = {
             presets = {
-                bottom_search = true,          -- use a classic bottom cmdline for search
-                command_palette = true,        -- position the cmdline and popupmenu together
+                bottom_search = true, -- use a classic bottom cmdline for search
+                command_palette = true, -- position the cmdline and popupmenu together
                 long_message_to_split = false, -- long messages will be sent to a split
-                inc_rename = false,            -- enables an input dialog for inc-rename.nvim
-                lsp_doc_border = true,         -- add a border to hover docs and signature help
+                inc_rename = false, -- enables an input dialog for inc-rename.nvim
+                lsp_doc_border = true, -- add a border to hover docs and signature help
             },
             lsp = {
                 signature = {
@@ -94,5 +94,5 @@ return {
                 desc = "Toggle Noice",
             },
         },
-    }
+    },
 }

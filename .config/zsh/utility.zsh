@@ -16,23 +16,26 @@ function set_proxy(){
     export socks_proxy=socks5://$1
 }
 function auto_proxy(){
-    local ip="localhost"
-    if command -v curl &>/dev/null;then
-        cmd='curl --connect-timeout 0.5 -s -x $ip:$port http://baidu.com -o/dev/null'
-        elif command -v nc &>/dev/null ;then
-        cmd='nc -vz $ip $port'
+    local cmd=''
+    local ports=(7890 7891 1080 8080)
+    if command -v curl &>/dev/null; then
+        cmd='curl --max-time 1 -sf -x $ip:$port http://www.msftconnecttest.com/connecttest.txt -o/dev/null'
+    elif command -v nc &>/dev/null; then 
+        cmd='nc -vz $ip $port' 
     else
+        echo "No curl or nc found, cannot auto detect proxy." >&2
         return
     fi
-    echo "cmd=$cmd"
-    local arr=(7890 )
-    for port in ${arr[@]};do
-        echo $cmd
-        if eval $cmd &>/dev/null ; then
-            set_proxy $ip:$port
-            echo "set proxy to $ip:$port"
-            break
-        fi
+    local arr=("127.0.0.1")
+    for ip in ${arr[@]}; do
+        for port in ${ports[@]}; do
+            echo "try: $ip:$port"
+            if eval $cmd &>/dev/null; then
+                set_proxy $ip:$port
+                echo "set proxy to $ip:$port"
+                return
+            fi
+        done
     done
 }
 # 循环向上cd

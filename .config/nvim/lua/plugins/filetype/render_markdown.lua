@@ -8,7 +8,7 @@ return {
     ---@type render.md.UserConfig
     opts = {},
     config = function()
-        require("render-markdown").setup({
+        require("render-markdown").setup {
             on = {
                 initial = function(ctx)
                     if vim.api.nvim_win_get_config(ctx.win).relative ~= "" then
@@ -30,7 +30,7 @@ return {
             latex = {
                 enable = false,
             },
-        })
+        }
         vim.treesitter.language.register("markdown", "vimwiki")
     end,
 }

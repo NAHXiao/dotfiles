@@ -6,7 +6,7 @@ return {
     priority = 1000,
     config = function()
         -- if tostring(vim.fn.getenv('WEZTERM_EXECUTABLE')) ~= '/usr/bin/wezterm-gui' then
-        require("kanagawa").setup({
+        require("kanagawa").setup {
             compile = true,
             keywordStyle = { italic = false, bold = true },
             background = { dark = "wave", light = "lotus" },
@@ -31,7 +31,7 @@ return {
                     },
                 },
             },
-        })
+        }
         vim.cmd("colorscheme kanagawa")
         -- end
     end,

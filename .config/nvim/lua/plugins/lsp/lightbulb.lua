@@ -26,8 +26,7 @@ return {
         require("nvim-lightbulb").setup(opts)
         require("tools.hl").register_transparent({ "LightBulbVirtualText" }, {
             dependency = "outer<-outer",
-            type =
-            "transparent"
+            type = "transparent",
         })
     end,
 }

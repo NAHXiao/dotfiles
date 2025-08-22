@@ -56,7 +56,7 @@ aucmd("DirChanged", {
         setroot()
         vim.notify("[Root]: " .. vim.g.projroot)
         vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
-    end
+    end,
 })
 aucmd("LspAttach", {
     callback = function(ev)
@@ -66,7 +66,11 @@ aucmd("LspAttach", {
         end
         local bufnr = ev.buf
         local root = client.config.root_dir
-        if root and root ~= "" and utils.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root) then
+        if
+            root
+            and root ~= ""
+            and utils.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root)
+        then
             vim.b[bufnr].projroot = root
         end
     end,
@@ -169,7 +173,7 @@ then
                 local o_en = not o:match("^[iR]")
                 local n_en = not n:match("^[iR]")
                 if o_en ~= n_en then
-                    if o_en then     --en->cn: Resume(?->EN/PY.?)
+                    if o_en then --en->cn: Resume(?->EN/PY.?)
                         get_lock_and_then(to_insert)
                     elseif n_en then --cn->en: Save->(PY.?->PY.EN)/(EN->PY.EN)
                         get_lock_and_then(to_normal)

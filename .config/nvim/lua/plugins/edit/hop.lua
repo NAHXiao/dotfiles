@@ -3,8 +3,8 @@ return {
     version = "*",
     lazy = true,
     keys = {
-        { "HH", "<cmd>HopWordMW<cr>",      desc = "jump to word" },
-        { "HF", "<cmd>HopPatternMW<cr>",   desc = "jump to pattern" },
+        { "HH", "<cmd>HopWordMW<cr>", desc = "jump to word" },
+        { "HF", "<cmd>HopPatternMW<cr>", desc = "jump to pattern" },
         { "HL", "<cmd>HopLineStartMW<cr>", desc = "jump to line" },
     },
     config = function()

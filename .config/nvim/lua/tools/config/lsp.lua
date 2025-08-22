@@ -61,7 +61,7 @@ local keys_method = {
 }
 local function keys(...)
     local allkeys = {}
-    for _, tbl in ipairs({ ... }) do
+    for _, tbl in ipairs { ... } do
         vim.list_extend(allkeys, vim.tbl_keys(tbl))
     end
     setmetatable(allkeys, {
@@ -237,12 +237,12 @@ M.extend = {
         end,
     },
 }
-M.auto_enable = keys(M.extend, M.override):exclude(compact({
+M.auto_enable = keys(M.extend, M.override):exclude(compact {
     "jdtls",
     "rust_analyzer",
     ifArch("aarch64", "neocmake", "cmake"),
-}))
-M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact({
+})
+M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact {
     ifArch("aarch64", "clangd"),
     ifArch("aarch64", "lua_ls"),
     ifArch("aarch64", "rust_analyzer"),
@@ -250,7 +250,7 @@ M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact({
     vim.fn.executable("go") == 0 and "gopls" or nil,
     vim.fn.executable("go") == 0 and "sqls" or nil,
     ifArch("aarch64", "neocmake", "cmake"),
-}))
+})
 M.mason_ensure_install_dap = {
     "python",
     "cppdbg",
@@ -265,7 +265,7 @@ M.mason_ensure_install_extra = {
     "pyink",
     "standardjs",
     "yamlfmt",
-    "beautysh"
+    "beautysh",
 }
 
 -----------------------------------------------------------

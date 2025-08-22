@@ -28,10 +28,7 @@
 ---@field seq? boolean default true
 ---@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
 
-
 ---@alias items (taskset|task)[]
-
-
 
 ---@alias comp_func fun(a,b):boolean
 ---@alias comp_order
@@ -61,15 +58,12 @@
 ---| ["taskmode", "tasktype", "isset", "field"]
 ---@alias comp {field:comp_func,isset:comp_func,tasktype:comp_func,taskmode:comp_func,order:comp_order}
 
-
-
 ---@class keys_tbl
 ---@field name string
 ---@field mode ("debug"|"release"|"") default ""
 ---@field type ("project"|"file"|"") default ""
 ---@field filetypes string[]|{} default {}
 ---@alias task_keys string
-
 
 ---vim will attempt to prevent vim.lsp.enable() for all LSPs that are in the disable list but not in disable_exclude.
 ---You need to restart vim to apply the changes.

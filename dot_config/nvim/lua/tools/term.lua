@@ -142,17 +142,13 @@ local function setup_termbuf(bufnr)
         callback = function()
             local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
             if is_running then
-                vim.cmd.startinsert()
                 vim.schedule(function()
-                    if vim.api.nvim_get_current_buf() ~= bufnr then
+                    if vim.api.nvim_get_current_buf() == bufnr then
+                        vim.cmd.startinsert()
+                    else
                         vim.cmd.stopinsert()
                     end
                 end)
-                vim.defer_fn(function()
-                    if vim.api.nvim_get_current_buf() ~= bufnr then
-                        vim.cmd.stopinsert()
-                    end
-                end, 1)
             else
                 vim.cmd.stopinsert()
             end
@@ -471,11 +467,7 @@ local scroll = function()
     ---NOTE: vim.fn.jobwait Cannnot be used in interactive binary,that will causes block
     -- local is_running = vim.fn.jobwait({ vim.b[].terminal_job_id, })[1] == -1
     local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
-    if
-        is_opened
-        and not is_focused
-        and is_running
-    then
+    if is_opened and not is_focused and is_running then
         local winid = winmanager.term_winid
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
@@ -539,19 +531,19 @@ function TermNode:start()
             local on_stdout = opts.on_stdout
             local on_stderr = opts.on_stderr
             opts.on_exit = on_exit
-                and function(job_id, code, event)
-                    on_exit(job_id, code, event, self)
-                end
+                    and function(job_id, code, event)
+                        on_exit(job_id, code, event, self)
+                    end
                 or nil
             opts.on_stdout = on_stdout
-                and function(job_id, data, event)
-                    on_stdout(job_id, data, event, self)
-                end
+                    and function(job_id, data, event)
+                        on_stdout(job_id, data, event, self)
+                    end
                 or nil
             opts.on_stderr = on_stderr
-                and function(job_id, data, event)
-                    on_stderr(job_id, data, event, self)
-                end
+                    and function(job_id, data, event)
+                        on_stderr(job_id, data, event, self)
+                    end
                 or nil
             ok, result = pcall(vim.fn.jobstart, self.jobinfo.cmds, opts)
         else
@@ -763,24 +755,19 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow, on_finish)
     ---@type ujobinfo
     ---@diagnostic disable-next-line: assign-type-mismatch
     local jobinfo = vim.tbl_deep_extend("force", TaskTermNode.jobinfo, ujobinfo, {
-        opts = jobinfo_func_append(
-            {
-                on_exit = function(_, code, _, node)
-                    assert(node.classname == "TaskTermNode")
-                    if code == 0 then
-                        node.status = "success"
-                    else
-                        node.status = "error"
-                    end
-                    PanelBufLineUpdate()
-                    PanelCurHLUpdate()
-                    PanelCurSorHLUpdate()
-                end,
-            },
-            TaskTermNode.jobinfo.opts,
-            ujobinfo.opts,
-            { on_exit = on_finish }
-        ),
+        opts = jobinfo_func_append({
+            on_exit = function(_, code, _, node)
+                assert(node.classname == "TaskTermNode")
+                if code == 0 then
+                    node.status = "success"
+                else
+                    node.status = "error"
+                end
+                PanelBufLineUpdate()
+                PanelCurHLUpdate()
+                PanelCurSorHLUpdate()
+            end,
+        }, TaskTermNode.jobinfo.opts, ujobinfo.opts, { on_exit = on_finish }),
     })
     local obj = TermNode.new(self, newnode_opts, jobinfo, false, true)
     setmetatable(obj, self)
@@ -1238,7 +1225,7 @@ end
 function panelbufcxt:swap(offset, node)
     if node.parent:swap(node, offset) then
         PanelBufLinesUpdate()
-        PanelCurHLUpdate()    --TODO:精细化
+        PanelCurHLUpdate() --TODO:精细化
         PanelCurSorHLUpdate() --TODO:精细化
     end
 end
@@ -1431,7 +1418,7 @@ function panelbufcxt:init()
     end
     self.__inited = true
     --Root
-    self.root = GroupNode:new({ name = "Root" })
+    self.root = GroupNode:new { name = "Root" }
     self.fallback_term_bufnr = create_fallback_termbuf()
     --PanelBuf
     self.bufnr = create_panelbuf()
@@ -1511,7 +1498,7 @@ end
 
 ---@param winid number
 function winmanager._set_win_minimal(winid)
-    for option, value in pairs({
+    for option, value in pairs {
         number = false,
         relativenumber = false,
         foldcolumn = "0",
@@ -1519,7 +1506,7 @@ function winmanager._set_win_minimal(winid)
         statuscolumn = "",
         spell = false,
         list = false,
-    }) do
+    } do
         vim.wo[winid][option] = value
     end
 end
@@ -1605,7 +1592,7 @@ function winmanager:_setup_whenopen_autocmds()
 end
 
 function winmanager:_clear_whenopen_autocmds()
-    vim.api.nvim_clear_autocmds({ group = "tools.terminal.whenopen" })
+    vim.api.nvim_clear_autocmds { group = "tools.terminal.whenopen" }
 end
 
 function winmanager:_update_termwin_bindbuf()

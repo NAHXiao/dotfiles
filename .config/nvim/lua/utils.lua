@@ -41,11 +41,11 @@ function M.lazy_keymap(keys)
     return ret
 end
 
+---@return string[]
 M.log = function(...)
     local args = { ... }
     local info = debug.getinfo(2, "nSl")
     local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
-    info = nil
     if info then
         pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
     else
@@ -68,8 +68,9 @@ M.log = function(...)
         lines[2] = nil
     end
     if -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa") then
-        error("write log failed")
+        vim.notify("write log failed", vim.log.levels.ERROR)
     end
+    return lines
 end
 ---@param groupname string
 ---@param clear? boolean
@@ -673,8 +674,15 @@ function M.focus_or_new(filepath, new_content, split)
     end
 end
 
-function M.transparent_bg_test()
+---@param filter? string
+function M.transparent_bg_test(filter)
+    vim.notify(vim.inspect(vim.fn.getcompletion("LspStart ", "cmdline")))
     local groups = vim.fn.getcompletion("", "highlight")
+    if filter then
+        groups = vim.tbl_filter(function(it)
+            return (string.find(it:upper(), filter:upper()) ~= nil)
+        end, groups)
+    end
     local index = 1
 
     local function process_next()

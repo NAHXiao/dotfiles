@@ -1,541 +1,631 @@
-local list_filter = require("utils").list_filter
-local config = require("tools.config.task")
+---@class UserTask
+---@field name string
+---@field label? string
+---@field cmds string[]|string
+---@field filetypes? string[]|"*"
+---@field with_shell? boolean
+---@field with_cmd_wrapper? boolean
+---@field with_tmpfile? table<string,string>
+---@field cwd? string
+---@field clear_env? boolean
+---@field env? table<string,string>
+---@field detach? boolean
+---@field stdin_file? string
+---@field stdin_pipe? string
+---@field before_start? fun()
+---@field on_start? fun(jobid,code,event)
+---@field on_exit? fun(jobid,code,event)
+---@field after_finish? fun(jobid,code)
+---@field repeat_opts? {time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}
+---@class Task
+---@field classname "Task"
+---@field name string
+---@field label? string
+---@field field string
+---@field cmds string[]|string
+---@field filetypes? string[]|"*"
+---@field with_shell boolean
+---@field with_cmd_wrapper boolean
+---@field with_tmpfile? table<string,string>
+---@field cwd string
+---@field clear_env? boolean
+---@field env? table<string,string>
+---@field detach? boolean
+---@field stdin_file? string
+---@field stdin_pipe? string
+---@field before_start? fun()
+---@field on_start? fun(jobid,code,event)
+---@field on_exit? fun(jobid,code,event)
+---@field after_finish? fun(jobid,code)
+---@field repeat_opts? {time:number,timeinterval:number,stop_cond:fun(code,stdout,stderr):boolean}
+---@class UserTaskSet
+---@field name string
+---@field break_on_err? boolean
+---@field seq? boolean
+---@field filetypes? string[]|"*"
+---@field [number] string|{name:string,field?:string,label?:string}|UserTask|{
+---[1]:string|{name:string,field?:string,label?:string}|UserTask,
+---bg?:boolean,
+---ignore_err?:boolean,
+---repeat_opts?:{
+---time:number,
+---timeinterval:number,
+---stop_cond:fun(code,stdout,stderr):boolean}}
+---@class TaskSet
+---@field classname "TaskSet"
+---@field name string
+---@field break_on_err boolean
+---@field seq boolean
+---@field filetypes? string[]|"*"
+---@field field boolean
+---@field [number] {task:Task,opts?:{ bg?:boolean, ignore_err?:boolean}}
+
+---@param cmds string|string[]
+---@param with_shell? boolean default false
+---@param stdin_file? string
+local function cmd_wrapper(cmds, with_shell, stdin_file)
+    if with_shell then
+        --stylua: ignore
+        return vim.v.progpath
+            .." ".. "-u NONE -l"
+            .." ".. vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmd_wrapper.lua")
+            .." ".. (stdin_file and ("--stdin-file=" .. stdin_file) or "")
+            .." ".. "--print-cmds --expand-env --cmds "
+            .." ".. (type(cmds) == "string" and cmds or cmds[1])
+    else
+        local cmds_final = {
+            vim.v.progpath,
+            "-u",
+            "NONE",
+            "-l",
+            vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmd_wrapper.lua"),
+            "--print-cmds",
+            "--expand-env",
+            "--cmds",
+        }
+        if stdin_file then
+            cmds_final[#cmds_final + 1] = "--stdin-file=" .. stdin_file
+        end
+        if type(cmds) == "string" then
+            cmds_final[#cmds_final + 1] = cmds
+        else
+            vim.list_extend(cmds_final, cmds)
+        end
+        return cmds_final
+    end
+end
 local T = {
-    ---@type table<"global"|"locall"|string,{tasks:task[],tasksets:taskset[],str2taskmap:{[string]:task},str2setmap:{[string]:taskset}}>
-    data = {
-        global = {
-            tasks = {},
-            tasksets = {},
-            str2taskmap = {},
-            str2setmap = {},
-        },
-        locall = {
-            tasks = {},
-            tasksets = {},
-            str2taskmap = {},
-            str2setmap = {},
-        },
-    },
-    task_base = {
-        mode = "",
-        type = "",
-        filetypes = {},
-        opts = {
-            cwd = "$(VIM_ROOT)",
-        },
-    },
-    taskset_base = { break_on_err = true, seq = true },
+    data = {}, --这里的global即field,下面的locall等也是
 }
----@param utask utask
----@return task
-function T:utask2task(utask, field)
-    return vim.tbl_deep_extend("force", self.task_base, utask, { field = field })
-end
-
----@param utaskset utaskset
----@return taskset
-function T:utaskset2taskset(utaskset, field)
-    ---@type utaskset
-    local taskset = vim.tbl_deep_extend("force", self.taskset_base, utaskset, { field = field })
-    for i, item in ipairs(taskset) do
-        local taskname
-        local bg = false --DEFAULT
-        local ignore_err = false --DEFAULT
-        if type(item) == "string" then
-            taskname = item
-        else
-            taskname = item[1]
-            bg = item.bg or bg
-            ignore_err = item.ignore_err or ignore_err
-        end
-        assert(type(taskname) == "string")
-        taskname = T:task2keys(T:keys2task(taskname))
-        if
-            T.data[field].str2taskmap[taskname] == nil
-            and T.data.global.str2taskmap[taskname] == nil
-        then
-            assert(
-                false,
-                ("Your taskset %s called a not exist task %s"):format(taskset.name, taskname)
-            )
-        end
-        taskset[i] = {
-            [1] = taskname,
-            bg = bg,
-            ignore_err = ignore_err,
-        }
+---@alias TypeNames "number" |"string" |"boolean" |"table" |"function" |"thread" | "userdata"|"nil"
+---@generic T
+---@param name string
+---@param value T
+---@param validator TypeNames|TypeNames[]|fun(it:T):boolean|string
+---@param msg? string
+local function validate(name, value, validator, msg)
+    local valid_types
+    if type(validator) == "string" then
+        valid_types = { validator }
     end
-    ---return-type-mismatch
-    return taskset
-end
-
----@param utask utask
----@param field string
----@return task
-function T:addtask(utask, field)
-    assert(utask.name and utask.name ~= "" and utask.cmds and 0 ~= #utask.cmds)
-    ---@type task
-    local task = T:utask2task(utask, field)
-    local str = self:task2keys(task)
-    if self.data[field] == nil then
-        self.data[field] = {
-            tasks = {},
-            tasksets = {},
-            str2taskmap = {},
-            str2setmap = {},
-        }
+    if type(validator) == "table" then
+        valid_types = validator
     end
-    if self.data[field].str2taskmap[str] then
-        assert(false, ("The task %s has been defined"):format(task.name))
-    end
-    table.insert(self.data[field].tasks, task)
-    self.data[field].str2taskmap[str] = task
-    return task
-end
-
----@param utaskset utaskset
----@param field string
-function T:addtaskset(utaskset, field)
-    local taskset = T:utaskset2taskset(utaskset, field)
-    if self.data[field] == nil then
-        self.data[field] = {
-            tasks = {},
-            tasksets = {},
-            str2taskmap = {},
-            str2setmap = {},
-        }
-    end
-    if self.data[field].str2taskmap[taskset.name] then
-        assert(false, ("The task %s has been defined"):format(taskset.name))
-    end
-    table.insert(self.data[field].tasksets, taskset)
-    self.data[field].str2setmap[taskset.name] = taskset
-    return taskset
-end
-
----@param item task|taskset
----@param fts string[]
-function T:item_valid_on_ft(item, fts)
-    assert(fts)
-    if self:istask(item) then
-        if #item.filetypes == 0 then
-            return true
-        else
-            for _, ft in ipairs(fts) do
-                if vim.list_contains(item.filetypes, ft) then
+    if type(validator) ~= "function" then
+        validator = function(it)
+            for _, tp in ipairs(valid_types) do
+                if type(it) == tp then
                     return true
                 end
             end
-        end
-    elseif self:istaskset(item) then
-        return true
-    end
-end
-
----@param items items
-function T:items2lines(items)
-    ---@type string[]
-    local lines = {}
-    for _, item in ipairs(items) do
-        if T:istask(item) then
-            ---@cast item task
-            lines[#lines + 1] = "new({"
-            lines[#lines + 1] = ("    name = %s,"):format(vim.inspect(item.name))
-            lines[#lines + 1] = ("    cmds = %s,"):format(vim.inspect(item.cmds))
-            if item.mode ~= "" then
-                lines[#lines + 1] = ("    mode = %s,"):format(vim.inspect(item.mode))
-            end
-            if item.type ~= "" then
-                lines[#lines + 1] = ("    type = %s,"):format(vim.inspect(item.type))
-            end
-            if #item.filetypes ~= 0 then
-                lines[#lines + 1] = ("    filetypes = %s,"):format(vim.inspect(item.filetypes))
-            end
-            local clear_env = item.opts.clear_env
-            local cwd = item.opts.cwd ~= "$(VIM_ROOT)" and item.opts.cwd or nil
-            local env = item.opts.env and next(item.opts.env) and item.opts.env or nil
-            if cwd or env or clear_env then
-                local optstr = "opts="
-                    .. vim.inspect {
-                        cwd = cwd,
-                        clear_env = clear_env,
-                        env = env,
-                    }
-                for _, line in ipairs(vim.split(optstr, "[\r\n]")) do
-                    lines[#lines + 1] = "    " .. line
-                end
-            end
-            lines[#lines + 1] = "})"
-        elseif T:istaskset(item) then
-            ---@cast item taskset
-            lines[#lines + 1] = "new({"
-            lines[#lines + 1] = ("    name = %s,"):format(vim.inspect(item.name))
-            lines[#lines + 1] = ("    break_on_err = %s,"):format(tostring(item.break_on_err))
-            lines[#lines + 1] = ("    seq = %s,"):format(tostring(item.seq))
-            for _, task in ipairs(item) do
-                lines[#lines + 1] = ("    { %s, bg = %s, ignore_err = %s },"):format(
-                    vim.inspect(task[1]),
-                    tostring(task.bg),
-                    tostring(task.ignore_err)
-                )
-            end
-            lines[#lines + 1] = "})"
-        else
-            assert(false)
+            return false
         end
     end
-    return lines
+    local ok_or_msg = validator(value)
+    if ok_or_msg ~= true then
+        local errmsg = "\nError:"
+        if type(msg) == "string" then
+            errmsg = errmsg .. msg
+        end
+        errmsg = errmsg .. "\nname:" .. name
+        if valid_types then
+            errmsg = errmsg .. ("\nexpect %s,but got %s"):format(table.concat(valid_types, "|"))
+        end
+        if type(ok_or_msg) == "string" then
+            errmsg = errmsg .. "\nmsg:" .. ok_or_msg
+        end
+        errmsg = errmsg .. "\nvalue:" .. vim.inspect(value)
+        error(errmsg, 2)
+    end
 end
-
----@param task task|keys_tbl
----@return task_keys
-function T:task2keys(task)
-    local result = task.name
-    if task.mode ~= "" then
-        result = result .. "(" .. task.mode
-    end
-    if task.type ~= "" then
-        result = result .. (task.mode ~= "" and ":" or "(") .. task.type
-    end
-    if task.mode ~= "" or task.type ~= "" then
-        result = result .. ")"
-    end
-    table.sort(task.filetypes)
-    if #task.filetypes > 0 then
-        result = result .. "[" .. table.concat(task.filetypes, ",") .. "]"
-    end
-    return result
-end
-
----@param str task_keys
----@return keys_tbl
-function T:keys2task(str)
-    local result = {
-        name = "",
-        mode = "",
-        type = "",
-        filetypes = {},
-    }
-    if not str or str == "" then
-        return result
-    end
-    local working_str = str
-    local bracket_start = working_str:match(".*()%[")
-    if bracket_start then
-        local bracket_content = working_str:match("%[(.*)%]$")
-        if bracket_content then
-            if bracket_content:match("^[%w#;+%-, ]*$") then
-                local parts = {}
-                for part in (bracket_content .. ","):gmatch("([^,]*),") do
-                    table.insert(parts, part:match("^%s*(.-)%s*$"))
-                end
-                local has_empty = false
-                for _, part in ipairs(parts) do
-                    if part == "" then
-                        has_empty = true
-                        break
+---@param utask UserTask
+---@param field string
+---@return boolean
+---@return string|nil
+function T.ensure_valid_utask(utask, field)
+    local ok, err = pcall(function()
+        for _, args in ipairs {
+            { "utask", utask, "table" },
+            { "utask.name", utask.name, "string" },
+            {
+                "utask.cmds",
+                utask.cmds,
+                function(v)
+                    return type(v) == "string" or (type(v) == "table" and #v > 0)
+                end,
+                "string or non-empty table",
+            },
+            { "utask.label", utask.label, { "string", "nil" } },
+            {
+                "utask.duplicated",
+                utask,
+                function(it)
+                    for _, existing_task in ipairs(T.data[field].tasks) do
+                        if existing_task.name == it.name and existing_task.label == it.label then
+                            return false
+                        end
                     end
-                end
-                if #parts == 0 or has_empty then
-                    result.name = str
-                    return result
-                else
-                    result.filetypes = parts
-                    table.sort(result.filetypes)
-                    working_str = working_str:sub(1, bracket_start - 1)
-                end
-            end
+                    return true
+                end,
+                "duplicated",
+            },
+            {
+                "utask.filetypes",
+                utask.filetypes,
+                function(it)
+                    return not it or (type(it) == "table" and #it ~= 0) or it == "*"
+                end,
+                "utask.filetypes should be one of NonEmpty table<string>|*|nil",
+            },
+            { "utask.with_shell", utask.with_shell, { "boolean", "nil" } },
+            {
+                "utask.with_shell",
+                utask,
+                function(it)
+                    if it.with_shell == true and type(it.cmds) == "table" and #it.cmds ~= 1 then
+                        return false
+                    end
+                    return true
+                end,
+                "utask.with_shell could be set to true only when utask.cmds is string or #utask.cmds==1",
+            },
+            { "utask.with_cmd_wrapper", utask.with_cmd_wrapper, { "boolean", "nil" } },
+            { "utask.with_tmpfile", utask.with_tmpfile, { "table", "nil" } },
+            { "utask.cwd", utask.cwd, { "string", "nil" } },
+            { "utask.clear_env", utask.clear_env, { "boolean", "nil" } },
+            { "utask.env", utask.env, { "table", "nil" } },
+            { "utask.on_exit", utask.on_exit, { "function", "nil" } },
+            { "utask.after_finish", utask.after_finish, { "function", "nil" } },
+            { "utask.detach", utask.detach, { "boolean", "nil" } },
+            {
+                "utask.stdin_file",
+                utask.stdin_file,
+                { "string", "nil" },
+            },
+            { "utask.stdin_pipe", utask.stdin_pipe, { "string", "nil" } },
+            {
+                "utask.stdin",
+                utask,
+                function(it)
+                    if it.stdin_file ~= nil and it.stdin_pipe ~= nil then
+                        return false
+                    end
+                    return true
+                end,
+                "stdin_file and stdin_pipe cannot coexist",
+            },
+            {
+                "utask.repeat_opts",
+                utask.repeat_opts,
+                function(it)
+                    if it == nil then
+                        return true
+                    end
+                    if type(it) == "table" then
+                        return (not it.time or type(it.time) == "number")
+                            and (not it.stop_cond or type(it.stop_cond) == "function")
+                            and (not it.timeinterval or type(it.timeinterval) == "number")
+                    end
+                    return false
+                end,
+            },
+        } do
+            validate(args[1], args[2], args[3], args[4])
         end
+    end)
+    if not ok then
+        return false, err
     end
-    local paren_start = working_str:match(".*()%(")
-    if paren_start then
-        local paren_content = working_str:match("%((.*)%)$")
-        if paren_content then
-            local parts = {}
-            for part in (paren_content .. ":"):gmatch("([^:]*):") do
-                table.insert(parts, part)
-            end
-            local has_empty = false
-            for _, part in ipairs(parts) do
-                if part == "" then
-                    has_empty = true
-                    break
+    return true, nil
+end
+---@param utaskset UserTaskSet
+---@param field string
+---@return boolean
+---@return string|nil
+---每个taskset的name唯一,在同一个field具有唯一性,addtaskset不得添加重复taskset
+---会vim.validate,extend验证utaskset
+function T.ensure_valid_utaskset(utaskset, field)
+    local ok, err = pcall(function()
+        for _, args in ipairs {
+            { "utaskset", utaskset, "table" },
+            { "utaskset.name", utaskset.name, "string" },
+            {
+                "utaskset.name unique",
+                utaskset,
+                function(us)
+                    for _, existing in ipairs(T.data[field].tasksets) do
+                        if existing.name == us.name then
+                            return false
+                        end
+                    end
+                    return true
+                end,
+                "duplicated taskset name",
+            },
+            { "utaskset.break_on_err", utaskset.break_on_err, { "boolean", "nil" } },
+            { "utaskset.seq", utaskset.seq, { "boolean", "nil" } },
+            {
+                "utaskset.filetypes",
+                utaskset.filetypes,
+                function(it)
+                    return not it or (type(it) == "table" and #it ~= 0) or it == "*"
+                end,
+                "utaskset.filetypes should be one of NonEmpty table<string>|*|nil",
+            },
+        } do
+            validate(args[1], args[2], args[3], args[4])
+        end
+        for idx, utask in ipairs(utaskset) do
+            local string_type = function(it)
+                if type(it) == "string" then
+                    -- vim.notify("string_type")
+                    return true
                 end
+                return false
             end
-            if #parts == 0 or has_empty then
-                result.name = working_str
-                return result
-            elseif #parts == 1 then
-                local part = parts[1]
-                if part == "debug" or part == "release" then
-                    result.mode = part
-                    working_str = working_str:sub(1, paren_start - 1)
-                elseif part == "project" or part == "file" then
-                    result.type = part
-                    working_str = working_str:sub(1, paren_start - 1)
+            local tbl_type = function(it) --{name:string,field?:string,label?:string}
+                if type(it) == "table" and (it[1] == nil) and it.name and not it.cmds then
+                    -- vim.notify("tbl_type")
+                    return true
+                end
+                return false
+            end
+            local with_opts_type = function(it) --{ [1]:string|{name:string,field?:string,label?:string}|UserTask ...}
+                if type(it) == "table" and it[1] ~= nil then
+                    -- vim.notify("with_opts_type")
+                    return true
+                end
+                return false
+            end
+            local task_type = function(it)
+                if not string_type(it) and not tbl_type(it) and not with_opts_type(it) then
+                    -- vim.notify("task_type")
+                    return true
                 else
-                    result.name = working_str
-                    return result
+                    return false
                 end
-            elseif #parts == 2 then
-                local part1, part2 = parts[1], parts[2]
-                local mode_found, type_found = false, false
-                if part1 == "debug" or part1 == "release" then
-                    result.mode = part1
-                    mode_found = true
-                elseif part1 == "project" or part1 == "file" then
-                    result.type = part1
-                    type_found = true
-                end
-                if part2 == "debug" or part2 == "release" then
-                    if not mode_found then
-                        result.mode = part2
-                        mode_found = true
+            end
+            validate("utaskset.tasks", utask, function(utask) --string/tbl not expand,task expand
+                ---@type {name:string,field?:string,label?:string}
+                local anchor = {}
+                ---@type Task (copy,not ref)
+                local task
+                local opts
+                if string_type(utask) then
+                    ---@cast utask string
+                    anchor.name = utask
+                elseif tbl_type(utask) then
+                    ---@cast utask {name:string,field?:string,label?:string}
+                    anchor = utask
+                elseif with_opts_type(utask) then
+                    opts = utask
+                    validate("opts.bg", opts.bg, { "boolean", "nil" })
+                    validate("opts.ignore_err", opts.ignore_err, { "boolean", "nil" })
+                    if opts.repeat_opts then
+                        validate(
+                            "opts.repeat_opts.time",
+                            opts.repeat_opts.time,
+                            { "nil", "number" }
+                        )
+                        validate(
+                            "opts.repeat_opts.timeinterval",
+                            opts.repeat_opts.timeinterval,
+                            { "nil", "number" }
+                        )
+                        validate(
+                            "opts.repeat_opts.stop_cond",
+                            opts.repeat_opts.stop_cond,
+                            { "nil", "function" }
+                        )
+                    end
+                    local utask_1 = utask[1]
+                    if string_type(utask_1) then
+                        ---@cast utask_1 string
+                        anchor = { name = utask_1 }
+                    elseif tbl_type(utask_1) then
+                        ---@cast utask_1 {name:string,field?:string,label?:string}
+                        anchor = utask_1
+                    elseif task_type(utask_1) then
+                        ---@cast utask_1 UserTask
+                        task = T.extend_task(utask_1, field)
                     else
-                        result.name = working_str
-                        result.mode = ""
-                        return result
+                        assert(false, "unreachable")
                     end
-                elseif part2 == "project" or part2 == "file" then
-                    if not type_found then
-                        result.type = part2
-                        type_found = true
-                    else
-                        result.name = working_str
-                        result.type = ""
-                        return result
-                    end
-                end
-                if mode_found and type_found then
-                    working_str = working_str:sub(1, paren_start - 1)
+                elseif task_type(utask) then
+                    ---@cast utask UserTask
+                    task = T.extend_task(utask, field)
                 else
-                    result.name = working_str
-                    result.mode = ""
-                    result.type = ""
-                    return result
+                    assert(false, "unreachable")
                 end
-            else
-                result.name = working_str
-                return result
-            end
+                if not task then
+                    local match = function(it)
+                        if anchor.label then
+                            return it.label == anchor.label and it.name == anchor.name
+                        else
+                            return it.name == anchor.name
+                        end
+                    end
+                    if anchor.field then
+                        local field_matched =
+                            vim.iter(T.data[anchor.field].tasks):filter(match):totable()
+                        if #field_matched == 0 then
+                            return (vim.inspect(anchor) .. " not found")
+                        end
+                        if #field_matched > 1 then
+                            return (vim.inspect(anchor) .. " occurred multiple times")
+                        end
+                        task = vim.deepcopy(field_matched[1])
+                    else
+                        local field_matched = vim.iter(T.data[field].tasks):filter(match):totable()
+                        local global_matched = vim.iter(T.data.global.tasks):filter(match):totable()
+                        if #field_matched == 0 and #global_matched == 0 then
+                            return (vim.inspect(anchor) .. " not found")
+                        end
+                        if
+                            (#field_matched > 1)
+                            or (#field_matched == 0 and #global_matched > 1)
+                        then
+                            return (vim.inspect(anchor) .. " occurred multiple times")
+                        end
+                        task = vim.deepcopy(
+                            (#field_matched == 1 and field_matched[1] or global_matched[1])
+                        )
+                    end
+                end
+                ---@cast opts {bg?:boolean, ignore_err?:boolean, repeat_opts?:{ time:number, timeinterval:number, stop_cond:fun(code,stdout,stderr):boolean}}
+                assert(task ~= nil)
+                if opts then
+                    opts[1] = nil
+                end
+                ---@cast utaskset TaskSet
+                utaskset[idx] = {
+                    task = task,
+                    opts = opts,
+                }
+                if opts and opts.repeat_opts then
+                    task.repeat_opts = vim.tbl_extend("force", task.repeat_opts, opts.repeat_opts)
+                    opts.repeat_opts = nil
+                end
+                return true
+            end)
         end
+    end)
+    if not ok then
+        return false, err
     end
-    result.name = working_str
-    return result
+    return true, nil
 end
-
-function T:isutask(task)
-    return task and #task == 0 and task.name and task.cmds
-end
-
-function T:isutaskset(taskset)
-    return taskset and #taskset ~= 0 and taskset.name
-end
-
-function T:istask(task)
+---@param utask UserTask
+---@param field string
+---@return Task
+function T.extend_task(utask, field)
+    local task = vim.tbl_extend("force", {
+        with_shell = false,
+        with_cmd_wrapper = true,
+        cwd = "$(VIM_ROOT)",
+        classname = "Task",
+    }, utask)
+    task.field = field
+    task.repeat_opts = utask.repeat_opts
+            and vim.tbl_extend("force", {
+                time = math.huge,
+                stop_cond = function(code, stdout, stderr)
+                    return code == 0
+                end,
+                timeinterval = 1,
+            }, utask.repeat_opts)
+        or nil
     return task
-        and #task == 0
-        and task.name
-        and task.cmds
-        and task.mode
-        and task.type
-        and task.filetypes
-        and task.opts
 end
-
-function T:istaskset(taskset)
+---@param utaskset UserTaskSet
+---@param field string
+---@return TaskSet
+function T.extend_taskset(utaskset, field)
+    local taskset = vim.tbl_extend("force", {
+        break_on_err = true,
+        seq = true,
+        classname = "TaskSet",
+    }, utaskset)
+    taskset.field = field
     return taskset
-        and #taskset ~= 0
-        and taskset.name
-        and taskset.break_on_err ~= nil
-        and taskset.seq ~= nil
-        and taskset.field
 end
-
-function T:localtask_path()
-    return vim.fs.abspath(vim.fs.joinpath(require("utils").get_rootdir(), ".vim", ".tasks.lua"))
-end
-
----@type task|taskset
-local default_build
----@type task|taskset
-local default_run
-function T:refresh_local()
-    self.data.locall = {
-        tasks = {},
-        tasksets = {},
-        str2setmap = {},
-        str2taskmap = {},
-    }
-    local filepath = self:localtask_path()
-    if vim.fn.filereadable(filepath) == 1 then
-        local ok, result = pcall(dofile, filepath)
-        if not ok then
-            vim.notify("[task]: load tasks failed: " .. vim.inspect(result), vim.log.levels.INFO)
-            return
-        end
-        for _, it in ipairs(result) do
-            if self:isutask(it) then
-                local it = self:addtask(it, "locall")
-                if it.default_build then
-                    default_build = it
-                end
-                if it.default_run then
-                    default_run = it
-                end
-            elseif self:isutaskset(it) then
-                local it = self:addtaskset(it, "locall")
-                if it.default_build then
-                    default_build = it
-                end
-                if it.default_run then
-                    default_run = it
-                end
-            end
-        end
-    end
-end
-
--- stylua: ignore
----@type comp
-local comp = {
-    order = { "field", "isset", "tasktype", "taskmode" },
-    field = function(a, _) return a == "locall" end,
-    isset = function(a, _) return a == true end,
-    taskmode = function(a, b) return a == "" or b == "release" end,
-    tasktype = function(a, b) return a == "" or b == "file" end,
-}
----locall>global
----taskset>task
----"">project>file
----"">debug>release
----@param items {tasks:task[],tasksets:taskset[]}|(task|taskset)[]
----@param _comp comp|nil
-function T:findmax(items, _comp)
-    if items == {} then
-        return {}
-    end
-    _comp = _comp or comp
-    local isset = {}
-    local list
-    if #items ~= 0 then
-        for _, it in ipairs(items) do
-            if self:istask(it) then
-            elseif self:istaskset(it) then
-                isset[it] = true
-            else
-                assert(false)
-            end
-        end
-        list = items
+---@param utask UserTask
+---@param field string
+---add_task将先valid task合理性后进行extend,再添加到T.data.field.task中
+function T:add_task(utask, field)
+    local ok, err = T.ensure_valid_utask(utask, field)
+    if ok then
+        table.insert(T.data[field].tasks, T.extend_task(utask, field))
     else
-        list = {}
-        for _, it in ipairs(items.tasks) do
-            list[#list + 1] = it
-        end
-        for _, it in ipairs(items.tasksets) do
-            isset[it] = true
-            list[#list + 1] = it
-        end
-    end
-
-    local gt = function(a, b)
-        for _, cur in ipairs(comp.order) do
-            if cur == "field" then
-                if a.field ~= b.field then
-                    return comp.field(a, b)
-                end
-            elseif cur == "isset" then
-                if isset[a] ~= isset[b] then
-                    return comp.isset(isset[a], isset[b])
-                end
-            elseif cur == "tasktype" then
-                if a.type ~= b.type then
-                    return comp.tasktype(a.type, b.type)
-                end
-            elseif cur == "taskmode" then
-                if a.mode ~= b.mode then
-                    return comp.taskmode(a.mode, b.mode)
-                end
-            end
-        end
+        vim.notify("Failed to add task:\n" .. err, vim.log.levels.ERROR)
         return false
     end
-    table.sort(list, gt)
-    local eq = function(a, b)
-        return a.field == b.field and isset[a] == isset[b] and a.type == b.type and a.mode == b.mode
+    return true
+end
+---@param utaskset UserTaskSet
+---@param field string
+---add_taskset将先valid taskset合理性后进行extend,再添加到T.data.field.taskset中
+function T:add_taskset(utaskset, field)
+    local ok, err = T.ensure_valid_utaskset(utaskset, field)
+    if ok then
+        table.insert(T.data[field].tasksets, T.extend_taskset(utaskset, field))
+    else
+        vim.notify("Failed to add taskset:\n" .. err, vim.log.levels.ERROR)
+        return false
     end
-    local last = 1
-    for i = 2, #list do
-        if eq(list[i], list[i - 1]) then
-            last = i
-        else
-            break
+    return true
+end
+---require("tools.config.task")得到table<string,{task:utask[],taskset[]}>,将先添加所有field的tasks再添加tasksets(因为一个tasksets可能引用其他field的task)
+function T:loadconfig()
+    ---@type table<string,{tasks:UserTask[],tasksets:UserTaskSet[]}>
+    local config = require("tools.config.task")
+    for _, field_data in pairs(T.data) do
+        field_data.tasks = {}
+        field_data.tasksets = {}
+    end
+    for field_name, _ in pairs(config) do
+        if not T.data[field_name] then
+            T.data[field_name] = {
+                tasks = {},
+                tasksets = {},
+            }
         end
     end
-    return { unpack(list, 1, last) }
+    for field_name, field_config in pairs(config) do
+        if field_config.tasks then
+            for _, utask in ipairs(field_config.tasks) do
+                if not T:add_task(utask, field_name) then
+                    return
+                end
+            end
+        end
+    end
+    for field_name, field_config in pairs(config) do
+        if field_config.tasksets then
+            for _, utaskset in ipairs(field_config.tasksets) do
+                if not T:add_taskset(utaskset, field_name) then
+                    return
+                end
+            end
+        end
+    end
+end
+---T.data.locall置空,并重新dofile (function()return vim.fs.joinpath(require("utils").get_rootdir(),".vim","task.lua") end)()得到{tasks:utask[],tasksets:utaskset[]},然后先add tasks再add tasksets(到field locall)
+---@return boolean
+function T:refresh_local()
+    T.data.locall = {
+        tasks = {},
+        tasksets = {},
+    }
+    local config_file = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua")
+    if 0 == vim.fn.filereadable(config_file) then
+        return false
+    end
+    local ok, config = pcall(dofile, config_file)
+    if not ok or type(config) ~= "table" then
+        vim.notify(
+            "Failed to load local task config: " .. (config or "Invalid config format"),
+            vim.log.levels.ERROR
+        )
+        return false
+    end
+    if config.tasks then
+        for _, utask in ipairs(config.tasks) do
+            if not T:add_task(utask, "locall") then
+                return false
+            end
+        end
+    end
+    if config.tasksets then
+        for _, utaskset in ipairs(config.tasksets) do
+            if not T:add_taskset(utaskset, "locall") then
+                return false
+            end
+        end
+    end
+    return true
 end
 
----@param data {[string]:{tasks:task[],tasksets:taskset[]}}
+---@param data {[string]:{tasks:Task[],tasksets:TaskSet[]}}
 ---@param prompt string
----@param callback fun(items:(task|taskset)[]|(task|taskset)|nil)
+---@param callback fun(items:(Task|TaskSet)[]|(Task|TaskSet)|nil)
 ---@param field_option boolean
 ---@return nil
----items's type == [] only when field_option==true
 function T:select(data, prompt, callback, field_option)
     field_option = field_option or false
-    ---@alias field_options {field:string,below:("tasksets"|"tasks"|"all")}
-    ---@type (field_options|task|taskset)[]
+    ---@alias field_option {field:string,below:("tasksets"|"tasks"),classname:"FieldOption"}
+    ---@type (field_option|Task|TaskSet)[]
     local options = {}
     local draw = { 8, 8, 8, 0, 0, colnum = 5 }
-    ---@param item task|taskset
+    ---@param item Task|TaskSet
     function draw:update(item)
         draw[1] = math.max(draw[1], #item.field)
         draw[3] = math.max(draw[3], #item.name)
-        if T:istask(item) then
-            draw[4] = math.max(draw[4], #item.mode + #item.type + 1)
+        draw[4] = math.max(draw[4], item.label ~= nil and #item.label + 1 or 0)
+        if item.filetypes == "*" then
+            draw[5] = math.max(draw[5], 1)
+        elseif type(item.filetypes) == "table" then
             draw[5] =
                 math.max(draw[5], #item.filetypes ~= 0 and #table.concat(item.filetypes, ",") or 1)
         end
     end
 
-    function draw:calcute_rownum()
-        if self[4] == 0 and self[5] == 0 then
-            self.colnum = 3
-        else
-            self.colnum = 5
+    function draw:calculate_final()
+        local width = vim.o.columns * 0.5
+        self.colnum = 5
+        if self[5] == 0 then
+            self.colnum = self.colnum - 1
+            if self[4] == 0 then
+                self.colnum = self.colnum - 1
+            end
+        end
+        local current_total = 0
+        for i = 1, self.colnum do
+            current_total = current_total + self[i]
+        end
+        if current_total < width then
+            local extra_width = width - current_total
+            for _ = 1, extra_width do
+                local min_idx = 1
+                for i = 2, self.colnum do
+                    if self[i] < self[min_idx] then
+                        min_idx = i
+                    end
+                end
+                self[min_idx] = self[min_idx] + 1
+            end
         end
     end
-
     function draw:draw(item)
         local row
-        if item.below then
+        if item.classname == "FieldOption" then
             if self.colnum == 5 then
                 row = { item.field, item.below, "", "", "" }
+            elseif self.colnum == 4 then
+                row = { item.field, item.below, "", "" }
             elseif self.colnum == 3 then
                 row = { item.field, item.below, "" }
             end
-        elseif T:istask(item) then
-            assert(self.colnum == 5)
+        elseif item.classname == "Task" or item.classname == "TaskSet" then
+            local ftstr
+            if type(item.filetypes) == "table" then
+                ftstr = table.concat(item.filetypes, ",")
+            elseif item.filetypes == "*" then
+                ftstr = "*"
+            else
+                assert(item.filetypes == nil, "unreachable")
+                ftstr = ""
+            end
             row = {
                 item.field,
-                "task",
-                item.name,
-                table.concat(
-                    { item.type ~= "" and item.type or nil, item.mode ~= "" and item.mode or nil },
-                    ","
-                ),
-                #item.filetypes ~= 0 and table.concat(item.filetypes, ",") or "*",
-            }
-        elseif T:istaskset(item) then
-            row = {
-                item.field,
-                "taskset",
+                item.classname:lower(),
                 item.name,
             }
+            if self.colnum >= 4 then
+                row[#row + 1] = item.label or ""
+            end
             if self.colnum == 5 then
-                row[#row + 1] = ""
-                row[#row + 1] = ""
+                row[#row + 1] = ftstr
             end
         end
         for i = 1, self.colnum do
@@ -574,7 +664,7 @@ function T:select(data, prompt, callback, field_option)
             process_tbl(field, tbl)
         end
     end
-    draw:calcute_rownum()
+    draw:calculate_final()
     vim.ui.select(options, {
         prompt = prompt,
         format_item = function(item)
@@ -587,7 +677,7 @@ function T:select(data, prompt, callback, field_option)
             return
         end
         if field_option then
-            if choice.below then
+            if choice.classname == "FieldOption" then
                 callback(data[choice.field][choice.below])
             else
                 callback { choice }
@@ -597,54 +687,33 @@ function T:select(data, prompt, callback, field_option)
         end
     end)
 end
-
-local M = {
-    ignore_filetypes = {
-        "",
-        "qf",
-        "neo-tree",
-        "alpha",
-        "toggleterm",
-        "TerminalPanel",
-        "trouble",
-        "markdown",
-        "dapui_scopes",
-        "snacks_terminal",
-        "lazy",
-        "mason",
-        "TelescopePrompt",
-        "dropbar_menu",
-    },
-}
-local function get_cur_ft()
-    ---@type string|nil
-    local ft = vim.bo.filetype or nil
-    if vim.list_contains(M.ignore_filetypes, vim.bo.filetype) then
-        ft = nil
-    end
-    if
-        vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
-        and vim.fs.abspath(vim.api.nvim_buf_get_name(0)) == T:localtask_path()
-    then
-        ft = nil
-    end
-    return ft
-end
-local argv_cache = {}
----@param task task
----@return task|nil
----for cmd,cwd,env.value
----modify task itself
-M.macro_replace = function(task)
-    ---@param task1 task
-    ---@param task2 task
-    ---@return boolean
-    local eq = function(task1, task2)
-        return task1.name == task2.name
-            and task1.type == task2.type
-            and task1.mode == task2.mode
-            and vim.deep_equal(task1.cmds, task2.cmds) --更改cmd重置输入
-    end
+---@type table<Task,table<string,string>>
+local input_cache = setmetatable({}, {
+    __index = function(t, k)
+        if k.classname == "Task" then
+            local key = "F:" .. k.field .. "N:" .. k.name
+            if k.label then
+                key = key .. ":L" .. k.label
+            end
+            return rawget(t, key)
+        end
+        assert(false, "k should be Task")
+    end,
+    __newindex = function(t, k, v)
+        if k.classname == "Task" then
+            local key = "F:" .. k.field .. "N:" .. k.name
+            if k.label then
+                key = key .. ":L" .. k.label
+            end
+            rawset(t, key, v)
+            return
+        end
+        assert(false, "k should be Task")
+    end,
+})
+---@param task Task
+---cmds,env,after_finish
+local function macro_repalce(task)
     local map = {
         ["$(VIM_FILENAME)"] = function()
             return vim.fn.expand("%:t")
@@ -671,12 +740,48 @@ M.macro_replace = function(task)
             return vim.fn.fnamemodify(vim.fn.expand("%:p:h"), ":t")
         end,
         ["$(VIM_ROOT)"] = function()
-            return vim.g.projroot
+            return require("utils").get_rootdir()
         end,
         ["$(VIM_PRONAME)"] = function()
             return vim.fs.basename(vim.g.projroot)
         end,
     }
+    for macro_name, content in pairs(task.with_tmpfile or {}) do
+        vim.fn.mkdir(vim.fs.joinpath(vim.fn.stdpath("cache"), "task"), ":p")
+        local fd, path_or_msg = vim.uv.fs_mkstemp(
+            vim.fs.joinpath(vim.fn.stdpath("cache"), "task", macro_name .. "-XXXXXXX")
+        )
+        if fd then
+            vim.uv.fs_write(fd, content)
+            vim.uv.fs_close(fd)
+            map["$(" .. macro_name .. ")"] = function()
+                return path_or_msg
+            end
+            local _before_start = task.before_start
+            task.before_start = function()
+                if 0 == vim.fn.filereadable(path_or_msg) then
+                    fd = vim.uv.fs_open(path_or_msg, "w", tonumber("644", 8))
+                    if fd then
+                        vim.uv.fs_write(fd, content)
+                        vim.uv.fs_close(fd)
+                    end
+                end
+                if _before_start then
+                    _before_start()
+                end
+            end
+            local _after_finish = task.after_finish
+            task.after_finish = function(...)
+                vim.fn.delete(path_or_msg)
+                if _after_finish then
+                    _after_finish(...)
+                end
+            end
+        else
+            error()
+        end
+    end
+    -- vim.notify(vim.inspect(map))
     local function replace_in_string(str)
         if type(str) ~= "string" then
             return str
@@ -684,14 +789,12 @@ M.macro_replace = function(task)
         for macro, func in pairs(map) do
             str = str:gsub(vim.pesc(macro), func())
         end
+        ---$(-argname) | $(-argname:default)
         str = str:gsub("%$%(%-([^:%)]+):?([^%)]*)%)", function(argname, default)
             local cache_key = "$(-" .. argname .. ":" .. default .. ")"
             local cached_value = nil
-            for _, cache in ipairs(argv_cache) do
-                if eq(cache.task, task) and cache.argvmap[cache_key] then
-                    cached_value = cache.argvmap[cache_key]
-                    break
-                end
+            if input_cache[task] and input_cache[task][cache_key] then
+                cached_value = input_cache[task][cache_key]
             end
             local input_value = nil
             vim.ui.input({
@@ -703,429 +806,307 @@ M.macro_replace = function(task)
             if input_value == nil or input_value == "" then
                 error("please input value for " .. argname)
             end
-            local found_cache = false
-            for _, cache in ipairs(argv_cache) do
-                if eq(cache.task, task) then
-                    cache.argvmap[cache_key] = input_value
-                    found_cache = true
-                    break
-                end
-            end
-            if not found_cache then
-                table.insert(argv_cache, {
-                    task = vim.deepcopy(task),
-                    argvmap = { [cache_key] = input_value },
-                })
-            end
-
+            input_cache[task] = input_cache[task] or {}
+            input_cache[task][cache_key] = input_value
             return input_value
         end)
         return str
     end
-    for i, cmd in ipairs(task.cmds) do
-        local ok, result = pcall(replace_in_string, cmd)
-        if ok then
-            task.cmds[i] = result
-        else
-            vim.notify("[task]: " .. result, vim.log.levels.ERROR)
-            return nil
+    if type(task.cmds) == "string" then
+        task.cmds = replace_in_string(task.cmds)
+    elseif type(task.cmds) == "table" then
+        for idx, cmd in ipairs(task.cmds) do
+            task.cmds[idx] = replace_in_string(cmd)
         end
     end
-    if task.opts and task.opts.cwd then
-        local ok, result = pcall(replace_in_string, task.opts.cwd)
-        if ok then
-            task.opts.cwd = result
-        else
-            vim.notify("[task]: " .. result, vim.log.levels.ERROR)
-            return nil
-        end
+    if type(task.cwd) == "string" then
+        task.cwd = replace_in_string(task.cwd)
     end
-    if task.opts and task.opts.env then
-        for k, v in pairs(task.opts.env) do
-            local ok, result = pcall(replace_in_string, v)
-            if ok then
-                task.opts.env[k] = result
-            else
-                vim.notify("[task]: " .. result, vim.log.levels.ERROR)
-                return nil
-            end
+    if type(task.env) == "table" then
+        for k, v in pairs(task.env) do
+            task.env[k] = replace_in_string(v)
         end
     end
     return task
 end
----@param task task
-local run_task = function(task, jobopts)
-    local task = vim.deepcopy(task)
-    M.macro_replace(task)
-    require("tools.term").newtask(
-        T:task2keys { name = task.name, mode = task.mode, type = task.type, filetypes = {} },
-        { cmds = task.cmds, opts = vim.tbl_deep_extend("force", task.opts, jobopts or {}) },
+local function on_start_stdin_pipe(jobid, stdin_pipe)
+    -- vim.notify("task.on_start (stdin_pipe)")
+    if stdin_pipe then
+        vim.schedule(function()
+            pcall(vim.fn.chansend, jobid, stdin_pipe)
+        end)
+    end
+end
+---@param task Task
+local function run_task(task)
+    local task_final = macro_repalce(vim.deepcopy(task))
+    if task_final.with_cmd_wrapper then
+        task_final.cmds = cmd_wrapper(task_final.cmds, task_final.with_shell, task_final.stdin_file)
+    end
+    local name = task_final.name
+    if task_final.label then
+        name = ("%s(%s)"):format(name, task_final.label)
+    end
+    local args = {
+        name,
+        {
+            cmds = task_final.cmds,
+            opts = {
+                clear_env = task_final.clear_env,
+                detach = task_final.detach,
+                repeat_opts = task_final.repeat_opts,
+                cwd = task_final.cwd,
+                env = task_final.env,
+                before_start = task_final.before_start,
+                on_start = task_final.stdin_pipe and function(job)
+                    on_start_stdin_pipe(job, task_final.stdin_pipe)
+                end,
+                on_exit = task_final.on_exit,
+                after_finish = task_final.after_finish,
+            },
+        },
         false,
         true,
-        nil,
-        "task." .. T:task2keys(task)
-    )
+        name .. "F:" .. task.field,
+    }
+    require("tools.term").newtask(unpack(args))
 end
----@param taskset taskset
-local run_taskset = function(taskset)
-    --vim.notify("run_taskset" .. vim.inspect(taskset))
+---@param taskset TaskSet
+local function run_taskset(taskset)
+    local taskset_final = vim.deepcopy(taskset)
+    for idx, item in ipairs(taskset_final) do
+        taskset_final[idx].task = macro_repalce(item.task)
+        if taskset_final[idx].task.with_cmd_wrapper then
+            taskset_final[idx].task.cmds = cmd_wrapper(
+                taskset_final[idx].task.cmds,
+                taskset_final[idx].task.with_shell,
+                taskset_final[idx].task.stdin_file
+            )
+        end
+    end
+    ---@type {jobinfo:ujobinfo,bg:boolean|nil,ignore_error:boolean|nil}[]
     local tasks = {}
-    for _, task_property in ipairs(taskset) do
-        local task_key = task_property[1]
-        local task = T.data.locall.str2taskmap[task_key] or T.data.global.str2taskmap[task_key]
-        assert(task ~= nil)
-        local task = vim.deepcopy(task)
-        M.macro_replace(task)
-        ---@cast task task
+    for _, item in ipairs(taskset_final) do
         tasks[#tasks + 1] = {
-            name = T:task2keys {
-                name = task.name,
-                mode = task.mode,
-                type = task.type,
-                filetypes = {},
-            },
+            name = item.task.name .. (item.task.label and ("(" .. item.task.label .. ")") or ""),
             jobinfo = {
-                cmds = task.cmds,
-                opts = task.opts,
+                cmds = item.task.cmds,
+                opts = {
+                    clear_env = item.task.clear_env,
+                    detach = item.task.detach,
+                    cwd = item.task.cwd,
+                    env = item.task.env,
+                    before_start = item.task.before_start,
+                    on_start = item.task.stdin_pipe and function(job)
+                        on_start_stdin_pipe(job, item.task.stdin_pipe)
+                    end,
+                    on_exit = item.task.on_exit,
+                    after_finish = item.task.after_finish,
+                    repeat_opts = item.task.repeat_opts,
+                },
             },
-            bg = task_property.bg,
-            ignore_err = task_property.ignore_err,
+            bg = item.opts and item.opts.bg or false,
+            ignore_error = item.opts and item.opts.ignore_err or false,
         }
     end
-    require("tools.term").newtaskset(
-        taskset.name,
+    local args = {
+        taskset_final.name,
         tasks,
-        taskset.seq,
-        taskset.break_on_err,
+        taskset_final.seq,
+        taskset_final.break_on_err,
         false,
         true,
         nil,
-        "taskset." .. taskset.name
-    )
-end
-local function taskfilter(tasks, task_composite_keys)
-    local eqmap = vim.deepcopy(task_composite_keys)
-    eqmap.filetypes = nil
-    local ret = list_filter(tasks, eqmap, {
-        filetypes = task_composite_keys.filetypes and function(_, item)
-            return T:item_valid_on_ft(item, task_composite_keys.filetypes)
-        end or nil,
-    })
-    -- vim.notify("taskfilter ret:" .. vim.inspect(ret))
-    return ret
-end
-
-M.run_name = function(name, ui_select)
-    local fts = { get_cur_ft() }
-    if #fts == 0 then
-        fts = nil
-    end
-    local matches = {
-        locall = {
-            tasks = taskfilter(
-                T.data.locall.tasks,
-                { name = name, type = M.task_type, mode = M.task_mode, filetypes = fts }
-            ),
-            tasksets = list_filter(T.data.locall.tasksets, { name = name }),
-        },
-        global = {
-            tasks = taskfilter(
-                T.data.global.tasks,
-                { name = name, type = M.task_type, mode = M.task_mode, filetypes = fts }
-            ),
-            tasksets = list_filter(T.data.global.tasksets, { name = name }),
-        },
+        taskset_final.name .. "F:" .. taskset_final.field,
     }
-    local matchnum = 0
-    matchnum = matchnum + #matches.locall.tasks
-    matchnum = matchnum + #matches.locall.tasksets
-    matchnum = matchnum + #matches.global.tasks
-    matchnum = matchnum + #matches.global.tasksets
-    if matchnum == 0 then
-        vim.notify("[task]: Task/TaskSet not found: " .. name, vim.log.levels.ERROR)
-        return
-    end
-    local select_and_run = function(items)
-        T:select(items, "Select And Run", function(item)
-            if item ~= nil then
-                if T:istask(item) then
-                    run_task(item)
-                elseif T:istaskset(item) then
-                    run_taskset(item)
-                end
-            end
-        end, false)
-    end
-    if matchnum ~= 1 and ui_select then
-        select_and_run(matches)
-    else
-        local items = {}
-        for _, tbl in pairs(matches) do
-            for _, task in ipairs(tbl.tasks) do
-                items[#items + 1] = task
-            end
-            for _, taskset in ipairs(tbl.tasksets) do
-                items[#items + 1] = taskset
-            end
-        end
-        local matchitems = T:findmax(items)
-        if #matchitems ~= 1 then
-            select_and_run(matches)
-        else
-            if T:istask(matchitems[1]) then
-                run_task(matchitems[1])
-            else
-                run_taskset(matchitems[1])
-            end
-        end
-    end
+    require("tools.term").newtaskset(unpack(args))
 end
-M.runtask = function(composite_keys, jobopts, uselect)
-    local matches = {
-        locall = {
-            tasks = taskfilter(T.data.locall.tasks, composite_keys),
-        },
-        global = {
-            tasks = taskfilter(T.data.global.tasks, composite_keys),
-        },
-    }
-    if #matches == 0 then
-        vim.notify("[task]: Task not found: " .. T:task2keys(composite_keys), vim.log.levels.ERROR)
-        return
-    end
-    local select_and_run = function(items)
-        T:select(items, "Select Task And Run", function(item)
-            if item ~= nil then
-                run_task(item, jobopts)
-            end
-        end, false)
-    end
-    if #matches ~= 1 and uselect then
-        select_and_run(matches)
-    else
-        matches = T:findmax(matches)
-        if #matches ~= 1 then
-            select_and_run(matches)
-        else
-            run_task(matches[1], jobopts)
-        end
-    end
-end
-M.runtaskset = function(name, ui_select)
-    local l = T.data.locall.str2setmap[name]
-    local g = T.data.global.str2setmap[name]
-    local matches = {
-        locall = { tasksets = { l } },
-        global = { tasksets = { g } },
-    }
-    if not l and not g then
-        vim.notify("[task]: TaskSet not found: " .. name, vim.log.levels.ERROR)
-        return
-    end
-    if l and g and ui_select then
-        T:select(matches, "Select TaskSet And Run", function(item)
-            if item ~= nil then
-                run_taskset(item)
-            end
-        end, false)
-    else
-        run_taskset(l)
-    end
-end
-M.run_select = function(fts)
-    -- log()
-    local items = {
-        locall = {
-            tasks = taskfilter(T.data.locall.tasks, { filetypes = fts }),
-            tasksets = T.data.locall.tasksets,
-        },
-        global = {
-            tasks = taskfilter(T.data.global.tasks, { filetypes = fts }),
-            tasksets = T.data.global.tasksets,
-        },
-    }
-    T:select(items, "Select And Run", function(item)
-        if item then
-            if T:istask(item) then
-                run_task(item)
-            elseif T:istaskset(item) then
-                run_taskset(item)
-            end
-        end
-    end, false)
-end
-M.edittask = function()
-    local tmpl = ([[---@class task
----@field name string
----@field cmds string[]
----@field mode? ("debug"|"release"|"") default ""
----@field type? ("project"|"file"|"") default ""
----@field filetypes? string[]|{} default {}
----@field opts? table default opts.cwd="$(VIM_ROOT)"
----@field default_build? boolean
----@field default_run? boolean
----@class taskset
----@field name string
----@field break_on_err? boolean default true
----@field seq? boolean default true
----@field default_build? boolean
----@field default_run? boolean
----@field [integer] {[1]:string,ignore_err?:boolean,bg?:boolean}|string
+local default_build, default_run, default_test
+local tmpl = ([[---@module 'tools.task'
+---@type {tasks:UserTask[],tasksets:UserTaskSet[]}
 ---See [%s]
-
----@MACRO: $(MACRO_NAME)
----VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH
----VIM_FILEDIR VIM_DIRNAME
----VIM_ROOT VIM_PRONAME
----@ARG: $(-argname:default)
----@ENV: ${ENVNAME} ${ENVNAME:+ - ? # ## %% %%%% /// //}
-
----@type (task|taskset)[]
-local items = {}
----@param it task|taskset
-local function new(it)
-    table.insert(items,it)
-end
-return items]]):format(
-        vim.fs.joinpath(
-            require("utils").prefix_replace(vim.fn.stdpath("config"), vim.uv.os_homedir(), "~"),
-            "lua/tools/config/task.lua"
-        )
+---$(MACRO)/$(-argname)/$(-argname:default)/${ENV}
+return {
+	tasks = {},
+	tasksets = {},
+}]]):format(
+    require("utils").prefix_replace(
+        vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "tools", "config", "task.lua"),
+        vim.uv.os_homedir(),
+        "~"
     )
-    local bufnr, _, already_focus, _ = require("utils").focus_or_new(T:localtask_path(), tmpl)
-    if already_focus == true then
-        local append_items = function(lines, items)
-            local insert_before
-            for i = #lines, 1, -1 do
-                if lines[i]:match("^%s*return%s+items%s*$") then
-                    insert_before = i
-                    break
-                end
+)
+function T.setup()
+    T:loadconfig()
+    T:refresh_local()
+    require("utils").auc({ "BufWritePost", "FileWritePost" }, {
+        pattern = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+        group = require("utils").aug("tools.task.refresh_when_save_task.lua", true),
+        callback = function()
+            if T:refresh_local() then
+                vim.notify("[task]: refresh_local ok")
             end
-            if not insert_before then
-                vim.notify("[task]: 'return items' not found", vim.log.levels.ERROR)
-                return
-            else
-                for i, line in ipairs(T:items2lines(items)) do
-                    table.insert(lines, insert_before + i - 1, line)
-                end
+        end,
+    })
+    require("utils").auc("User", {
+        pattern = "ProjRootChanged",
+        callback = function()
+            if T:refresh_local() then
+                vim.notify("[task]: refresh_local ok")
             end
-        end
-        local function is_empty_buffer(bufnrr)
-            local byte_size =
-                vim.api.nvim_buf_get_offset(bufnrr, vim.api.nvim_buf_line_count(bufnrr))
-            return byte_size == 0 or byte_size == 1
-        end
-        local data =
-            vim.tbl_deep_extend("force", T.data, { locall = { tasks = {}, tasksets = {} } })
-        T:select(data, "Select To Add", function(items)
-            if not items then
-                return
-            end
-            local lines
-            if is_empty_buffer(bufnr) then
-                lines = vim.split(tmpl, "\r?\n")
-            else
-                lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-            end
-            append_items(lines, items)
-            vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
-        end, true)
-    end
-end
-
----new file:  global + template
----edit file: global + template
----run : global + locall
-
----@type ("debug"|"release"|""|nil)
-M.task_mode = nil
----@type ("project"|"file"|""|nil)
-M.task_type = nil
-function M.switch_taskmode()
-    local display
-    if M.task_mode == nil then
-        M.task_mode = "debug"
-        display = "debug"
-    elseif M.task_mode == "debug" then
-        M.task_mode = "release"
-        display = "release"
-    elseif M.task_mode == "release" then
-        M.task_mode = ""
-        display = "common"
-    elseif M.task_mode == "" then
-        M.task_mode = nil
-        display = "auto(common>debug>release)"
-    end
-    require("utils").vim_echo(("TaskMode: %s"):format(display))
-end
-
-function M.switch_tasktype()
-    local display
-    if M.task_type == nil then
-        M.task_type = "project"
-        display = "project"
-    elseif M.task_type == "project" then
-        M.task_type = "file"
-        display = "file"
-    elseif M.task_type == "file" then
-        M.task_type = ""
-        display = "common"
-    elseif M.task_type == "" then
-        M.task_type = nil
-        display = "auto(common>project>file)"
-    end
-    require("utils").vim_echo(("TaskType: %s"):format(display))
-end
-
-M.setup = function()
-    for field, tbl in pairs(config) do
-        for _, task in ipairs(tbl.tasks) do
-            T:addtask(task, field)
-        end
-        for _, taskset in ipairs(tbl.tasksets) do
-            T:addtaskset(taskset, field)
-        end
-    end
-    -- log(T.data)
+            require("utils").auc({ "BufWritePost", "FileWritePost" }, {
+                pattern = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+                group = require("utils").aug("tools.task.refresh_when_save_task.lua", true),
+                callback = function()
+                    if T:refresh_local() then
+                        vim.notify("[task]: refresh_local ok")
+                    end
+                end,
+            })
+        end,
+    })
     local map = require("utils").map
-    map("n", { "<F9>", "<S-F9>", "<F21>" }, function()
-        T:refresh_local()
+    local function get_filetype()
+        if
+            vim.list_contains({
+                "",
+                "qf",
+                "neo-tree",
+                "alpha",
+                "toggleterm",
+                "TerminalPanel",
+                "trouble",
+                "markdown",
+                "dapui_scopes",
+                "snacks_terminal",
+                "lazy",
+                "mason",
+                "TelescopePrompt",
+                "dropbar_menu",
+            }, vim.bo.filetype)
+            or vim.api.nvim_get_option_value("buftype", { buf = 0 }) ~= ""
+            or (
+                vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
+                and vim.fs.dirname(vim.api.nvim_buf_get_name(0))
+                    == vim.fs.joinpath(require("utils").get_rootdir(), ".vim")
+            )
+        then
+            return nil
+        end
+        return vim.bo.filetype
+    end
+    ---@param it Task|TaskSet
+    local function run(it)
+        if it.classname == "Task" then
+            run_task(it)
+        elseif it.classname == "TaskSet" then
+            run_taskset(it)
+        else
+            assert(false, "unreachable")
+        end
+    end
+    ---@param who? "build"|"run"|"test"
+    ---@param ft string|nil
+    local function select_run_set_default(who, ft)
+        local filter = function(it)
+            return (not who or it.name:lower():find(who:lower()) ~= nil)
+                and (
+                    (ft == nil and it.filetypes == nil)
+                    or it.filetypes == "*"
+                    or (type(it.filetypes) == "table" and vim.list_contains(it.filetypes, ft))
+                )
+        end
+        local sum = 0
+        local data = vim.iter(T.data)
+            :map(function(k, v)
+                local tasks = vim.iter(v.tasks):filter(filter):totable()
+                local tasksets = vim.iter(v.tasksets):filter(filter):totable()
+                sum = sum + #tasks
+                sum = sum + #tasksets
+                return k,
+                    {
+                        tasks = tasks,
+                        tasksets = tasksets,
+                    }
+            end)
+            :fold({}, function(tbl, k, v)
+                tbl[k] = v
+                return tbl
+            end)
+        if sum == 0 then
+            vim.notify(("No %stask/taskset Found"):format(who and (who .. " ") or ""))
+            return
+        end
+        T:select(
+            data,
+            "Task" .. (who and (" : " .. who .. " ") or "") .. "(select, run and set default)",
+            function(it)
+                if it then
+                    if who == "build" then
+                        default_build = it
+                    elseif who == "run" then
+                        default_run = it
+                    elseif who == "test" then
+                        default_test = it
+                    end
+                    run(it)
+                end
+            end,
+            false
+        )
+    end
+    map("n", "<F9>", function()
         if default_build then
-            if T:istask(default_build) then
-                run_task(default_build)
-            elseif T:istaskset(default_build) then
-                run_taskset(default_build)
-            end
+            run(default_build)
         else
-            M.run_name("build", true)
+            select_run_set_default("build", get_filetype())
         end
-    end, { desc = "Build" })
-    map("n", { "<F10>", "<S-F10>", "<F22>" }, function()
-        T:refresh_local()
+    end, { desc = "Task: build (run default)" })
+    map("n", "<F10>", function()
         if default_run then
-            if T:istask(default_run) then
-                run_task(default_run)
-            elseif T:istaskset(default_run) then
-                run_taskset(default_run)
-            end
+            run(default_run)
         else
-            M.run_name("run", true)
+            select_run_set_default("run", get_filetype())
         end
-    end, { desc = "Run" })
-    map("n", "<F11>", M.switch_taskmode, { desc = "TaskToggleDebugRelease" })
-    map(
-        "n",
-        vim.g.is_win and "<S-F11>" or "<F23>",
-        M.switch_tasktype,
-        { desc = "TaskToggleProjFile" }
-    )
+    end, { desc = "Task: run (run default)" })
+    map("n", "<F11>", function()
+        if default_test then
+            run(default_test)
+        else
+            select_run_set_default("test", get_filetype())
+        end
+    end, { desc = "Task: test (run default)" })
+    map("n", { "<S-F9>", "<F21>" }, function()
+        select_run_set_default("build", get_filetype())
+    end, { desc = "Task: build (select,run and set default)" })
+    map("n", { "<S-F10>", "<F22>" }, function()
+        select_run_set_default("run", get_filetype())
+    end, { desc = "Task: run (select,run and set default)" })
+    map("n", { "<S-F11>", "<F23>" }, function()
+        select_run_set_default("test", get_filetype())
+    end, { desc = "Task: test (select,run and set default)" })
     map("n", "<F12>", function()
-        T:refresh_local()
-        M.run_select { get_cur_ft() }
-    end, { desc = "TaskSelectAndRun" })
-    map("n", { Globals.is_win and "<S-F12>" or "<F24>", "<leader>et" }, function()
-        M.edittask()
-    end, { desc = "Edit: Task (Add Task)" })
+        select_run_set_default(nil, get_filetype())
+    end, { desc = "Task: select and run" })
+    map("n", { "<F24>", "<S-F12>" }, function()
+        if T:refresh_local() then
+            vim.notify("[task]: refresh_local ok")
+        end
+        if default_build and default_build.field == "locall" then
+            default_build = nil
+        end
+        if default_run and default_run.field == "locall" then
+            default_run = nil
+        end
+        if default_test and default_test.field == "locall" then
+            default_test = nil
+        end
+    end, { desc = "Task: refresh local" })
+    map("n", "<leader>et", function()
+        require("utils").focus_or_new(
+            vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+            tmpl
+        )
+    end, { desc = "Edit: Task" })
 end
-return M
+return T

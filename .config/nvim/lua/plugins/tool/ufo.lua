@@ -35,6 +35,15 @@ return {
             end,
             desc = "Toggle Fold",
         },
+        {
+            "K",
+            function()
+                if not require("ufo").peekFoldedLinesUnderCursor() then
+                    vim.lsp.buf.hover()
+                end
+            end,
+            desc = "show hover doc or fold preview",
+        },
     },
     config = function()
         require("ufo").setup {
@@ -65,6 +74,14 @@ return {
                 table.insert(newVirtText, { suffix, "SpecialComment" })
                 return newVirtText
             end,
+            preview = {
+                win_config = {
+                    winblend = 0, --此项开启无法transparent
+                },
+                mappings = {
+                    close = "K",
+                },
+            },
         }
         -- vim.o.foldmethod = "expr"
         -- vim.o.foldexpr = "nvim_treesitter#foldexpr()"

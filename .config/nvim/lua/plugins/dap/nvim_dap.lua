@@ -7,7 +7,7 @@ vim.fn.sign_define("DapBreakpointRejected", { text = "" })
 local dap_config_path = function()
     return vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "dap.lua")
 end
-local dap_config_tmpl = ([[local dap = require('dap')
+local dap_config_tmpl = ([[---@module dap
 ---@alias ft string
 ---@type table<ft,dap.Configuration[]>
 ---See `:help dap-configuration`
@@ -15,11 +15,11 @@ local dap_config_tmpl = ([[local dap = require('dap')
 ---See [%s]
 return {}]]):format(
     vim.fs.joinpath(
-        Globals.lazy_plugin_path("mason-nvim-dap.nvim"),
+        require("lazy").lazy_plugin_path("mason-nvim-dap.nvim"),
         "lua/mason-nvim-dap/mappings/configurations.lua"
     ),
     vim.fs.joinpath(
-        Globals.lazy_plugin_path("mason-nvim-dap.nvim"),
+        require("lazy").lazy_plugin_path("mason-nvim-dap.nvim"),
         "lua/mason-nvim-dap/mappings/filetypes.lua"
     )
 )
@@ -45,18 +45,18 @@ return {
                 desc = "Debug: Toggle breakpoint",
             },
             {
-                { Globals.is_win and "<S-F2>" or "<F14>", "<leader>dB" },
+                { jit.os == "Windows" and "<S-F2>" or "<F14>", "<leader>dB" },
                 function()
                     require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: "))
                 end,
-                desc = "Debug: Set breakpoint" .. (Globals.is_win and "" or " <Shift-F2>"),
+                desc = "Debug: Set breakpoint" .. (jit.os == "Windows" and "" or " <Shift-F2>"),
             },
             {
-                { Globals.is_win and "<C-F2>" or "<F26>", "<leader>dp" },
+                { jit.os == "Windows" and "<C-F2>" or "<F26>", "<leader>dp" },
                 function()
                     require("dap").set_breakpoint(nil, nil, vim.fn.input("Log point message: "))
                 end,
-                desc = "Debug: Set log point" .. (Globals.is_win and "" or " <Ctrl-F2>"),
+                desc = "Debug: Set log point" .. (jit.os == "Windows" and "" or " <Ctrl-F2>"),
             },
 
             {

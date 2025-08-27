@@ -267,6 +267,7 @@ M.mason_ensure_install_extra = {
     "yamlfmt",
     "beautysh",
 }
+M.mason_install_root_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "mason")
 
 -----------------------------------------------------------
 ---@type vim.lsp.Config
@@ -282,5 +283,5 @@ M.ulsp_config_tmpl = ([[---vim will attempt to prevent vim.lsp.enable() for all 
 ---You need to restart vim to apply the changes.
 ---@type {disable?:table<string>|true,disable_exclude?:table<string>,extend?:table<string,vim.lsp.Config>,override?:table<string,vim.lsp.Config>}
 ---See [%s]
-return {}]]):format(vim.fs.joinpath(Globals.lazy_plugin_path("nvim-lspconfig"), "lsp"))
+return {}]]):format(vim.fs.joinpath(require("lazy").lazy_plugin_path("nvim-lspconfig"), "lsp"))
 return M

@@ -22,11 +22,11 @@ return {
         }
         local obsidianbutton
 
-        obsidianbutton = Globals.obsidianPath
+        obsidianbutton = vim.g.obsidianPath
                 and dashboard.button(
                     "o",
                     "  Obsidian",
-                    "<cmd>cd " .. Globals.obsidianPath .. " <CR><cmd>edit .<cr>"
+                    "<cmd>cd " .. vim.g.obsidianPath .. " <CR><cmd>edit .<cr>"
                 )
             or nil
         theta.buttons.val = {

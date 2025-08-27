@@ -1,4 +1,3 @@
--- local key = Globals.is_win and "<c-\\>" or "<c-space>"
 local key = "<c-space>"
 return {
     "akinsho/toggleterm.nvim",

@@ -1,16 +1,18 @@
 ---TODO: <rtp>? keymap | runnable->term.lua |
 vim.g.rustaceanvim = function()
-    local extension_path =
-        vim.fs.joinpath(Globals.mason_install_root_dir, "packages/codelldb/extension")
+    local extension_path = vim.fs.joinpath(
+        require("tools.config.lsp").mason_install_root_dir,
+        "packages/codelldb/extension"
+    )
     local codelldb_path = extension_path .. "adapter/codelldb"
     local liblldb_path = extension_path .. "lldb/lib/liblldb"
     -- The path is different on Windows
-    if Globals.is_win then
+    if jit.os == "Windows" then
         codelldb_path = extension_path .. "adapter\\codelldb.exe"
         liblldb_path = extension_path .. "lldb\\bin\\liblldb.dll"
     else
         -- The liblldb extension is .so for Linux and .dylib for MacOS
-        liblldb_path = liblldb_path .. (Globals.is_mac and ".dylib" or ".so")
+        liblldb_path = liblldb_path .. (jit.os == "Linux" and ".so" or ".dylib")
     end
 
     local cfg = require("rustaceanvim.config")

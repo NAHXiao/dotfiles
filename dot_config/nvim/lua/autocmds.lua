@@ -96,8 +96,8 @@ local multilingual = {
 local im_select_mspy = vim.fs.normalize(vim.fn.stdpath("config") .. "/bin/im-select-mspy.exe")
 local stat = vim.uv.fs_stat(im_select_mspy)
 if
-    (Globals.is_wsl and stat and stat.type == "file" and require("bit").band(stat.mode, 73) ~= 0)
-    or (Globals.is_win and stat and stat.type == "file")
+    (vim.fn.has("wsl") and stat and stat.type == "file" and require("bit").band(stat.mode, 73) ~= 0)
+    or (jit.os == "Windows" and stat and stat.type == "file")
 then
     local enabled = false
     require("utils").aug("IME_Control", true)

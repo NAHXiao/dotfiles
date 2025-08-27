@@ -1,3 +1,7 @@
+---vim will attempt to prevent vim.lsp.enable() for all LSPs that are in the disable list but not in disable_exclude.
+---You need to restart vim to apply the changes.
+---@alias ulsp_config {disable?:table<string>|true,disable_exclude?:table<string>,extend?:table<string,vim.lsp.Config>,override?:table<string,vim.lsp.Config>}
+---@alias lsp_config {disable:table<string>|true,disable_exclude:table<string>,extend:table<string,vim.lsp.Config>,override:table<string,vim.lsp.Config>}
 local utils = require("utils")
 local M = {}
 ---@param reload? boolean
@@ -114,6 +118,16 @@ function M.setup_disable()
         end
         return _enable(name, enable)
     end
+    vim.api.nvim_create_user_command("LspStartForce", function(args)
+        for _, lsp in ipairs(args.fargs) do
+            _enable(lsp, true)
+        end
+    end, {
+        complete = function()
+            return vim.fn.getcompletion("LspStart ", "cmdline")
+        end,
+        nargs = "+",
+    })
 end
 
 function M.toggle_inlay_hints()

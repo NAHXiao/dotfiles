@@ -3,7 +3,8 @@ return {
     ft = "java",
     config = function()
         local jdtls_installdir
-        jdtls_installdir = vim.fs.joinpath(Globals.mason_install_root_dir, "packages", "jdtls")
+        jdtls_installdir =
+            vim.fs.joinpath(require("tools.config.lsp").mason_install_root_dir, "packages", "jdtls")
         if vim.fn.isdirectory(jdtls_installdir) == 0 then
             vim.notify(
                 "JDTLS is not installed, please run :MasonInstall jdtls",

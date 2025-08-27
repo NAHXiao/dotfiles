@@ -18,11 +18,12 @@ return {
                 render = "minimal",
                 stages = "static", --"fade",
                 top_down = true,
+                merge_duplicates = true,
             }
             vim.notify = notify.notify
-            vim.list_extend(Globals.cleanui_funcs, {
+            vim.g.cleanui_funcs = vim.list_extend(vim.g.cleanui_funcs, {
                 function()
-                    require("notify").dismiss()
+                    require("notify").dismiss { pending = false, silent = true }
                 end,
             })
         end,
@@ -47,8 +48,16 @@ return {
                 signature = {
                     enabled = false,
                 },
+                hover = {
+                    enabled = false,
+                },
                 progress = {
                     throttle = 1000 / 5, -- frequency to update lsp progress message
+                },
+                message = {
+                    enabled = true,
+                    view = "notify",
+                    opts = {},
                 },
             },
         },
@@ -81,9 +90,11 @@ return {
                     end
                 end
             end)
-            Globals.cleanui_funcs[#Globals.cleanui_funcs + 1] = function()
-                vim.cmd("NoiceDismiss")
-            end
+            vim.g.cleanui_funcs = vim.list_extend(vim.g.cleanui_funcs, {
+                function()
+                    vim.cmd("NoiceDismiss")
+                end,
+            })
         end,
         keys = {
             {

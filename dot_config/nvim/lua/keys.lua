@@ -162,7 +162,9 @@ end)
 map("n", "]f", function()
     switch_file(1)
 end)
-map("n", "<C-l>", Globals.cleanui)
+map("n", "<C-l>", function()
+    vim.g.cleanui()
+end)
 -- Fix common typos
 vim.cmd([[
 cnoreabbrev W w

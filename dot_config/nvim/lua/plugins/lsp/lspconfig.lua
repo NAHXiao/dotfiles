@@ -18,7 +18,6 @@ return {
         "neovim/nvim-lspconfig",
         version = "*",
         lazy = false,
-        event = "UIEnter",
         keys = {
             {
                 "<leader>\\d",
@@ -146,13 +145,35 @@ return {
             { "gs", vim.lsp.buf.document_symbol, mode = "n", desc = "list document_symbol" },
             { "gw", vim.lsp.buf.workspace_symbol, mode = "n", desc = "query workspace_symbol" },
 
-            { "gd", vim.lsp.buf.definition, mode = "n", desc = "goto definition" },
+            {
+                "gd",
+                function()
+                    vim.cmd("normal m'")
+                    vim.schedule(function()
+                        vim.lsp.buf.definition { reuse_win = true }
+                    end)
+                end,
+                mode = "n",
+                desc = "goto definition",
+            },
+            {
+                "<C-w>gd",
+                function()
+                    vim.cmd("normal m'")
+                    vim.cmd("vsp")
+                    vim.schedule(function()
+                        vim.lsp.buf.definition()
+                    end)
+                end,
+                mode = "n",
+                desc = "goto definition",
+            },
             { "gr", vim.lsp.buf.references, mode = "n", desc = "goto references" },
             { "gi", vim.lsp.buf.incoming_calls, mode = "n", desc = "list incoming_calls" },
 
             { "gD", vim.lsp.buf.declaration, mode = "n", desc = "goto declaration" },
 
-            { "K", vim.lsp.buf.hover, mode = "n", desc = "show hover doc" }, --TODO: gd...close
+            { "K", vim.lsp.buf.hover, mode = "n", desc = "show hover doc" },
             -- { "<C-K>",       vim.lsp.buf.signature_help,   mode = "n" ,desc="show signature_help"},
             { "cn", vim.lsp.buf.rename, mode = "n", desc = "symbol rename" },
             {
@@ -193,17 +214,7 @@ return {
             vim.lsp.util.open_floating_preview = function(contents, syntax, opts)
                 opts = opts or {}
                 local _bufnr = vim.api.nvim_get_current_buf()
-                opts.border = opts.border
-                    or {
-                        { "╭", "FloatBorder" },
-                        { "─", "FloatBorder" },
-                        { "╮", "FloatBorder" },
-                        { "│", "FloatBorder" },
-                        { "╯", "FloatBorder" },
-                        { "─", "FloatBorder" },
-                        { "╰", "FloatBorder" },
-                        { "│", "FloatBorder" },
-                    }
+                opts.border = opts.border or "rounded"
                 local bufnr, winid = _open_floating_preview(contents, syntax, opts)
                 local group = vim.api.nvim_create_augroup(
                     "CloseLspFloatWhenBufLeaveExceptSelf" .. tostring(winid),

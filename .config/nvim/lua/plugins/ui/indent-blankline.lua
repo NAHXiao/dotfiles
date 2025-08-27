@@ -49,11 +49,11 @@ return {
         indent = { char = "▏" },
     },
     config = function(_, opts)
-        require("ibl").setup(opts)
         local hooks = require("ibl.hooks")
         hooks.register(hooks.type.ACTIVE, function(bufnr)
             return not require("utils").is_bigfile(bufnr)
         end)
+        require("ibl").setup(opts)
     end,
     keys = {
         {

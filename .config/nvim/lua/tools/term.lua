@@ -1140,7 +1140,7 @@ function TaskSetNode:start()
             end
             local _after_finish = self.tasks[i].jobinfo.opts.after_finish
             self.tasks[i].jobinfo.opts.after_finish = function(...)
-                after_finish()
+                after_finish(...)
                 if _after_finish then
                     _after_finish(...)
                 end

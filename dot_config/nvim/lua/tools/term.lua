@@ -1,8 +1,32 @@
--- local log = require("utils").log
-local log = function() end
+local ERROR = vim.log.levels.ERROR
+local log = require("utils").log
+local function log_notify(...)
+    -- local msg = table.concat(log(...), "\n")
+    -- vim.notify(msg)
+end
+local function pmsgcall(...)
+    local ok, result_or_errmsg = pcall(...)
+    if not ok then
+        local info = debug.getinfo(2, "nSl")
+        if info then
+            result_or_errmsg = ("%s:%d %s(): "):format(info.short_src, info.currentline, info.name)
+                .. result_or_errmsg
+        end
+        vim.notify(result_or_errmsg, ERROR)
+    end
+end
+local function validbuf(bufnr) --scrict
+    return bufnr
+        and vim.fn.bufexists(bufnr)
+        and vim.api.nvim_buf_is_valid(bufnr)
+        and vim.api.nvim_buf_is_loaded(bufnr)
+end
 local ns = vim.api.nvim_create_namespace("tools.terminal")
 vim.api.nvim_create_augroup("tools.terminal.global", { clear = true })
 local function hlline(bufnr, linenum, hlgroup)
+    if not validbuf(bufnr) then
+        return
+    end
     local end_col = #vim.api.nvim_buf_get_lines(bufnr, linenum - 1, linenum, false)[1]
     local mark_id = vim.api.nvim_buf_set_extmark(bufnr, ns, linenum - 1, 0, {
         end_row = linenum - 1,
@@ -11,35 +35,42 @@ local function hlline(bufnr, linenum, hlgroup)
         hl_eol = true,
     })
     return function()
-        vim.api.nvim_buf_del_extmark(bufnr, ns, mark_id)
+        if validbuf(bufnr) then
+            vim.api.nvim_buf_del_extmark(bufnr, ns, mark_id)
+        end
     end
 end
-local unreachable = function()
+local unreachable = function(...)
     assert(false)
 end
-local ERROR = vim.log.levels.ERROR
---            
----@param cmds string[]
-local cmd_wrapper = function(cmds)
-    return {
-        vim.v.progpath,
-        "-u",
-        "NONE",
-        "-l",
-        vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmd_wrapper.lua"),
-        "--print-cmds",
-        "--convert-env",
-        "--cmds",
-        unpack(cmds),
-    }
-end
 ---@class ujobinfo
----@field cmds string[]
----@field opts {clear_env?:boolean,detach?:boolean,cwd?:string,env?:table<string,string>,on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)}
+---@field cmds string[]|string
+---@field opts {
+---clear_env?:boolean,
+---detach?:boolean,
+---cwd?:string,
+---env?:table<string,string>,
+---before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---after_finish?:fun(jobid,code,node),
+---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
 
 ---@class jobinfo
----@field cmds string[]
----@field opts {clear_env:boolean,detach:boolean,cwd?:string,env?:table<string,string>,on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)}
+---@field cmds string[]|string
+---@field opts {
+---clear_env:boolean,
+---detach:boolean,
+---cwd?:string,
+---env?:table<string,string>,
+---before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
 ---@field jobid integer
 ---jobid,clear_env,detach
 
@@ -50,8 +81,6 @@ end
 ---@field panel_buf_hl_curnode_clearfunc fun()|nil
 ---@field panel_buf_hl_cursornode_clearfunc fun()|nil
 ---@field root GroupNode tree
----@field unique_map table<string,NNode> node(ref)
----@field _curnode TaskTermNode|TermNode
 ---@field _cursornode NNode(ref)
 local panelbufcxt = { unique_map = {} }
 
@@ -63,6 +92,7 @@ local function verify_valid_curnode(curnode)
     if curnode.classname ~= "TaskTermNode" and curnode.classname ~= "TermNode" then
         return false, "node is a " .. curnode.classname
     end
+    ---@cast curnode TaskTermNode|TermNode
     if curnode.bufnr == nil or not vim.api.nvim_buf_is_valid(curnode.bufnr) then
         return false, "node doesn't have a valid buf"
     end
@@ -89,9 +119,6 @@ end
 ---@field term_winid integer
 ---@field panel_winid integer
 local winmanager = {}
----@class sendmanager
----@field send fun()
-
 local function panel_default_width()
     assert(panelbufcxt.displayed_data)
     return math.max(panelbufcxt.displayed_data.width, math.min(math.floor(vim.o.columns / 10), 15))
@@ -101,27 +128,6 @@ local function TermWinBufUpdate()
     winmanager:_update_termwin_bindbuf()
 end
 local panel_buf_lock = false
-local function PanelBufLineUpdate()
-    if panel_buf_lock == true then
-        vim.defer_fn(PanelBufLineUpdate, 1)
-        return
-    end
-    panel_buf_lock = true
-    panelbufcxt:update_displayed_data()
-    local lines = {}
-    for _, line in ipairs(panelbufcxt.displayed_data.lines) do
-        lines[#lines + 1] = line
-            .. string.rep(" ", panel_default_width() - vim.fn.strdisplaywidth(line))
-    end
-    vim.bo[panelbufcxt.bufnr].modifiable = true
-    vim.api.nvim_buf_set_lines(panelbufcxt.bufnr, 0, -1, false, lines)
-    vim.bo[panelbufcxt.bufnr].modifiable = false
-    if winmanager:_is_opened() then
-        vim.api.nvim_win_set_width(winmanager.panel_winid, panel_default_width())
-    end
-    panel_buf_lock = false
-end
-local PanelBufLinesUpdate = PanelBufLineUpdate
 local function PanelCurHLUpdate()
     panelbufcxt:update_panelbuf_curnode_hl()
 end
@@ -134,36 +140,62 @@ local function PanelCurSorHLUpdate()
         panelbufcxt:_update_panelbuf_cursornode_hl()
     end
 end
+local function PanelBufFullUpdate()
+    if panel_buf_lock == true then
+        vim.defer_fn(PanelBufFullUpdate, 1)
+        return
+    end
+    panel_buf_lock = true
+    panelbufcxt:update_displayed_data()
+    local lines = {}
+    for _, line in ipairs(panelbufcxt.displayed_data.lines) do
+        lines[#lines + 1] = line
+            .. string.rep(" ", panel_default_width() - vim.fn.strdisplaywidth(line))
+    end
+    vim.bo[panelbufcxt:get_panel_bufnr()].modifiable = true
+    vim.api.nvim_buf_set_lines(panelbufcxt:get_panel_bufnr(), 0, -1, false, lines)
+    vim.bo[panelbufcxt:get_panel_bufnr()].modifiable = false
+    if winmanager:_is_opened() then
+        vim.api.nvim_win_set_width(winmanager.panel_winid, panel_default_width())
+    end
+    PanelCurHLUpdate()
+    PanelCurSorHLUpdate()
+    panel_buf_lock = false
+end
 local function setup_termbuf(bufnr)
     vim.bo[bufnr].filetype = "TerminalBuf"
     vim.bo[bufnr].buflisted = false
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
-            if is_running then
-                vim.schedule(function()
-                    if vim.api.nvim_get_current_buf() == bufnr then
+            vim.schedule(function()
+                local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
+                if vim.api.nvim_get_current_buf() == bufnr then
+                    if is_running then
                         vim.cmd.startinsert()
                     else
                         vim.cmd.stopinsert()
                     end
-                end)
-            else
-                vim.cmd.stopinsert()
-            end
+                end
+            end)
         end,
     })
     vim.api.nvim_create_autocmd("ModeChanged", {
         buffer = bufnr,
         callback = function()
-            local mode = vim.fn.mode()
-            local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
-            if not is_running then
-                if mode == "t" then
+            vim.schedule(function()
+                if not vim.api.nvim_buf_is_valid(bufnr) then
+                    return
+                end
+                local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
+                if
+                    vim.fn.mode() == "t"
+                    and not is_running
+                    and vim.api.nvim_get_current_buf() == bufnr
+                then
                     vim.cmd.stopinsert()
                 end
-            end
+            end)
         end,
     })
     local function map(mode, lhs, rhs, desc)
@@ -239,7 +271,7 @@ local function setup_termbuf(bufnr)
         panelbufcxt:rename(curnode())
     end, "rename node")
     map({ "n", "t" }, "<M-R>", function()
-        panelbufcxt:restart(curnode())
+        panelbufcxt:restart(curnode(), true)
     end, "restart node")
     map({ "n", "t" }, "<M-P>", function()
         panelbufcxt:toggle_pin(curnode())
@@ -328,7 +360,7 @@ local function setup_keymap_panel(bufnr)
         panelbufcxt:rename(cursor_node())
     end, "rename node")
     map("n", { "<M-R>", "R" }, function()
-        panelbufcxt:restart(cursor_node())
+        panelbufcxt:restart(cursor_node(), true)
     end, "restart node")
     map("n", { "<M-P>", "P" }, function()
         panelbufcxt:toggle_pin(cursor_node())
@@ -346,49 +378,6 @@ local function setup_keymap_panel(bufnr)
             winmanager:focus()
         end
     end, "switch/expand")
-end
----@alias jobfuncopts {on_exit:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil,on_stdout:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil,on_stderr:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode)|nil}
----@param ... jobfuncopts
----@return jobfuncopts
-local function jobinfo_func_append(...)
-    local retfuncs = {}
-    local on_exit_funcs = {}
-    local on_stdout_funcs = {}
-    local on_stderr_funcs = {}
-    for i = 1, select("#", ...) do
-        local v = select(i, ...)
-        if v.on_exit then
-            on_exit_funcs[#on_exit_funcs + 1] = v.on_exit
-        end
-        if v.on_stdout then
-            on_stdout_funcs[#on_stdout_funcs + 1] = v.on_stdout
-        end
-        if v.on_stderr then
-            on_stderr_funcs[#on_stderr_funcs + 1] = v.on_stderr
-        end
-    end
-    if #on_exit_funcs ~= 0 then
-        retfuncs.on_exit = function(...)
-            for _, f in ipairs(on_exit_funcs) do
-                f(...)
-            end
-        end
-    end
-    if #on_stdout_funcs ~= 0 then
-        retfuncs.on_stdout = function(...)
-            for _, f in ipairs(on_stdout_funcs) do
-                f(...)
-            end
-        end
-    end
-    if #on_stderr_funcs ~= 0 then
-        retfuncs.on_stderr = function(...)
-            for _, f in ipairs(on_stderr_funcs) do
-                f(...)
-            end
-        end
-    end
-    return retfuncs
 end
 ---@class NNode
 ---@field classname string
@@ -449,13 +438,15 @@ end
 ---@class TermNode : NNode
 ---@field bufnr number
 ---@field jobinfo jobinfo
+---@field repeat_left_times? number
+---@field repeat_timer? uv.uv_timer_t
 ---@field _setupbuf fun(bufnr)
 local TermNode = {
     classname = "TermNode",
     name = "TermNode",
 
     bufnr = -1,
-    jobinfo = { cmds = {}, opts = { term = true, detach = false }, jobid = -1 },
+    jobinfo = { opts = { term = true, detach = false }, jobid = -1 },
     _setupbuf = setup_termbuf,
 }
 TermNode.__index = TermNode
@@ -463,16 +454,18 @@ setmetatable(TermNode, Node)
 local scroll = function()
     local is_opened = winmanager:_is_opened()
     local is_focused = winmanager:_is_focused()
-    local bufnr = vim.api.nvim_win_get_buf(winmanager.term_winid)
-    ---NOTE: vim.fn.jobwait Cannnot be used in interactive binary,that will causes block
-    -- local is_running = vim.fn.jobwait({ vim.b[].terminal_job_id, })[1] == -1
-    local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
-    if is_opened and not is_focused and is_running then
+    if is_opened and not is_focused then
+        local bufnr = vim.api.nvim_win_get_buf(winmanager.term_winid)
+        ---NOTE: vim.fn.jobwait Cannnot be used in interactive binary,that will causes block
+        -- local is_running = vim.fn.jobwait({ vim.b[].terminal_job_id, })[1] == -1
+        local is_running = vim.uv.kill(vim.b[bufnr].terminal_job_pid, 0) == 0
         local winid = winmanager.term_winid
-        vim.api.nvim_win_call(winid, function()
-            local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
-            vim.api.nvim_win_set_cursor(winid, { last, 0 })
-        end)
+        if is_running then
+            vim.api.nvim_win_call(winid, function()
+                local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
+                vim.api.nvim_win_set_cursor(winid, { last, 0 })
+            end)
+        end
     end
 end
 ---@generic T : NNode
@@ -481,21 +474,107 @@ end
 ---@param newnode_opts newnode_opts
 ---@param ujobinfo ujobinfo
 ---@param startnow? boolean
----@param usewrapper? boolean
----default: startnow=false usewrapper=false
+---default: startnow=false
 ---jobinfo:param>TermNode
----func: scroll,TermNode,param
-function TermNode:new(newnode_opts, ujobinfo, startnow, usewrapper)
+---func: scroll,TermNode(nil),param.ujobinfo ...(repeat)...after_finish
+function TermNode:new(newnode_opts, ujobinfo, startnow)
     local obj = Node._new(self, newnode_opts)
-    obj.jobinfo = vim.tbl_deep_extend("force", TermNode.jobinfo, ujobinfo, {
-        opts = jobinfo_func_append({
-            on_stdout = scroll,
-            on_stderr = scroll,
-        }, TermNode.jobinfo.opts, ujobinfo.opts),
-    })
-    if usewrapper then
-        obj.jobinfo.cmds = cmd_wrapper(obj.jobinfo.cmds)
+    ---@cast obj TermNode
+    if ujobinfo.opts.repeat_opts then
+        obj.repeat_left_times = ujobinfo.opts.repeat_opts.time
     end
+    local after_finish = ujobinfo.opts.after_finish
+    local buffered_stdout = {}
+    local buffered_stderr = {}
+    obj.jobinfo = vim.tbl_deep_extend("force", TermNode.jobinfo, ujobinfo, {
+        opts = {
+            before_start = function(node)
+                if ujobinfo.opts.before_start then
+                    pmsgcall(ujobinfo.opts.before_start, node)
+                end
+            end,
+            on_stdout = function(jobid, data, event, node)
+                log_notify("15scroll")
+                buffered_stdout = vim.list_extend(buffered_stdout, data)
+                pmsgcall(scroll)
+                log_notify("16try TermNode.jobinfo.on_stdout")
+                if TermNode.jobinfo.opts.on_stdout then
+                    pmsgcall(TermNode.jobinfo.opts.on_stdout, jobid, data, event, node)
+                end
+                log_notify("17try ujobinfo.on_stdout")
+                if ujobinfo.opts.on_stdout then
+                    pmsgcall(ujobinfo.opts.on_stdout, jobid, data, event, node)
+                end
+            end,
+            on_stderr = function(jobid, data, event, node)
+                log_notify("18scroll")
+                buffered_stderr = vim.list_extend(buffered_stderr, data)
+                pmsgcall(scroll)
+                log_notify("19try TermNode.jobinfo.on_stderr")
+                if TermNode.jobinfo.opts.on_stderr then
+                    pmsgcall(TermNode.jobinfo.opts.on_stderr, jobid, data, event, node)
+                end
+                log_notify("20trp ujobinfo.on_stderr")
+                if ujobinfo.opts.on_stderr then
+                    pmsgcall(ujobinfo.opts.on_stderr, jobid, data, event, node)
+                end
+            end,
+            on_exit = function(jobid, code, event, node)
+                log_notify("2try TermNode.on_exit")
+                if TermNode.jobinfo.opts.on_exit then
+                    pmsgcall(TermNode.jobinfo.opts.on_exit, jobid, code, event, node)
+                end
+                log_notify("3try ujobinfo.on_exit")
+                if ujobinfo.opts.on_exit then
+                    pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
+                end
+                if node.repeat_left_times and node.repeat_left_times > 0 then
+                    node.repeat_left_times = node.repeat_left_times - 1
+                end
+                local repeat_opts = node.jobinfo.opts.repeat_opts
+                local finished = not repeat_opts or node.repeat_left_times == 0
+                if not finished then
+                    assert(repeat_opts and node.repeat_left_times > 0)
+                    local ok, result =
+                        pmsgcall(repeat_opts.stop_cond, code, buffered_stdout, buffered_stderr)
+                    if ok and result == true then
+                        finished = true
+                    end
+                end
+                if finished then
+                    log_notify("1try after_finish")
+                    if after_finish then
+                        pmsgcall(after_finish, jobid, code, node)
+                    end
+                else
+                    assert(repeat_opts and node.repeat_left_times > 0)
+                    local timer = vim.uv.new_timer()
+                    if timer then
+                        node.repeat_timer = timer
+                        timer:start(1000 * repeat_opts.timeinterval, 0, function()
+                            vim.schedule(function()
+                                log_notify("4restart")
+                                panelbufcxt:restart(obj)
+                            end)
+                        end)
+                    end
+                end
+            end,
+            on_start = function(...)
+                log_notify("5clear stdout/stderr buffer")
+                buffered_stdout = {}
+                buffered_stderr = {}
+                log_notify("6try TermNode.on_start")
+                if TermNode.jobinfo.opts.on_start then
+                    pmsgcall(TermNode.jobinfo.opts.on_start, ...)
+                end
+                log_notify("7try ujobinfo.on_start")
+                if ujobinfo.opts.on_start then
+                    pmsgcall(ujobinfo.opts.on_start, ...)
+                end
+            end,
+        },
+    })
     setmetatable(obj, self)
     if startnow then
         obj:start()
@@ -503,14 +582,46 @@ function TermNode:new(newnode_opts, ujobinfo, startnow, usewrapper)
     return obj
 end
 
-function TermNode:restart()
+function TermNode:restart(reset_repeat)
     self:clean()
+    if reset_repeat then
+        if self.jobinfo.opts and self.jobinfo.opts.repeat_opts then
+            self.repeat_left_times = self.jobinfo.opts.repeat_opts.time
+        end
+        if self.repeat_timer then
+            self.repeat_timer:stop()
+            self.repeat_timer:close()
+        end
+    end
     self:start()
+end
+local function jobstop(jobid)
+    vim.fn.jobstop(jobid)
+    local ok, pid = pcall(vim.fn.jobpid, jobid)
+    if ok then
+        vim.defer_fn(function()
+            local is_running = vim.uv.kill(pid, 0) == 0
+            if is_running then
+                vim.uv.kill(pid, 9)
+            end
+            vim.defer_fn(function()
+                local still_running = vim.uv.kill(pid, 0) == 0
+                if still_running then
+                    vim.notify(
+                        ("[term]: jobid:%s,pid:%s is still running after kill-9"):format(
+                            tostring(jobid),
+                            tostring(pid)
+                        )
+                    )
+                end
+            end, 3000)
+        end, 3000)
+    end
 end
 
 function TermNode:clean()
     if self.jobinfo.jobid ~= -1 then
-        vim.fn.jobstop(self.jobinfo.jobid)
+        jobstop(self.jobinfo.jobid)
     end
     self.jobinfo.jobid = -1
     if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
@@ -526,10 +637,16 @@ function TermNode:start()
     vim.api.nvim_buf_call(bufnr, function()
         local opts = next(self.jobinfo.opts) ~= nil and self.jobinfo.opts or nil
         local ok, result
+        local on_start
+        local before_start
         if opts then
             local on_exit = opts.on_exit
             local on_stdout = opts.on_stdout
             local on_stderr = opts.on_stderr
+            on_start = opts.on_start
+            opts.on_start = nil
+            before_start = opts.before_start
+            opts.before_start = nil
             opts.on_exit = on_exit
                     and function(job_id, code, event)
                         on_exit(job_id, code, event, self)
@@ -545,13 +662,21 @@ function TermNode:start()
                         on_stderr(job_id, data, event, self)
                     end
                 or nil
+            if before_start then
+                before_start(self)
+            end
             ok, result = pcall(vim.fn.jobstart, self.jobinfo.cmds, opts)
+            opts.on_start = on_start
+            opts.before_start = before_start
         else
             ok, result = pcall(vim.fn.jobstart, self.jobinfo.cmds)
         end
         if ok and result ~= 0 and result ~= -1 then
             success = true
             jobid = result
+            if on_start then
+                on_start(jobid, self)
+            end
         else
             success = false
             vim.notify(
@@ -615,9 +740,9 @@ function GroupNode:toggle_expand(on)
     return false
 end
 
-function GroupNode:restart()
+function GroupNode:restart(reset_repeat)
     for _, child in ipairs(self.children) do
-        child:restart()
+        child:restart(reset_repeat)
     end
 end
 
@@ -729,7 +854,7 @@ function GroupNode:delnode(node)
 end
 
 ---@class TaskTermNode:TermNode
----@field status "uninit"|"waitting"|"running"|"error"|"success"
+---@field status "uninit"|"waitting"|"running"|"error_retry_pending"|"success_retry_pending"|"error"|"success"
 local TaskTermNode = {
     classname = "TaskTermNode",
     name = "TaskTermNode",
@@ -738,47 +863,101 @@ local TaskTermNode = {
 TaskTermNode.__index = TaskTermNode
 setmetatable(TaskTermNode, TermNode)
 local taskterm_icons = {
-    uninit = nil,
+    uninit = "?",
     waitting = "",
     running = "",
     error = "",
     success = "",
+    success_retry_pending = "",
+    error_retry_pending = "",
 }
 ---@param newnode_opts newnode_opts
 ---@param ujobinfo ujobinfo
----@param on_finish? fun()
 ---@param startnow? boolean default false
 ---jobinfo:param>TaskTermNode>TermNode
----func: scroll,TermNode,(status,TaskTermNode,param,on_finish)
-function TaskTermNode:new(newnode_opts, ujobinfo, startnow, on_finish)
-    log("TaskTermNode:new on_exit:", ujobinfo.opts.on_exit)
+---func: scroll,TermNode,(status,TaskTermNode,param) ...(repeat) after_finish
+function TaskTermNode:new(newnode_opts, ujobinfo, startnow)
     ---@type ujobinfo
     ---@diagnostic disable-next-line: assign-type-mismatch
     local jobinfo = vim.tbl_deep_extend("force", TaskTermNode.jobinfo, ujobinfo, {
-        opts = jobinfo_func_append({
-            on_exit = function(_, code, _, node)
+        opts = {
+            before_start = function(...)
+                if TaskTermNode.jobinfo.opts.before_start then
+                    pmsgcall(TaskTermNode.jobinfo.opts.before_start, ...)
+                end
+                if ujobinfo.opts.before_start then
+                    pmsgcall(ujobinfo.opts.before_start, ...)
+                end
+            end,
+            on_start = function(jobid, node)
+                self.status = "running"
+                log_notify("8try TaskTermNode.on_start")
+                if TaskTermNode.jobinfo.opts.on_start then
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_start, jobid, node)
+                end
+                log_notify("9try ujobinfo.on_start")
+                if ujobinfo.opts.on_start then
+                    pmsgcall(ujobinfo.opts.on_start, jobid, node)
+                end
+            end,
+            on_stderr = function(...)
+                log_notify("21try TaskTermNode.on_stderr")
+                if TaskTermNode.jobinfo.opts.on_stderr then
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_stderr, ...)
+                end
+                log_notify("22try ujobinfo.on_stderr")
+                if ujobinfo.opts.on_stderr then
+                    pmsgcall(ujobinfo.opts.on_stderr, ...)
+                end
+            end,
+            on_stdout = function(...)
+                log_notify("23try TaskTermNode.on_stdout")
+                if TaskTermNode.jobinfo.opts.on_stdout then
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_stdout, ...)
+                end
+                log_notify("24try ujobinfo.on_stdout")
+                if ujobinfo.opts.on_stdout then
+                    pmsgcall(ujobinfo.opts.on_stdout, ...)
+                end
+            end,
+            on_exit = function(jobid, code, event, node)
+                log_notify("10try TaskTermNode.on_exit")
+                if TaskTermNode.jobinfo.opts.on_exit then
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_exit, jobid, code, event, node)
+                end
+                log_notify("11try ujobinfo.on_exit")
+                if ujobinfo.opts.on_exit then
+                    pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
+                end
                 assert(node.classname == "TaskTermNode")
                 if code == 0 then
+                    node.status = "success_retry_pending"
+                else
+                    node.status = "error_retry_pending"
+                end
+                PanelBufFullUpdate()
+            end,
+            after_finish = function(jobid, code, node)
+                if node.status == "success_retry_pending" then
                     node.status = "success"
                 else
                     node.status = "error"
                 end
-                PanelBufLineUpdate()
-                PanelCurHLUpdate()
-                PanelCurSorHLUpdate()
+                if ujobinfo.opts.after_finish then
+                    pmsgcall(ujobinfo.opts.after_finish, jobid, code, node)
+                end
+                PanelBufFullUpdate()
             end,
-        }, TaskTermNode.jobinfo.opts, ujobinfo.opts, { on_exit = on_finish }),
+        },
     })
-    local obj = TermNode.new(self, newnode_opts, jobinfo, false, true)
+    local obj = TermNode.new(self, newnode_opts, jobinfo, false)
     setmetatable(obj, self)
     obj.new = unreachable
     obj.status = "waitting"
     if startnow then
         obj:start()
     end
-    PanelBufLineUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
     return obj
 end
 
@@ -788,33 +967,29 @@ function TaskTermNode:_display()
     return taskterm_icons[self.status] .. " " .. self.name
 end
 
-function TaskTermNode:clean()
-    if self.jobinfo.jobid ~= -1 and self.status ~= "error" and self.status ~= "success" then
-        vim.fn.jobstop(self.jobinfo.jobid)
-    end
-    self.jobinfo.jobid = -1
-    if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-        vim.api.nvim_buf_delete(self.bufnr, { force = true })
-    end
-end
-
 ---override
-function TaskTermNode:restart()
+function TaskTermNode:restart(reset_repeat)
     self:clean()
     self.status = "waitting"
+    if reset_repeat then
+        if self.jobinfo.opts and self.jobinfo.opts.repeat_opts then
+            self.repeat_left_times = self.jobinfo.opts.repeat_opts.time
+        end
+        if self.repeat_timer then
+            self.repeat_timer:stop()
+            self.repeat_timer:close()
+        end
+    end
     self:start()
 end
 
 ---override
 function TaskTermNode:start()
-    if TermNode.start(self) then
-        self.status = "running"
-    else
+    if not TermNode.start(self) then
+        vim.notify("TermNode start error", ERROR)
         return
     end
-    PanelBufLineUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
 end
 
 ---@class TaskSetNode :GroupNode
@@ -824,7 +999,7 @@ end
 ---@field tasks {name:string,jobinfo:ujobinfo,bg:boolean|nil,ignore_error:boolean|nil}[]
 ---@field children TaskTermNode[]
 ---@field expanded boolean
----@field on_finish_all fun()
+---@field after_finish_all fun()
 local TaskSetNode = {
     classname = "TaskSetNode",
     name = "TaskSetNode",
@@ -835,17 +1010,17 @@ local TaskSetNode = {
     tasks = {},
     children = {},
     expanded = true,
-    on_finish_all = function() end,
+    after_finish_all = function() end,
 }
 TaskSetNode.__index = TaskSetNode
 setmetatable(TaskSetNode, GroupNode)
 ---@param newnode_opts newnode_opts
----@param tasks {name:string,ignore_err:boolean,bg:boolean}[]
+---@param tasks {name:string,jobinfo:ujobinfo,ignore_err:boolean,bg:boolean}[]
 ---@param seq boolean default true
 ---@param break_on_err boolean default true
----@param on_finish_all fun()
----on_finish_all: TaskSetNode,status,param
-function TaskSetNode:new(newnode_opts, tasks, seq, break_on_err, on_finish_all, startnow)
+---@param after_finish_all fun()
+---after_finish_all: TaskSetNode,status,param
+function TaskSetNode:new(newnode_opts, tasks, seq, break_on_err, after_finish_all, startnow)
     local obj = GroupNode.new(self, newnode_opts)
     setmetatable(obj, self)
     obj.addnode = unreachable
@@ -853,11 +1028,13 @@ function TaskSetNode:new(newnode_opts, tasks, seq, break_on_err, on_finish_all, 
     obj.tasks = tasks
     obj.seq = seq or true
     obj.break_on_err = break_on_err or true
+    obj.status = "waitting"
 
-    obj.on_finish_all = function()
+    obj.after_finish_all = function()
+        log_notify("12tasksetnode after_finish_all")
         --Class
-        if TaskSetNode.on_finish_all then
-            TaskSetNode.on_finish_all()
+        if TaskSetNode.after_finish_all then
+            TaskSetNode.after_finish_all()
         end
         --Program
         local success = true
@@ -868,15 +1045,12 @@ function TaskSetNode:new(newnode_opts, tasks, seq, break_on_err, on_finish_all, 
             end
         end
         obj.status = success == true and "success" or "error"
-        PanelBufLineUpdate()
-        PanelCurHLUpdate()
-        PanelCurSorHLUpdate()
+        PanelBufFullUpdate()
         --Self
-        if on_finish_all then
-            on_finish_all()
+        if after_finish_all then
+            after_finish_all()
         end
     end
-    obj.status = "waitting"
     if startnow then
         obj:start()
     end
@@ -889,21 +1063,21 @@ end
 
 function TaskSetNode:clean()
     for _, child in ipairs(self.children) do
-        if child.jobinfo.jobid ~= -1 and child.status ~= "error" and child.status ~= "success" then
-            vim.fn.jobstop(child.jobinfo.jobid)
-        end
-        child.jobinfo.jobid = -1
-        if child.bufnr and vim.api.nvim_buf_is_valid(child.bufnr) then
-            vim.api.nvim_buf_delete(child.bufnr, { force = true })
-        end
+        child:clean()
         child.status = "waitting"
     end
 end
 
-function TaskSetNode:restart()
+function TaskSetNode:restart(reset_repeat)
     self:clean()
     self.status = "waitting"
+    for _, child in ipairs(self.children) do
+        if reset_repeat and child.jobinfo.opts and child.jobinfo.opts.repeat_opts then
+            child.repeat_left_times = child.jobinfo.opts.repeat_opts.time
+        end
+    end
     if self._handles == nil then
+        vim.notify("You cannot restart a node which has not been started once", ERROR)
         return
     end
     for _, f in ipairs(self._handles) do
@@ -916,36 +1090,33 @@ function TaskSetNode:start()
         return
     end
     local chk_all_finished = function()
-        local ok = true
         for _, child in ipairs(self.children) do
-            if child.status == "waitting" or child.status == "running" then
-                ok = false
-                break
+            if child.status ~= "success" and child.status ~= "error" then
+                return
             end
         end
-        if ok then
-            self.on_finish_all()
-        end
+        self.after_finish_all()
     end
     local chk_started_finished = function()
-        local ok = true
         for _, child in ipairs(self.children) do
-            if child.status == "running" then
-                ok = false
-                break
+            if
+                child.status == "running"
+                or child.status == "error_retry_pending"
+                or child.status == "success_retry_pending"
+            then
+                return
             end
         end
-        if ok then
-            self.on_finish_all()
-        end
+        self.after_finish_all()
     end
     if self.seq then
         local handle_stack = {}
         for i = #self.tasks, 1, -1 do
             local task = self.tasks[i]
-            local on_exit
+            local after_finish
             if task.bg then
-                on_exit = function(_, code, _)
+                after_finish = function(_, code, _)
+                    log_notify("13TaskSetNode.start after_finish")
                     if self.break_on_err == false or code == 0 or task.ignore_error then
                         chk_all_finished()
                     else
@@ -955,7 +1126,8 @@ function TaskSetNode:start()
             else
                 local nexts = handle_stack
                 handle_stack = {}
-                on_exit = function(_, code, _)
+                after_finish = function(_, code, _)
+                    log_notify("14TaskSetNode.start after_finish")
                     if self.break_on_err == false or code == 0 or task.ignore_error then
                         for _, nxt in ipairs(nexts) do
                             nxt()
@@ -966,10 +1138,17 @@ function TaskSetNode:start()
                     end
                 end
             end
+            local _after_finish = self.tasks[i].jobinfo.opts.after_finish
+            self.tasks[i].jobinfo.opts.after_finish = function(...)
+                after_finish(...)
+                if _after_finish then
+                    _after_finish(...)
+                end
+            end
             local node = TaskTermNode:new({
                 name = self.tasks[i].name,
                 parent = self,
-            }, self.tasks[i].jobinfo, false, on_exit)
+            }, self.tasks[i].jobinfo, false)
             self.children[i] = node
             table.insert(handle_stack, function()
                 node:start()
@@ -979,12 +1158,14 @@ function TaskSetNode:start()
     else
         local handles = {}
         for i, task in ipairs(self.tasks) do
-            local node = TaskTermNode:new(
-                { name = task.name, parent = self },
-                task.jobinfo,
-                false,
-                chk_all_finished
-            )
+            local _after_finish = task.jobinfo.opts.after_finish
+            task.jobinfo.opts.after_finish = function(...)
+                if _after_finish then
+                    _after_finish(...)
+                end
+                chk_all_finished()
+            end
+            local node = TaskTermNode:new({ name = task.name, parent = self }, task.jobinfo, false)
             self.children[i] = node
             handles[#handles + 1] = function()
                 node:start()
@@ -1000,19 +1181,16 @@ function TaskSetNode:start()
         handle()
     end
     self.status = "running"
-    PanelBufLineUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
 end
 
 --append_default
 function panelbufcxt:get_termbuf()
-    if not self._curnode then
-        return self.fallback_term_bufnr
+    if not self._curnode or not vim.api.nvim_buf_is_valid(self._curnode.bufnr) then
+        return self:get_fallback_termbufnr()
     end
     local curnode = self._curnode
     ---@cast curnode TaskTermNode|TermNode
-    assert(curnode.bufnr and vim.api.nvim_buf_is_valid(curnode.bufnr))
     return curnode.bufnr
 end
 
@@ -1032,9 +1210,7 @@ function panelbufcxt:addnode(node, parent)
     end
     self._cursornode = self._cursornode or node
     assert(self._cursornode)
-    PanelBufLinesUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
     TermWinBufUpdate()
     return node
 end
@@ -1069,9 +1245,7 @@ function panelbufcxt:delnode(delnode)
         assert(self._cursornode)
     end
     delnode.parent:delnode(delnode)
-    PanelBufLinesUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
 end
 
 function panelbufcxt:switch(n)
@@ -1107,10 +1281,11 @@ function panelbufcxt:switch(n)
     end
     self._curnode = n
     if changed then
-        PanelBufLinesUpdate()
+        PanelBufFullUpdate()
+    else
+        PanelCurHLUpdate()
+        TermWinBufUpdate()
     end
-    PanelCurHLUpdate()
-    TermWinBufUpdate()
 end
 
 --alias _addnode
@@ -1127,8 +1302,8 @@ function panelbufcxt:append_term_node(parent, name, ujobinfo, unique_key)
 end
 
 --alias _addnode
-function panelbufcxt:append_taskterm_node(parent, name, ujobinfo, on_finish, unique_key)
-    local node = TaskTermNode:new({ name = name, parent = parent }, ujobinfo, true, on_finish)
+function panelbufcxt:append_taskterm_node(parent, name, ujobinfo, unique_key)
+    local node = TaskTermNode:new({ name = name, parent = parent }, ujobinfo, true)
     self:addnode(node)
     if unique_key then
         if self.unique_map[unique_key] then
@@ -1147,14 +1322,14 @@ function panelbufcxt:append_tasktermset_node(
     unique_key,
     seq,
     break_on_err,
-    on_finish_all
+    after_finish_all
 )
     local node = TaskSetNode:new(
         { name = name, parent = parent },
         tasks,
         seq,
         break_on_err,
-        on_finish_all,
+        after_finish_all,
         true
     )
     self:addnode(node)
@@ -1170,7 +1345,7 @@ end
 --alias _addnode
 function panelbufcxt:append_default(parent)
     local cmds
-    if Globals.is_win then
+    if jit.os == "Windows" then
         cmds = { "pwsh", "-nologo" }
     else
         cmds = { vim.o.shell }
@@ -1210,13 +1385,11 @@ end
 ---@param on? boolean
 function panelbufcxt:toggle_expand(node, on)
     if node:toggle_expand(on) then
-        PanelBufLinesUpdate()
-        PanelCurHLUpdate()
         if self._cursornode:parents_has(node) then
             self._cursornode = node
             assert(self._cursornode)
         end
-        PanelCurSorHLUpdate()
+        PanelBufFullUpdate()
     end
 end
 
@@ -1224,9 +1397,7 @@ end
 ---@param offset number
 function panelbufcxt:swap(offset, node)
     if node.parent:swap(node, offset) then
-        PanelBufLinesUpdate()
-        PanelCurHLUpdate() --TODO:精细化
-        PanelCurSorHLUpdate() --TODO:精细化
+        PanelBufFullUpdate()
     end
 end
 
@@ -1241,22 +1412,20 @@ function panelbufcxt:rename(node, name)
             end
             assert(type(input) == "string")
             node:rename(input)
-            PanelBufLineUpdate()
-            PanelCurHLUpdate()
-            PanelCurSorHLUpdate()
+            PanelBufFullUpdate()
         end)
     else
         node:rename(name)
-        PanelBufLineUpdate()
-        PanelCurHLUpdate()
-        PanelCurSorHLUpdate()
+        PanelBufFullUpdate()
     end
 end
 
 --switch,set_cursor
 ---@param node NNode
-function panelbufcxt:restart(node)
+---@param reset_repeat? boolean
+function panelbufcxt:restart(node, reset_repeat)
     if node.classname == "TaskSetNode" or node.classname == "GroupNode" then
+        ---@cast node TaskTermNode|GroupNode
         local cur_in_children = self._curnode:parents_has(node)
         local old_curnode = self._curnode
         if cur_in_children then
@@ -1264,9 +1433,8 @@ function panelbufcxt:restart(node)
             TermWinBufUpdate()
         end
         ---@cast node GroupNode|TaskSetNode
-        node:restart()
+        node:restart(reset_repeat)
         if cur_in_children then
-            -- vim.defer_fn(function()
             if
                 old_curnode.bufnr
                 and vim.api.nvim_buf_is_valid(old_curnode.bufnr)
@@ -1282,18 +1450,17 @@ function panelbufcxt:restart(node)
                     TermWinBufUpdate()
                 end
             end
-            -- end, 10)
         end
     else
+        ---@cast node TaskTermNode|TermNode
         local cur_eq_delnode = self._curnode == node
         local old_curnode = self._curnode
         if cur_eq_delnode then
             self._curnode = nil
             TermWinBufUpdate()
         end
-        node:restart()
+        node:restart(reset_repeat)
         if cur_eq_delnode then
-            -- vim.defer_fn(function()
             if
                 old_curnode.bufnr
                 and vim.api.nvim_buf_is_valid(old_curnode.bufnr)
@@ -1302,19 +1469,16 @@ function panelbufcxt:restart(node)
                 self._curnode = old_curnode
                 TermWinBufUpdate()
             end
-            -- end, 10)
         end
     end
-    PanelBufLinesUpdate()
-    PanelCurHLUpdate()
-    PanelCurSorHLUpdate()
+    PanelBufFullUpdate()
     TermWinBufUpdate() --当cur in children or cur == node时
 end
 
 ---@param node NNode
 function panelbufcxt:toggle_pin(node)
     node.pinned = not node.pinned
-    PanelBufLineUpdate()
+    PanelBufFullUpdate()
 end
 
 function panelbufcxt:update_displayed_data()
@@ -1368,7 +1532,7 @@ function panelbufcxt:update_panelbuf_curnode_hl()
     local curnodedata = self.displayed_data[curnode]
     if curnodedata then --curnode不被折叠时高亮
         local curindex = curnodedata.index
-        local curnode_clearfunc = hlline(self.bufnr, curindex, "TermCurIndex")
+        local curnode_clearfunc = hlline(self:get_panel_bufnr(), curindex, "TermCurIndex")
         self.panel_buf_hl_curnode_clearfunc = curnode_clearfunc
     end
 end
@@ -1377,9 +1541,12 @@ function panelbufcxt:_update_panelbuf_cursornode_hl()
     if self.panel_buf_hl_cursornode_clearfunc then
         self.panel_buf_hl_cursornode_clearfunc()
     end
-    if vim.api.nvim_get_current_buf() == self.bufnr and self._cursornode ~= self._curnode then
+    if
+        vim.api.nvim_get_current_buf() == self:get_panel_bufnr()
+        and self._cursornode ~= self._curnode
+    then
         local cursor_index = self.displayed_data[self._cursornode].index
-        local cursornode_clearfunc = hlline(self.bufnr, cursor_index, "TermCursorLine")
+        local cursornode_clearfunc = hlline(self:get_panel_bufnr(), cursor_index, "TermCursorLine")
         self.panel_buf_hl_cursornode_clearfunc = cursornode_clearfunc
     end
 end
@@ -1412,17 +1579,29 @@ local function create_panelbuf()
     return bufnr
 end
 --Root,Panelbuf,[CursorMoved->setcursor],[WinLeave->clearCursorHL]
-function panelbufcxt:init()
+function panelbufcxt:_init()
     if self.__inited then
         return
     end
     self.__inited = true
     --Root
     self.root = GroupNode:new { name = "Root" }
+end
+function panelbufcxt:get_fallback_termbufnr()
+    if validbuf(self.fallback_term_bufnr) then
+        return self.fallback_term_bufnr
+    end
     self.fallback_term_bufnr = create_fallback_termbuf()
-    --PanelBuf
+    return self.fallback_term_bufnr
+end
+function panelbufcxt:get_panel_bufnr()
+    if validbuf(self.bufnr) then
+        return self.bufnr
+    end
+    if self.bufnr and vim.fn.bufexists(self.bufnr) then
+        vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
     self.bufnr = create_panelbuf()
-    --AutoCmd
     vim.api.nvim_create_augroup("tools.terminal.panelbufcxt", { clear = true })
     --CursorMoved->setcursor
     vim.api.nvim_create_autocmd("CursorMoved", {
@@ -1446,18 +1625,24 @@ function panelbufcxt:init()
             self.panel_buf_hl_cursornode_clearfunc = nil
         end,
     })
+    PanelBufFullUpdate()
+    return self.bufnr
 end
 
 ---@param bufnr number
-function winmanager:bind_buf_to_termwin(bufnr)
+function winmanager:_bind_buf_to_termwin(bufnr)
     vim.wo[self.term_winid].winfixbuf = false
     vim.api.nvim_win_set_buf(self.term_winid, bufnr)
     vim.wo[self.term_winid].winfixbuf = true
 end
 
 ---@param bufnr number
-function winmanager:bind_buf_to_panelwin(bufnr)
-    assert(vim.api.nvim_win_is_valid(self.panel_winid))
+function winmanager:_bind_buf_to_panelwin(bufnr)
+    assert(
+        vim.api.nvim_win_is_valid(self.panel_winid)
+            and vim.api.nvim_buf_is_valid(bufnr)
+            and vim.api.nvim_buf_is_loaded(bufnr)
+    )
     vim.wo[self.panel_winid].winfixbuf = false
     vim.api.nvim_win_set_buf(self.panel_winid, bufnr)
     vim.wo[self.panel_winid].winfixbuf = true
@@ -1531,7 +1716,7 @@ function winmanager:open()
         --SetupPanelWin
         self._set_win_minimal(self.panel_winid)
         vim.api.nvim_win_set_hl_ns(self.panel_winid, ns)
-        self:bind_buf_to_panelwin(panelbufcxt.bufnr)
+        self:_bind_buf_to_panelwin(panelbufcxt:get_panel_bufnr())
         vim.api.nvim_set_current_win(origin_win)
     end
     self:_setup_whenopen_autocmds()
@@ -1600,7 +1785,7 @@ function winmanager:_update_termwin_bindbuf()
         local termbuf = panelbufcxt:get_termbuf()
         if termbuf then
             if vim.api.nvim_win_get_buf(self.term_winid) ~= termbuf then
-                self:bind_buf_to_termwin(termbuf)
+                self:_bind_buf_to_termwin(termbuf)
             end
         end
     end
@@ -1631,13 +1816,21 @@ end
 ---@param name  string
 ---@param ujobinfo ujobinfo
 ---@param focus boolean|nil
----@param on_finish fun()|nil
+---@param switch boolean|nil
 ---@param unique_key string|nil
 ---default: focus=true
 ---panelbufcxt._append_taskterm_node
-function M.newtask(name, ujobinfo, focus, switch, on_finish, unique_key)
-    local node = panelbufcxt:append_taskterm_node(nil, name, ujobinfo, on_finish, unique_key)
-
+function M.newtask(name, ujobinfo, focus, switch, unique_key)
+    local validate = vim.validate
+    validate("name", name, "string")
+    validate("ujobinfo", ujobinfo, "table")
+    validate("ujobinfo.cmds", ujobinfo.cmds, function(it)
+        return type(it) == "string"
+            or (type(it) == "table" and #it > 0 and vim.fn.executable(it[1]) == 1)
+    end)
+    validate("switch", switch, "boolean", true)
+    validate("unique_key", unique_key, "string", true)
+    local node = panelbufcxt:append_taskterm_node(nil, name, ujobinfo, unique_key)
     if switch then
         panelbufcxt:switch(node)
     end
@@ -1648,13 +1841,13 @@ function M.newtask(name, ujobinfo, focus, switch, on_finish, unique_key)
 end
 
 ---@param name string
----@param tasks {jobinfo:ujobinfo,bg:boolean|nil,ignore_error:boolean|nil}[]
+---@param tasks {name:string,jobinfo:ujobinfo,bg:boolean|nil,ignore_error:boolean|nil}[]
 ---@param seq boolean|nil
 ---@param break_on_err boolean|nil
 ---@param focus boolean|nil
----@param on_finish_all fun()|nil
+---@param after_finish_all fun()|nil
 ---@param unique_key string|nil
-function M.newtaskset(name, tasks, seq, break_on_err, focus, switch, on_finish_all, unique_key)
+function M.newtaskset(name, tasks, seq, break_on_err, focus, switch, after_finish_all, unique_key)
     local node = panelbufcxt:append_tasktermset_node(
         nil,
         name,
@@ -1662,7 +1855,7 @@ function M.newtaskset(name, tasks, seq, break_on_err, focus, switch, on_finish_a
         unique_key,
         seq,
         break_on_err,
-        on_finish_all
+        after_finish_all
     )
     if switch then
         panelbufcxt:switch(node)
@@ -1741,7 +1934,7 @@ function M.setup()
             vim.cmd("normal! \28\14")
         end
     end)
-    panelbufcxt:init()
+    panelbufcxt:_init()
 end
 
 function M.reset()
@@ -1764,11 +1957,11 @@ function M.reset()
     end
     panelbufcxt.panel_buf_hl_cursornode_clearfunc = nil
     panelbufcxt.unique_map = {}
-    local bufnr = panelbufcxt.bufnr
+    local bufnr = panelbufcxt:get_panel_bufnr()
     if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
         vim.api.nvim_buf_delete(bufnr, { force = true })
     end
-    bufnr = panelbufcxt.fallback_term_bufnr
+    bufnr = panelbufcxt:get_fallback_termbufnr()
     if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
         vim.api.nvim_buf_delete(bufnr, { force = true })
     end

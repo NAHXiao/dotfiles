@@ -2,7 +2,7 @@ return {
     "lukas-reineke/indent-blankline.nvim",
     version = "*",
     main = "ibl",
-    cond = false,
+    -- cond = false,
     lazy = true,
     -- cond=false,
     ft = {
@@ -43,12 +43,17 @@ return {
         "toml",
         "dockerfile",
     },
-    config = function()
+    ---@module "ibl"
+    ---@type ibl.config
+    opts = {
+        indent = { char = "▏" },
+    },
+    config = function(_, opts)
         local hooks = require("ibl.hooks")
         hooks.register(hooks.type.ACTIVE, function(bufnr)
             return not require("utils").is_bigfile(bufnr)
         end)
-        require("ibl").setup()
+        require("ibl").setup(opts)
     end,
     keys = {
         {

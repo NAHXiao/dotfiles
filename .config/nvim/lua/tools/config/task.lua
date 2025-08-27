@@ -43,12 +43,6 @@ local config = {
             },
         },
     },
-    {
-        name = "bash echo",
-        cmds = "echo $PATH",
-        with_shell = true,
-        filetypes = "*",
-    },
     global = {
         tasks = {
             { name = "sleep", cmds = { "sleep", "3s" } },

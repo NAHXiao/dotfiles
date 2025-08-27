@@ -53,9 +53,12 @@ end
 setroot()
 aucmd("DirChanged", {
     callback = function()
+        local _root = vim.g.projroot
         setroot()
-        vim.notify("[Root]: " .. vim.g.projroot)
-        vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
+        if _root ~= vim.g.projroot then
+            vim.notify("[Root]: " .. vim.g.projroot)
+            vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
+        end
     end,
 })
 aucmd("LspAttach", {

@@ -7,7 +7,7 @@ vim.fn.sign_define("DapBreakpointRejected", { text = "" })
 local dap_config_path = function()
     return vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "dap.lua")
 end
-local dap_config_tmpl = ([[---@module dap
+local dap_config_tmpl = ([[---@module 'dap'
 ---@alias ft string
 ---@type table<ft,dap.Configuration[]>
 ---See `:help dap-configuration`

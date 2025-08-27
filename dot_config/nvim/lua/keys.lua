@@ -165,6 +165,10 @@ end)
 map("n", "<C-l>", function()
     vim.g.cleanui()
 end)
+
+vim.keymap.del("o", "gc")
+vim.keymap.del("x", "gc")
+vim.keymap.del("n", "gcc")
 -- Fix common typos
 vim.cmd([[
 cnoreabbrev W w

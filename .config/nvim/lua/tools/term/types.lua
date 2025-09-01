@@ -1,0 +1,30 @@
+---@class ujobinfo
+---@field cmds string[]|string
+---@field opts {
+---clear_env?:boolean,
+---detach?:boolean,
+---cwd?:string,
+---env?:table<string,string>,
+---before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---after_finish?:fun(jobid,code,node),
+---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
+
+---@class jobinfo
+---@field cmds string[]|string
+---@field opts {
+---clear_env:boolean,
+---detach:boolean,
+---cwd?:string,
+---env?:table<string,string>,
+---before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
+---@field jobid integer
+---jobid,clear_env,detach

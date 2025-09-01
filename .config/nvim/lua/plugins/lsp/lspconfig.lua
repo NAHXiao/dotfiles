@@ -23,6 +23,9 @@ return {
                 "<leader>\\d",
                 function()
                     vim.diagnostic.enable(not vim.diagnostic.is_enabled())
+                    require("utils").vim_echo(
+                        ("DiagnosticShow: %s"):format(vim.diagnostic.is_enabled() and "On" or "Off")
+                    )
                 end,
                 desc = "Toggle diagnostic show",
             },
@@ -211,6 +214,7 @@ return {
         },
         config = function()
             local _open_floating_preview = vim.lsp.util.open_floating_preview
+            ---NOTE: DIRTY 依赖时机
             vim.lsp.util.open_floating_preview = function(contents, syntax, opts)
                 opts = opts or {}
                 local _bufnr = vim.api.nvim_get_current_buf()
@@ -252,6 +256,9 @@ return {
             local icons = require("tools.icons")
             diagnostic.config {
                 virtual_text = true,
+                -- virtual_lines = {
+                --     current_line = true,
+                -- },
                 signs = {
                     text = {
                         [diagnostic.severity.ERROR] = icons.diagnostics.error[1],

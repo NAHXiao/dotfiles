@@ -105,6 +105,10 @@ M.extend = {
                     -- checkThirdParty = false,
                     -- library = get_library(),
                 },
+                type = {
+                    infer = true,
+                    inferTableSize = 10,
+                },
             },
         },
     },
@@ -252,10 +256,9 @@ M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact {
     ifArch("aarch64", "neocmake", "cmake"),
 })
 M.mason_ensure_install_dap = {
-    "python",
-    "cppdbg",
-    "bash",
+    "cpptools",
     "codelldb",
+    "debugpy",
 }
 M.mason_ensure_install_extra = {
     "stylua",
@@ -271,9 +274,7 @@ M.mason_install_root_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "mason")
 
 -----------------------------------------------------------
 ---@type vim.lsp.Config
-M.lsp_default_config = {
-    root_markers = { ".git" },
-}
+M.lsp_default_config = {}
 M.ulsp_config_path = function()
     return vim.fs.joinpath(utils.get_rootdir() or vim.fn.getcwd(), ".vim", "lsp.lua")
 end

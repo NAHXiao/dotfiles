@@ -8,7 +8,7 @@ return {
         "rafamadriz/friendly-snippets",
 
         "zbirenbaum/copilot.lua",
-        "kyazdani42/nvim-web-devicons",
+        "nvim-tree/nvim-web-devicons",
         "onsails/lspkind.nvim",
 
         "fang2hou/blink-copilot",

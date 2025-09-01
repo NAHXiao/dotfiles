@@ -143,7 +143,7 @@ return {
             {
                 "<leader>\\tc",
                 "<cmd>TSContext toggle<cr>",
-                desc = "Toggle: TSContext",
+                desc = "Toggle TSContext",
             },
             {
                 "gc",

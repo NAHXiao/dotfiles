@@ -1,10 +1,10 @@
 return {
-    "kyazdani42/nvim-tree.lua",
+    "nvim-tree/nvim-tree.lua",
     version = "*",
     lazy = false,
     cond = false,
     dependencies = {
-        "kyazdani42/nvim-web-devicons",
+        "nvim-tree/nvim-web-devicons",
     },
     keys = {
         { "<C-n>", "<cmd>NvimTreeToggle<cr>", desc = "NvimTreeToggle(File Browser)" },

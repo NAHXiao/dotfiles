@@ -165,6 +165,18 @@ end)
 map("n", "<C-l>", function()
     vim.g.cleanui()
 end)
+map(
+    "n",
+    "<leader>qq",
+    ":if empty(filter(getwininfo(), 'v:val.quickfix')) | botright copen | else | cclose | endif<CR>",
+    { desc = "QuickFix: toggle", silent = true }
+)
+vim.keymap.set(
+    "n",
+    "<leader>ql",
+    ":if empty(filter(getwininfo(), 'v:val.loclist')) | botright lopen | else | lclose | endif<CR>",
+    { desc = "LocList: toggle", silent = true }
+)
 
 vim.keymap.del("o", "gc")
 vim.keymap.del("x", "gc")
@@ -242,6 +254,8 @@ cnoreabbrev wQA1 wqa!
 cnoreabbrev wQa1 wqa!
 cnoreabbrev wqA1 wqa!
 cnoreabbrev wqa1 wqa!
+
+cnoreabbrev Lua lua
 ]])
 vim.cmd([[
     cnoreabbrev b! botright split new \| r!

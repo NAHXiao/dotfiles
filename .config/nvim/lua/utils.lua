@@ -41,36 +41,62 @@ function M.lazy_keymap(keys)
     return ret
 end
 
----@return string[]
-M.log = function(...)
-    local args = { ... }
-    local info = debug.getinfo(2, "nSl")
-    local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
-    if info then
-        pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
-    else
-        pretext = pretext .. ": "
-    end
-    local lines = { pretext }
-    local i = 1
-    for k, arg in pairs(args) do
-        if i ~= k then
-            for j = i, k - 1 do
-                lines[#lines + 1] = ("[%d]:"):format(j)
-            end
+---@param opts? {
+---src:(false|"short_src"|"source")?,
+---name:boolean?,
+---time:boolean?,
+---callback:(fun(lines:string[])?)}
+---@return fun(...):string[]
+M.log = function(opts)
+    local default_opts = {
+        src = "short_src",
+        name = true,
+        time = true,
+    }
+    opts = vim.tbl_extend("force", default_opts, opts or {})
+    return function(...)
+        local args = { ... }
+        local pretext = ""
+        if opts.time then
+            pretext = pretext .. ("[%s] "):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
         end
-        lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
-        i = k + 1
+        local info = debug.getinfo(2, "nSl")
+        if opts.src then
+            -- info.src
+            pretext = pretext .. ("%s:%d "):format(info[opts.src], info.currentline)
+        end
+        if opts.name then
+            pretext = pretext .. ("%s() "):format(info.name or "unknown")
+        end
+        if #pretext ~= 0 then
+            pretext = pretext .. ": "
+        end
+        local lines = { #pretext ~= 0 and pretext or nil }
+        local i = 1
+        for k, arg in pairs(args) do
+            if i ~= k then
+                for j = i, k - 1 do
+                    lines[#lines + 1] = ("[%d]:"):format(j)
+                end
+            end
+            lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
+            i = k + 1
+        end
+        lines = vim.split(table.concat(lines, "\n"), "\r?\n")
+        if #lines == 2 then
+            lines[1] = lines[1] .. lines[2]
+            lines[2] = nil
+        end
+        if
+            -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa")
+        then
+            vim.notify("write log failed", vim.log.levels.ERROR)
+        end
+        if opts.callback then
+            opts.callback(lines)
+        end
+        return lines
     end
-    lines = vim.split(table.concat(lines, "\n"), "\r?\n")
-    if #lines == 2 then
-        lines[1] = lines[1] .. lines[2]
-        lines[2] = nil
-    end
-    if -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa") then
-        vim.notify("write log failed", vim.log.levels.ERROR)
-    end
-    return lines
 end
 ---@param groupname string
 ---@param clear? boolean
@@ -642,7 +668,7 @@ function M.focus_or_new(filepath, new_content, split)
             end
             return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
         end
-    local lines = vim.split(new_content, "\r?\n") or { "" }
+    local lines = vim.split(new_content, "\r\n?") or { "" }
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr and bufnr ~= -1
     local winid = buf_exists and vim.fn.bufwinid(bufnr) or nil

@@ -4,7 +4,7 @@
 ---@field cmds string[]|string
 ---@field filetypes? string[]|"*"
 ---@field with_shell? boolean
----@field with_cmd_wrapper? boolean
+---@field with_cmd_wrapper? boolean default true
 ---@field with_tmpfile? table<string,string>
 ---@field cwd? string
 ---@field clear_env? boolean
@@ -12,6 +12,7 @@
 ---@field detach? boolean
 ---@field stdin_file? string
 ---@field stdin_pipe? string
+---@field stdin_pipe_close? boolean
 ---@field before_start? fun()
 ---@field on_start? fun(jobid,code,event)
 ---@field on_exit? fun(jobid,code,event)
@@ -33,6 +34,7 @@
 ---@field detach? boolean
 ---@field stdin_file? string
 ---@field stdin_pipe? string
+---@field stdin_pipe_close? boolean
 ---@field before_start? fun()
 ---@field on_start? fun(jobid,code,event)
 ---@field on_exit? fun(jobid,code,event)
@@ -189,7 +191,17 @@ function T.ensure_valid_utask(utask, field)
                 end,
                 "utask.with_shell could be set to true only when utask.cmds is string or #utask.cmds==1",
             },
-            { "utask.with_cmd_wrapper", utask.with_cmd_wrapper, { "boolean", "nil" } },
+            { "utask.with_cmd_wrapper chktype", utask.with_cmd_wrapper, { "boolean", "nil" } },
+            {
+                "utask.with_cmd_wrapper chk coexist",
+                utask.with_cmd_wrapper,
+                function(it)
+                    if it == false and utask.stdin_file then
+                        return "when with_cmd_wrapper==false, you cannnot use stdin_file"
+                    end
+                    return true
+                end,
+            },
             { "utask.with_tmpfile", utask.with_tmpfile, { "table", "nil" } },
             { "utask.cwd", utask.cwd, { "string", "nil" } },
             { "utask.clear_env", utask.clear_env, { "boolean", "nil" } },
@@ -203,6 +215,7 @@ function T.ensure_valid_utask(utask, field)
                 { "string", "nil" },
             },
             { "utask.stdin_pipe", utask.stdin_pipe, { "string", "nil" } },
+            { "utask.stdin_pipe_close", utask.stdin_pipe_close, { "boolean", "nil" } },
             {
                 "utask.stdin",
                 utask,
@@ -827,13 +840,20 @@ local function macro_repalce(task)
             task.env[k] = replace_in_string(v)
         end
     end
+    if type(task.stdin_file) == "string" then
+        task.stdin_file = replace_in_string(task.stdin_file)
+    end
     return task
 end
-local function on_start_stdin_pipe(jobid, stdin_pipe)
-    -- vim.notify("task.on_start (stdin_pipe)")
+local function on_start_stdin_pipe(jobid, stdin_pipe, close)
     if stdin_pipe then
         vim.schedule(function()
             pcall(vim.fn.chansend, jobid, stdin_pipe)
+            if close then
+                vim.schedule(function()
+                    vim.fn.chanclose(jobid, "stdin")
+                end)
+            end
         end)
     end
 end
@@ -859,7 +879,7 @@ local function run_task(task)
                 env = task_final.env,
                 before_start = task_final.before_start,
                 on_start = task_final.stdin_pipe and function(job)
-                    on_start_stdin_pipe(job, task_final.stdin_pipe)
+                    on_start_stdin_pipe(job, task_final.stdin_pipe, task_final.stdin_pipe_close)
                 end,
                 on_exit = task_final.on_exit,
                 after_finish = task_final.after_finish,
@@ -898,7 +918,7 @@ local function run_taskset(taskset)
                     env = item.task.env,
                     before_start = item.task.before_start,
                     on_start = item.task.stdin_pipe and function(job)
-                        on_start_stdin_pipe(job, item.task.stdin_pipe)
+                        on_start_stdin_pipe(job, item.task.stdin_pipe, item.task.stdin_pipe_close)
                     end,
                     on_exit = item.task.on_exit,
                     after_finish = item.task.after_finish,

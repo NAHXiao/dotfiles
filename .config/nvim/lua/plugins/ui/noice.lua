@@ -20,7 +20,9 @@ return {
                 top_down = true,
                 merge_duplicates = true,
             }
-            vim.notify = notify.notify
+            vim.notify = function(msg, ...)
+                notify.notify(msg:gsub("\r\n", "\n"):gsub("\r", "\n"), ...)
+            end
             vim.g.cleanui_funcs = vim.list_extend(vim.g.cleanui_funcs, {
                 function()
                     require("notify").dismiss { pending = false, silent = true }

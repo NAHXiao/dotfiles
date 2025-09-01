@@ -163,21 +163,61 @@ function M.lsp_settings()
 end
 
 function M.mason_auto_install()
+    local ok, mason_registry = pcall(require, "mason-registry")
+    if not ok then
+        vim.notify(
+            "[LSP]: require('mason-registry') error,please ensure mason is installed",
+            vim.log.levels.ERROR
+        )
+        return
+    end
     local function install(pkg_name)
-        local pkg = vim.F.npcall(require("mason-registry").get_package, pkg_name)
-        if pkg and not pkg:is_installed() then
-            pkg:install()
+        local ok, pkg = pcall(mason_registry.get_package, pkg_name)
+        if ok then
+            if not pkg:is_installed() then
+                pkg:install()
+            end
+        else
+            vim.schedule(function()
+                vim.notify(("[LSP]: %s not found in mason-registry"):format(pkg_name))
+            end)
         end
     end
-    for _, pkg_name in ipairs(M.config.mason_ensure_install_lsp) do
-        install(pkg_name)
-    end
-    for _, pkg_name in ipairs(M.config.mason_ensure_install_dap) do
-        install(pkg_name)
-    end
-    for _, pkg_name in ipairs(M.config.mason_ensure_install_extra) do
-        install(pkg_name)
-    end
+    mason_registry.refresh(function(success, _)
+        if success then
+            local lsp2pkg = vim.iter(mason_registry.get_all_package_specs())
+                :filter(function(it)
+                    return vim.tbl_contains(it.categories, "LSP")
+                end)
+                :map(function(it)
+                    return it.name,
+                        (it.neovim and it.neovim.lspconfig and it.neovim.lspconfig or it.name)
+                end)
+                :fold({}, function(tbl, k, v)
+                    tbl[k] = v
+                    return tbl
+                end)
+            lsp2pkg = require("mason-core.functional").invert(lsp2pkg)
+            setmetatable(lsp2pkg, {
+                __index = function(_, k)
+                    return k
+                end,
+            })
+            for _, lsp_name in ipairs(M.config.mason_ensure_install_lsp) do
+                install(lsp2pkg[lsp_name])
+            end
+            for _, pkg_name in ipairs(M.config.mason_ensure_install_dap) do
+                install(pkg_name)
+            end
+            for _, pkg_name in ipairs(M.config.mason_ensure_install_extra) do
+                install(pkg_name)
+            end
+        else
+            vim.schedule(function()
+                vim.notify("[LSP]: refresh mason_registry failed")
+            end)
+        end
+    end)
 end
 
 function M.setup()

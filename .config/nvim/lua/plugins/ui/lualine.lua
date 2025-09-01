@@ -32,7 +32,7 @@ return {
     lazy = true,
     event = "VeryLazy",
     dependencies = {
-        "kyazdani42/nvim-web-devicons",
+        "nvim-tree/nvim-web-devicons",
     },
     config = function()
         local conditions = {
@@ -80,9 +80,17 @@ return {
                             return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
                                 or vim.bo.buftype == "terminal"
                         end,
+                        on_click = function()
+                            vim.api.nvim_feedkeys(
+                                ":set ft=" .. (vim.bo.filetype and vim.bo.filetype or ""),
+                                "nt",
+                                false
+                            )
+                        end,
                     },
                     {
                         function()
+                            local padding = vim.bo.filetype and #vim.bo.filetype ~= 0 and "" or " "
                             if vim.bo.buftype == "terminal" then
                                 return vim.api.nvim_buf_get_name(0)
                             end
@@ -90,12 +98,13 @@ return {
                             local buf_path = vim.api.nvim_buf_get_name(0)
                             local maxlen = shorten_filepath and math.floor(vim.o.columns / 4) or 1e9
                             if root_dir then
-                                return shorten_path(
-                                    require("utils").relpath(root_dir, buf_path),
-                                    maxlen
-                                )
+                                return padding
+                                    .. shorten_path(
+                                        require("utils").relpath(root_dir, buf_path),
+                                        maxlen
+                                    )
                             else
-                                return shorten_path(buf_path, maxlen)
+                                return padding .. shorten_path(buf_path, maxlen)
                             end
                         end,
                         padding = { right = 0, left = 0 },

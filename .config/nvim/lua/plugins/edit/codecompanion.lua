@@ -12,6 +12,7 @@ return {
         "CodeCompanionCmd",
     },
     opts = {
+        -- log_level = "TRACE",
         strategies = {
             chat = {
                 adaptor = "copilot",

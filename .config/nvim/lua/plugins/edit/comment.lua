@@ -3,7 +3,7 @@ return {
     version = "*",
     -- cc cb
     lazy = true,
-    event = "VeryLazy",
+    event = { "BufReadPost", "BufWritePost", "BufNewFile" },
     config = function()
         require("Comment").setup {
             ---Add a space b/w comment and the line

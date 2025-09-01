@@ -24,6 +24,8 @@ end
 -- })
 vim.opt.rtp:prepend(lazypath)
 local lazy = require("lazy")
+
+---NOTE:DIRTY
 ---@param plugin_full_name string e.g. copilot.lua surround.vim
 function lazy.is_loaded(plugin_full_name)
     local plugin = require("lazy.core.config").plugins[plugin_full_name]

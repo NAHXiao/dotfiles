@@ -1,10 +1,68 @@
+---limitation:for windows,the executable replacement will start from the first "--cmds" with spaces on both sides.
+---dependendy:bash
 local ffi = require("ffi")
 local is_windows = ffi.os == "Windows"
 local is_unix = not is_windows
-local print_cmds = false
-local convert_env = false
-local exepath
-local cmd1
+local options = {
+    print_cmds = {
+        type = "boolean",
+        match = { "-p", "--print-cmds" },
+        default = false,
+    },
+    stdin_append = {
+        type = "string",
+        match = { "--stdin-append", "-ia" },
+    },
+    stdin_prepend = {
+        type = "string",
+        match = { "--stdin-prepend", "-ip" },
+    },
+    stdin_file = {
+        type = "string",
+        match = { "--stdin-file", "-if" },
+    },
+    expand_env = {
+        type = "boolean",
+        match = { "--expand-env", "-e" },
+        default = true,
+    },
+}
+---@alias options {
+---cmds:string[],
+---print_cmds:boolean,
+---stdin_prepend?:string,
+---stdin_append?:string,
+---stdin_file?:string,
+---expand_env:boolean}
+local cleanfuncs = {}
+local function err(str)
+    io.stderr:write("Error:" .. str .. "\n")
+    for _, func in ipairs(cleanfuncs) do
+        func()
+    end
+    os.exit(1)
+end
+local function exit(code)
+    for _, func in ipairs(cleanfuncs) do
+        func()
+    end
+    os.exit(code)
+end
+local function new_temp_file(str)
+    local dir = vim.fs.joinpath(vim.fn.stdpath("cache"), "cmd_wrapper")
+    vim.fn.mkdir(dir, ":p")
+    local fd, path_or_msg = vim.uv.fs_mkstemp(dir .. "/XXXXXX")
+    if fd then
+        vim.uv.fs_write(fd, str)
+        vim.uv.fs_close(fd)
+        cleanfuncs[#cleanfuncs + 1] = function()
+            vim.fn.delete(path_or_msg)
+        end
+        return path_or_msg
+    else
+        err("failed to create stdin file")
+    end
+end
 if is_windows then
     vim.cmd("language en_us.UTF-8")
     ffi.cdef([[
@@ -75,6 +133,17 @@ if is_windows then
         BOOL CloseHandle(HANDLE hObject);
         DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds);
         BOOL GetExitCodeProcess(HANDLE hProcess, DWORD* lpExitCode);
+        
+		HANDLE CreateFileA(
+			LPCSTR                lpFileName,
+			DWORD                 dwDesiredAccess,
+			DWORD                 dwShareMode,
+			LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+			DWORD                 dwCreationDisposition,
+			DWORD                 dwFlagsAndAttributes,
+			HANDLE                hTemplateFile
+		);
+		HANDLE GetStdHandle(DWORD nStdHandle);
     ]])
 elseif is_unix then
     ffi.cdef([[
@@ -83,169 +152,48 @@ elseif is_unix then
         void exit(int status);
         int fork();
         int waitpid(int pid, int *status, int options);
+		int open(const char *pathname, int flags);
+		int dup2(int oldfd, int newfd);
+		int close(int fd);
     ]])
 end
-local function parse_flags()
-    if not arg then
-        print("Error: No arguments provided")
-        os.exit(1)
-    end
-    local cmds_index = nil
-    for i = 1, #arg do
-        if arg[i] == "--cmds" then
-            cmds_index = i
-            break
-        end
-    end
-    if not cmds_index then
-        print("Error: --cmds parameter not found")
-        os.exit(1)
-    end
-    for i = 1, cmds_index - 1 do
-        if arg[i] == "--print-cmds" then
-            print_cmds = true
-        elseif arg[i] == "--convert-env" then
-            convert_env = true
-        end
-    end
-    local cmds = {}
-    for i = cmds_index + 1, #arg do
-        table.insert(cmds, arg[i])
-    end
-    if #cmds == 0 then
-        print("Error: No command found after --cmds")
-        os.exit(1)
-    end
-    return cmds
-end
+
+---@return string
 local function expand_env_vars(str)
-    if not convert_env then
-        return str
-    end
-    local function get_env_var(name)
-        return os.getenv(name)
-    end
-    local function process_expansion(match)
-        local var_name, operator, _ = match:match("^([^:]+)(:?[^}]*)")
-
-        if not var_name then
-            return match
-        end
-        local env_value = get_env_var(var_name)
-        local is_set = env_value ~= nil and env_value ~= ""
-        if not operator or operator == "" then
-            -- 简单变量替换 ${var}
-            return env_value or ""
-        elseif operator:match("^:%-(.*)") then
-            -- ${variable:-value} 如果变量没有被设置，则使用默认值
-            local default_val = operator:match("^:%-(.*)") or ""
-            return is_set and env_value or default_val
-        elseif operator:match("^:%+(.*)") then
-            -- ${variable:+value} 如果变量被设置，则使用指定的值
-            local alt_val = operator:match("^:%+(.*)") or ""
-            return is_set and alt_val or ""
-        elseif operator:match("^:%?(.*)") then
-            -- ${variable:?message} 如果变量没有被设置，则输出错误消息并退出
-            local error_msg = operator:match("^:%?(.*)") or "parameter not set"
-            if not is_set then
-                print("Error: " .. var_name .. ": " .. error_msg)
-                os.exit(1)
-            end
-            return env_value
-        elseif operator:match("^##(.*)") then
-            -- ${variable##pattern} 删除从前查找最长的匹配
-            local pattern = operator:match("^##(.*)")
-            if is_set and pattern ~= "" then
-                local result = env_value:gsub("^.*" .. pattern, "")
-                return result
-            end
-            return env_value or ""
-        elseif operator:match("^#(.*)") then
-            -- ${variable#pattern} 删除从前查找最短的匹配
-            local pattern = operator:match("^#(.*)")
-            if is_set and pattern ~= "" then
-                local result = env_value:gsub("^.-" .. pattern, "")
-                return result
-            end
-            return env_value or ""
-        elseif operator:match("^%%%%(.*)") then
-            -- ${variable%%pattern} 删除从后查找最长的匹配
-            local pattern = operator:match("^%%%%(.*)")
-            if is_set and pattern ~= "" then
-                local result = env_value:gsub(pattern .. ".*$", "")
-                return result
-            end
-            return env_value or ""
-        elseif operator:match("^%%(.*)") then
-            -- ${variable%pattern} 删除从后查找最短的匹配
-            local pattern = operator:match("^%%(.*)")
-            if is_set and pattern ~= "" then
-                local result = env_value:gsub(pattern .. ".-$", "")
-                return result
-            end
-            return env_value or ""
-        elseif operator:match("^//(.*)") then
-            -- ${variable//pattern/replacement} 全局替换
-            local pattern, replacement = operator:match("^//([^/]*)/?(.*)")
-            if is_set and pattern then
-                replacement = replacement or ""
-                local result = env_value:gsub(pattern, replacement)
-                return result
-            end
-            return env_value or ""
-        elseif operator:match("^/(.*)") then
-            -- ${variable/pattern/replacement} 单次替换
-            local pattern, replacement = operator:match("^/([^/]*)/?(.*)")
-            if is_set and pattern then
-                replacement = replacement or ""
-                local result = env_value:gsub(pattern, replacement, 1)
-                return result
-            end
-            return env_value or ""
-        end
-
-        return env_value or ""
-    end
-    str = str:gsub("%${([^}]+)}", process_expansion)
-    return str
+    local result = string.gsub(str, "(%${[^}]+})", function(var)
+        return vim.fn.system { "bash", "-c", ("echo -n %s"):format(var) }
+    end)
+    return result
 end
-local function execute_windows(cmdline)
+---@param opts options
+local function execute_windows(opts)
     local kernel32 = ffi.load("kernel32")
     local function get_command_line_a()
         local cmd_line = kernel32.GetCommandLineA()
         if cmd_line ~= nil then
             return ffi.string(cmd_line)
         else
-            return nil
+            err("Unable to get command line")
         end
     end
+    local function prefix_replace(str, prefix, replacement)
+        if str:sub(1, #prefix) == prefix then
+            return replacement .. str:sub(#prefix + 1)
+        end
+        return str
+    end
     local full_cmdline = get_command_line_a()
-    if not full_cmdline then
-        print("Error: Unable to get command line")
-        os.exit(1)
-    end
-
-    local cmds_pos = full_cmdline:find("%-%-cmds")
-    if not cmds_pos then
-        print("Error: --cmds not found in command line")
-        os.exit(1)
-    end
-    local cmd_start = full_cmdline:find("%s", cmds_pos)
+    local _, cmd_start = full_cmdline:find(" %-%-cmds +")
     if not cmd_start then
-        print("Error: No command found after --cmds")
-        os.exit(1)
+        err("--cmds not found in command line")
     end
-    cmdline = full_cmdline:sub(cmd_start + 1):gsub("^%s+", "")
-    if convert_env then
+    cmd_start = cmd_start + 1
+    local cmdline = full_cmdline:sub(cmd_start)
+    cmdline = prefix_replace(cmdline, opts.cmds[1], vim.fn.exepath(opts.cmds[1]))
+    if opts.expand_env then
         cmdline = expand_env_vars(cmdline)
     end
-    local function replace_prefix(str, prefix, repl)
-        local p = "^" .. (prefix:gsub("([^%w])", "%%%1"))
-        local safe_repl = repl:gsub("%%", "%%%%")
-        return str:gsub(p, safe_repl, 1)
-    end
-    cmdline = replace_prefix(cmdline, cmd1, exepath)
-    if print_cmds then
+    if opts.print_cmds then
         print("[" .. cmdline .. "]")
         print()
     end
@@ -254,24 +202,50 @@ local function execute_windows(cmdline)
     local si = ffi.new("STARTUPINFOA")
     local pi = ffi.new("PROCESS_INFORMATION")
     si.cb = ffi.sizeof(si)
-    si.dwFlags = 0
     si.wShowWindow = 1 -- SW_SHOWNORMAL
+
+    local hStdinFile = nil
+    if opts.stdin_file then
+        local sa = ffi.new("SECURITY_ATTRIBUTES")
+        sa.nLength = ffi.sizeof(sa)
+        sa.bInheritHandle = 1
+        sa.lpSecurityDescriptor = nil
+
+        hStdinFile = kernel32.CreateFileA(
+            opts.stdin_file,
+            0x80000000, -- GENERIC_READ
+            1, -- FILE_SHARE_READ
+            sa, -- 使用可继承的安全属性
+            3, -- OPEN_EXISTING
+            0x80, -- FILE_ATTRIBUTE_NORMAL
+            nil
+        )
+        if hStdinFile == ffi.cast("void*", -1) then -- INVALID_HANDLE_VALUE
+            err("Failed to open stdin file")
+        end
+    end
+    si.dwFlags = 0x100 -- STARTF_USESTDHANDLES
+    si.hStdInput = hStdinFile or kernel32.GetStdHandle(0xFFFFFFF6) -- STD_INPUT_HANDLE
+    si.hStdOutput = kernel32.GetStdHandle(0xFFFFFFF5) -- STD_OUTPUT_HANDLE
+    si.hStdError = kernel32.GetStdHandle(0xFFFFFFF4) -- STD_ERROR_HANDLE
     local success = kernel32.CreateProcessA(
         nil, -- lpApplicationName
         cmd_buffer, -- lpCommandLine
         nil, -- lpProcessAttributes
         nil, -- lpThreadAttributes
-        0, -- bInheritHandles
+        1, -- bInheritHandles
         0, -- dwCreationFlags
         nil, -- lpEnvironment
         nil, -- lpCurrentDirectory
         si, -- lpStartupInfo
         pi -- lpProcessInformation
     )
-
+    if hStdinFile then
+        kernel32.CloseHandle(hStdinFile)
+    end
     if success == 0 then
-        print("Error: Failed to create process")
-        return -1
+        local error_code = kernel32.GetLastError()
+        err("Failed to create process, error: " .. error_code)
     end
     kernel32.WaitForSingleObject(pi.hProcess, 0xFFFFFFFF)
     local exit_code = ffi.new("DWORD[1]")
@@ -281,32 +255,41 @@ local function execute_windows(cmdline)
     if got_exit_code ~= 0 then
         return tonumber(exit_code[0])
     else
-        print("Error: Failed to get exit code")
+        err("Failed to get exit code")
         return -1
     end
 end
-local function execute_unix(cmds)
-    if convert_env then
-        for i = 1, #cmds do
-            cmds[i] = expand_env_vars(cmds[i])
+---@param opts options
+local function execute_unix(opts)
+    if opts.expand_env then
+        for idx, cmd in ipairs(opts.cmds) do
+            opts.cmds[idx] = expand_env_vars(cmd)
         end
     end
-    if print_cmds then
-        print("[" .. table.concat(cmds, " ") .. "]")
+    if opts.print_cmds then
+        print("[" .. table.concat(opts.cmds, " ") .. "]")
         print()
     end
-    local argv = ffi.new("char*[?]", #cmds + 1)
+    local argv = ffi.new("char*[?]", #opts.cmds + 1)
     local c_strings = {}
-    for i = 1, #cmds do
-        c_strings[i] = ffi.new("char[?]", #cmds[i] + 1)
-        ffi.copy(c_strings[i], cmds[i])
+    for i = 1, #opts.cmds do
+        c_strings[i] = ffi.new("char[?]", #opts.cmds[i] + 1)
+        ffi.copy(c_strings[i], opts.cmds[i])
         argv[i - 1] = c_strings[i]
     end
-    argv[#cmds] = nil
+    argv[#opts.cmds] = nil
+
     local pid = ffi.C.fork()
     if pid == 0 then
+        if opts.stdin_file then
+            local fd = ffi.C.open(opts.stdin_file, 0) -- O_RDONLY
+            if fd >= 0 then
+                ffi.C.dup2(fd, 0) -- 重定向到stdin
+                ffi.C.close(fd)
+            end
+        end
         ffi.C.execvp(c_strings[1], argv)
-        print("Error: Failed to execute command")
+        err("Failed to execute command")
         ffi.C.exit(1)
     elseif pid > 0 then
         local status = ffi.new("int[1]")
@@ -314,24 +297,132 @@ local function execute_unix(cmds)
         local exit_code = bit.rshift(status[0], 8)
         return exit_code
     else
-        print("Error: Failed to fork process")
+        err("Failed to fork process")
         return -1
     end
 end
-local function main()
-    local cmds = parse_flags()
-    cmd1 = cmds[1]
-    exepath = vim.fn.exepath(cmds[1])
-    if "" == exepath then
-        os.exit(1)
+---@return options
+local function parse_args(args)
+    local cmds_index = nil
+    for i = 1, #args do
+        if args[i] == "--cmds" then
+            cmds_index = i
+            break
+        end
     end
-    local exit_code
-    if is_windows then
-        exit_code = execute_windows()
-    else
-        exit_code = execute_unix(cmds)
+    if not cmds_index then
+        err("--cmds parameter not found")
     end
-    -- print("[process exited " .. exit_code .. "]")
-    os.exit(exit_code)
+    if args[cmds_index + 1] == nil then
+        err("no cmds provided")
+    end
+    local cmd0 = args[cmds_index + 1]
+    if vim.fn.executable(cmd0) == 0 then
+        err(cmd0 .. " is not executable")
+    end
+    local result = {}
+    result.cmds = {}
+    for i = cmds_index + 1, #args do
+        result.cmds[#result.cmds + 1] = args[i]
+    end
+    local i = 1
+    for key, config in pairs(options) do
+        if config.default ~= nil then
+            result[key] = config.default
+        end
+    end
+    while i <= cmds_index - 1 do
+        local arg = args[i]
+        local matched = false
+
+        for key, config in pairs(options) do
+            for _, pattern in ipairs(config.match) do
+                if config.type == "boolean" then
+                    if arg == pattern or arg == pattern .. "=true" then
+                        result[key] = true
+                        matched = true
+                        break
+                    elseif arg == pattern .. "=false" then
+                        result[key] = false
+                        matched = true
+                        break
+                    end
+                elseif config.type == "enum" then
+                    local prefix = pattern .. "="
+                    if arg:sub(1, #prefix) == prefix then
+                        local value = arg:sub(#prefix + 1)
+                        if value == "" then
+                            err("Option " .. pattern .. " requires a value")
+                        end
+
+                        local valid = false
+                        for _, enum_value in ipairs(config.enum) do
+                            if value == enum_value then
+                                valid = true
+                                break
+                            end
+                        end
+                        if not valid then
+                            local valid_values = table.concat(config.enum, ", ")
+                            err("Option " .. pattern .. " must be one of: " .. valid_values)
+                        end
+
+                        result[key] = value
+                        matched = true
+                        break
+                    end
+                else -- string or number
+                    local prefix = pattern .. "="
+                    if arg:sub(1, #prefix) == prefix then
+                        local value = arg:sub(#prefix + 1)
+                        if value == "" then
+                            err("Option " .. pattern .. " requires a value")
+                        end
+
+                        if config.type == "number" then
+                            local num = tonumber(value)
+                            if not num then
+                                err("Option " .. pattern .. " requires a numeric value")
+                            end
+                            result[key] = num
+                        else
+                            result[key] = value
+                        end
+                        matched = true
+                        break
+                    end
+                end
+            end
+            if matched then
+                break
+            end
+        end
+        if not matched then
+            err("Unknown option: " .. arg)
+        end
+        i = i + 1
+    end
+    return result
 end
-main()
+---@param opts options
+local function execute(opts)
+    if opts.stdin_prepend or opts.stdin_append then
+        if not opts.stdin_file then
+            opts.stdin_file = new_temp_file((opts.stdin_prepend or "") .. (opts.stdin_append or ""))
+        else
+            opts.stdin_file = new_temp_file(
+                (opts.stdin_prepend or "")
+                    .. table.concat(vim.fn.readfile(opts.stdin_file), "\n")
+                    .. (opts.stdin_append or "")
+            )
+        end
+        opts.stdin_append = nil
+        opts.stdin_prepend = nil
+    end
+    if is_windows then
+        return execute_windows(opts)
+    else
+        return execute_unix(opts)
+    end
+end
+exit(execute(parse_args(arg)))

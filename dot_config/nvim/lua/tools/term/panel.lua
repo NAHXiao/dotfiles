@@ -49,6 +49,9 @@ local function create_fbtermbuf()
     vim.bo[bufnr].buftype = "nofile"
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].buflisted = false
+
+    local keymaps = require("tools.term.keymaps").termbuf
+    require("tools.term.keymaps").map(keymaps, nil, bufnr)
     return bufnr
 end
 ---@param range {[1]:number,[2]:number} [start,finish] 1-based
@@ -91,8 +94,9 @@ function M.get_panelbuf()
 end
 ---@return number
 function M.get_termbuf()
-    if M.curnode and M.curnode.bufnr and vim.api.nvim_buf_is_valid(M.curnode.bufnr) then
-        return M.curnode.bufnr
+    local curnode = M.get_cur_node()
+    if curnode and curnode.bufnr and vim.api.nvim_buf_is_valid(curnode.bufnr) then
+        return curnode.bufnr
     else
         M.init_or_repair("fallback_termbuf")
         return M.get_fallback_termbuf()
@@ -225,16 +229,23 @@ function M.del_data_by_node(node)
     local panelbuf = M.get_panelbuf()
     local startline, finishline = get_lines_range_by_node(node)
     set_lines({ startline, finishline }, {}, panelbuf)
+    if M.get_cur_node() == node then
+        M.set_cur_node(nil)
+    end
 end
 function M.panel_follow_curnode(opts)
-    M.panel_follow_node(M.curnode, opts)
+    local curnode = M.get_cur_node()
+    if curnode then
+        M.panel_follow_node(curnode, opts)
+    end
 end
+---@param node NNode
 ---@param opts { expand:boolean?, always:boolean?}
 ---- expand: default `true`
 ---- always: follow even when the focus is on the panelwin.default `false`
 function M.panel_follow_node(node, opts)
     opts = vim.tbl_extend("force", { expand = true, always = false }, opts)
-    if M.opened and (opts.always or vim.api.nvim_get_current_win() ~= M.panelwin) then
+    if M.opened and (opts.always or (not M.is_focused("panel"))) then
         local row = M.data:getByKey(node)
         if row then
             vim.api.nvim_win_set_cursor(M.panelwin, { row, 0 })
@@ -253,13 +264,7 @@ function M.panel_follow_node(node, opts)
         end
     end
 end
-function M.get_cursor_node()
-    return M.cursornode
-end
----@param node NNode
-function M.set_cursor_node(node)
-    M.cursornode = node
-end
+---@return TaskTermNode|TermNode|nil
 function M.get_cur_node()
     return M.curnode
 end
@@ -271,27 +276,42 @@ function M.get_data()
     M.init_or_repair("data")
     return M.data
 end
----@param node TermNode|TaskTermNode
+---@param node TermNode|TaskTermNode|nil
 function M.set_cur_node(node)
     if not node or node.classname == "TermNode" or node.classname == "TaskTermNode" then
         M.curnode = node
         M.update_termwinbuf()
         M.panel_follow_curnode { expand = false, always = false }
         log_notify("set curnode to " .. (node and node.name or "nil"))
+    else
+        log_notify("set_cur_node arg error: ", node and node:tostring())
     end
 end
-function M.is_focused()
+---@param who? "term"|"panel"
+function M.is_focused(who)
     local winid = vim.api.nvim_get_current_win()
-    return M.opened and (winid == M.get_termwin() or winid == M.get_panelwin())
+    return M.opened
+        and (
+            ((not who or who == "term") and winid == M.get_termwin())
+            or ((not who or who == "panel") and winid == M.get_panelwin())
+        )
 end
-function M.focus()
+---@param who? "term"|"panel" default term
+function M.focus(who)
     log("focus")
     if not M.opened then
         M.open(true)
     end
-    local termwin = M.get_termwin()
-    if termwin then
-        vim.api.nvim_set_current_win(termwin)
+    if not who or who == "term" then
+        local termwin = M.get_termwin()
+        if termwin then
+            vim.api.nvim_set_current_win(termwin)
+        end
+    else
+        local panelwin = M.get_panelwin()
+        if panelwin then
+            vim.api.nvim_set_current_win(panelwin)
+        end
     end
 end
 function M.toggle()
@@ -326,6 +346,7 @@ function M.init_or_repair(who)
             end
             M.panelbuf = create_panelbuf()
             local keymaps = require("tools.term.keymaps").panelbuf
+            assert(M.panelbuf)
             require("tools.term.keymaps").map(keymaps, function()
                 local row = vim.api.nvim_win_get_cursor(0)[1]
                 log_notify("get row : " .. row)
@@ -336,7 +357,7 @@ function M.init_or_repair(who)
                 group = g,
                 pattern = "TerminalPanel",
                 callback = function()
-                    M.panel_follow_curnode { expand = true, always = false }
+                    M.panel_follow_curnode { expand = true, always = true }
                 end,
             })
         end
@@ -358,13 +379,12 @@ function M.open(focus)
     --if root.children len==0 then root.addnode
     if #M.root.children == 0 then
         local node = require("tools.term.node.termnode"):new(
-            { name = "default" },
-            { cmds = vim.o.shell, opts = {} },
+            { name = vim.fn.fnamemodify(utils.default_shell[1], ":t:r") },
+            { cmds = utils.default_shell, opts = {} },
             true
         )
         M.root:addnode(node)
         M.set_cur_node(node)
-        M.set_cursor_node(node)
     end
     local panelbuf = M.get_panelbuf()
     local termbuf = M.get_termbuf()
@@ -390,17 +410,15 @@ function M.open(focus)
     })
     vim.api.nvim_create_autocmd("WinResized", {
         group = win_autocmd_group,
-        pattern = table.concat({ M.termwin, M.panelwin }, ","),
-        callback = function(args)
-            if args.match == M.panelwin then
-                vim.api.nvim_win_set_width(
-                    M.panelwin,
-                    math.min(
-                        vim.api.nvim_win_get_width(M.panelwin),
-                        math.floor(vim.api.nvim_win_get_width(M.panelwin) / 5)
-                    )
+        -- pattern = table.concat({ M.termwin, M.panelwin }, ","),
+        callback = function()
+            vim.api.nvim_win_set_width(
+                M.panelwin,
+                math.min(
+                    vim.api.nvim_win_get_width(M.panelwin),
+                    math.floor(vim.api.nvim_win_get_width(M.termwin) / 4)
                 )
-            end
+            )
         end,
     })
     --if not focus then return origin window else focus termwin
@@ -494,12 +512,12 @@ end
 ---@field update_data_by_node fun(node:NNode,recurse?:boolean) WriteAble
 ---@field del_data_by_node fun(node:NNode) WriteAble
 ---@field update_termwinbuf fun() WriteAble
----@field set_cur_node fun(node:any) WriteAble ButShouldOnlyUsedInKeyMap
+---@field set_cur_node fun(node:TermNode|TaskTermNode|nil) WriteAble ButShouldOnlyUsedInKeyMap
 ---
 ---@field open fun() Expose
 ---@field close fun() Expose
 ---@field is_focused fun():boolean Expose
----@field focus fun() Expose
+---@field focus fun(who?:"term"|"panel") Expose default term
 ---@field toggle fun() Expose
 ---@field panel_follow_node fun(node:NNode,opts:{ expand:boolean?, always:boolean?})
 ---@field send_feedkey fun(lines:string[], node:TaskTermNode|TermNode, extra_cr?:number) Expose

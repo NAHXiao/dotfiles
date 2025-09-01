@@ -31,6 +31,151 @@ map({ "n", "v" }, "<C-S-V>", "p")
 map({ "c", "i" }, "<C-S-V>", '<C-R>"')
 map("v", "<C-S-C>", "y")
 
+---NOTE: Flash+gi/go
+---LIMIT: Single Char
+map("v", "gi", function()
+    if vim.fn.mode():byte() ~= 118 then
+        return
+    end
+    local begin_row, begin_col, cur_row, cur_col
+    local pos = vim.fn.getpos("v")
+    begin_row, begin_col = pos[2], pos[3]
+    pos = vim.fn.getpos(".")
+    cur_row, cur_col = pos[2], pos[3]
+    local pairs = {
+        ["{"] = { "{", "", "}" },
+        ["("] = { "(", "", ")" },
+        ["["] = { "\\[", "", "\\]" },
+        ["<"] = { "<", "", ">" },
+        ["}"] = { "{", "", "}" },
+        [")"] = { "(", "", ")" },
+        ["]"] = { "\\[", "", "\\]" },
+        [">"] = { "<", "", ">" },
+
+        ["'"] = { "'", "", "'" },
+        ['"'] = { '"', "", '"' },
+        ["`"] = { "`", "", "`" },
+    }
+    local begin_in_front = true
+    if vim.fn.line2byte(begin_row) + begin_col > vim.fn.line2byte(cur_row) + cur_col then
+        begin_in_front = false
+    end
+    local recover = function() end
+    if not begin_in_front then
+        vim.api.nvim_feedkeys("o", "x", false) --reverse
+        recover = function()
+            vim.api.nvim_feedkeys("o", "x", false) --reverse
+        end
+        begin_row, begin_col, cur_row, cur_col = cur_row, cur_col, begin_row, begin_col
+    end
+    -----
+    --stylua: ignore
+    local cur_char = (vim.api.nvim_buf_get_lines(0, cur_row - 1, cur_row, true)[1]):sub( cur_col, cur_col)
+    local p = pairs[cur_char]
+    if not p then
+        recover()
+        return --if reverse reverse
+    end
+    local begin_row_, begin_col_ = unpack(vim.fn.searchpairpos(p[1], p[2], p[3], "bnW"))
+    if
+        (begin_row_ == 0 and begin_col_ == 0)
+        or begin_row ~= begin_row_
+        or begin_col ~= begin_col_
+    then
+        recover()
+        return --if reverse reverse
+    end
+    if begin_col == vim.fn.col { begin_row, "$" } - 1 then
+        begin_row, begin_col = begin_row + 1, 1
+    else
+        begin_col = begin_col + 1
+    end
+    if
+        cur_col == 1
+        or vim.api.nvim_get_current_line():sub(1, cur_col - 1):match("^%s*$") ~= nil
+    then
+        cur_row = cur_row - 1
+        cur_col = vim.fn.col { cur_row, "$" } - 1
+    else
+        cur_col = cur_col - 1
+    end
+    if vim.fn.line2byte(begin_row) + begin_col > vim.fn.line2byte(cur_row) + cur_col then
+        recover()
+        return -- if reverse reverse
+    end
+    vim.api.nvim_win_set_cursor(0, { cur_row, cur_col - 1 })
+    vim.api.nvim_feedkeys("o", "x", false)
+    vim.api.nvim_win_set_cursor(0, { begin_row, begin_col - 1 })
+    vim.api.nvim_feedkeys("o", "x", false)
+    -----
+    recover()
+end, { desc = "select inner for {}/[]/()/``/<>/''/\"\"" })
+map("v", "go", function()
+    if vim.fn.mode():byte() ~= 118 then
+        return
+    end
+    local begin_row, begin_col, cur_row, cur_col
+    local pos = vim.fn.getpos("v")
+    begin_row, begin_col = pos[2], pos[3]
+    pos = vim.fn.getpos(".")
+    cur_row, cur_col = pos[2], pos[3]
+    local pairs = {
+        ["}"] = { "{", "", "}" },
+        [")"] = { "(", "", ")" },
+        ["]"] = { "\\[", "", "\\]" },
+        [">"] = { "<", "", ">" },
+
+        ["'"] = { "'", "", "'" },
+        ['"'] = { '"', "", '"' },
+        ["`"] = { "`", "", "`" },
+    }
+    local begin_in_front = true
+    if vim.fn.line2byte(begin_row) + begin_col > vim.fn.line2byte(cur_row) + cur_col then
+        begin_in_front = false
+    end
+    local recover = function() end
+    if not begin_in_front then
+        vim.api.nvim_feedkeys("o", "x", false)
+        recover = function()
+            vim.api.nvim_feedkeys("o", "x", false)
+        end
+        begin_row, begin_col, cur_row, cur_col = cur_row, cur_col, begin_row, begin_col
+    end
+    -----
+    local nextchar_row, nextchar_col = unpack(vim.fn.searchpos("\\S", "n"))
+    if nextchar_row == 0 or nextchar_col == 0 then
+        recover()
+        return
+    end
+    local nextchar = (vim.api.nvim_buf_get_lines(0, nextchar_row - 1, nextchar_row, true)[1]):sub(
+        nextchar_col,
+        nextchar_col
+    )
+    local p = pairs[nextchar]
+    if not p then
+        recover()
+        return
+    end
+    vim.api.nvim_win_set_cursor(0, { nextchar_row, nextchar_col - 1 })
+    local nextchar_pair_row, nextchar_pair_col =
+        unpack(vim.fn.searchpairpos(p[1], p[2], p[3], "bnW"))
+    vim.api.nvim_feedkeys("o", "x", false)
+    local prevchar_row, prevchar_col = unpack(vim.fn.searchpos("\\S", "nb"))
+    if
+        prevchar_row == 0
+        or prevchar_col == 0
+        or (prevchar_row ~= nextchar_pair_row or prevchar_col ~= nextchar_pair_col)
+    then
+        vim.api.nvim_feedkeys("o", "x", false)
+        vim.api.nvim_win_set_cursor(0, { cur_row, cur_col - 1 })
+        recover()
+        return
+    end
+    vim.api.nvim_win_set_cursor(0, { nextchar_pair_row, nextchar_pair_col - 1 })
+    vim.api.nvim_feedkeys("o", "x", false)
+    -----
+    recover()
+end, { desc = "select outer for {}/[]/()/``/<>/''/\"\"" })
 -- vnew
 map("n", "<C-w>N", ":vnew<CR>")
 map("n", "<A-s>", ":new<CR>")
@@ -165,6 +310,18 @@ end)
 map("n", "<C-l>", function()
     vim.g.cleanui()
 end)
+map(
+    "n",
+    "<leader>qq",
+    ":if empty(filter(getwininfo(), 'v:val.quickfix')) | botright copen | else | cclose | endif<CR>",
+    { desc = "QuickFix: toggle", silent = true }
+)
+vim.keymap.set(
+    "n",
+    "<leader>ql",
+    ":if empty(filter(getwininfo(), 'v:val.loclist')) | botright lopen | else | lclose | endif<CR>",
+    { desc = "LocList: toggle", silent = true }
+)
 
 vim.keymap.del("o", "gc")
 vim.keymap.del("x", "gc")
@@ -242,6 +399,8 @@ cnoreabbrev wQA1 wqa!
 cnoreabbrev wQa1 wqa!
 cnoreabbrev wqA1 wqa!
 cnoreabbrev wqa1 wqa!
+
+cnoreabbrev Lua lua
 ]])
 vim.cmd([[
     cnoreabbrev b! botright split new \| r!

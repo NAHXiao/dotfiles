@@ -30,15 +30,29 @@ local function abstract_unreachable(typeName)
         assert(false, "abstract method,unreachable")
     end
 end
+---@generic T
+---@param typeName `T`
+---@return fun(...):T
+local function dropped_unreachable(typeName)
+    return function(...)
+        assert(false, "attempt to call method on a dropped Node")
+    end
+end
 Node.display = abstract_unreachable("string")
 Node.restart = abstract_unreachable("nil")
 Node.start = abstract_unreachable("nil")
 Node.clean = abstract_unreachable("nil")
 
----clean + panel.del
+---clean + panel.del + parent,prev... = nil
 ---@protected called externeall will cause tree structure inconsistent
 function Node:drop()
-    self:clean()
+    self.parent = nil
+    self.prev = nil
+    self.next = nil
+    self.name = self.name .. "(Droped)"
+    self.clean = dropped_unreachable("nil")
+    self.restart = dropped_unreachable("nil")
+    self.start = dropped_unreachable("nil")
     panel.del_data_by_node(self)
 end
 ---static shouldn't be override

@@ -8,7 +8,30 @@ return {
     lazy = false,
     cmd = "Neotree",
     keys = {
-        { "<C-n>", "<Cmd>Neotree toggle<CR>", desc = "Toggle Explorer", mode = "n" },
+        {
+            "<C-n>",
+            "<Cmd>Neotree toggle source=last<CR>",
+            desc = "Toggle Explorer",
+            mode = "n",
+        },
+        {
+            "1<C-n>",
+            "<Cmd>Neotree toggle source=filesystem<CR>",
+            desc = "Toggle Explorer",
+            mode = "n",
+        },
+        {
+            "2<C-n>",
+            "<Cmd>Neotree toggle source=buffers<CR>",
+            desc = "Toggle Explorer",
+            mode = "n",
+        },
+        {
+            "3<C-n>",
+            "<Cmd>Neotree toggle source=git_status<CR>",
+            desc = "Toggle Explorer",
+            mode = "n",
+        },
         -- {
         --     "<leader>s",
         --     "<Cmd>Neotree document_symbols action=show toggle=true<CR>",
@@ -105,16 +128,16 @@ return {
                 },
                 mappings = {
                     ["1"] = function()
-                        vim.api.nvim_exec("Neotree focus filesystem left", true)
+                        vim.cmd("Neotree focus filesystem left")
                     end,
                     ["2"] = function()
-                        vim.api.nvim_exec("Neotree focus buffers left", true)
+                        vim.cmd("Neotree focus buffers left")
                     end,
                     -- ["3"] = function()
-                    --     vim.api.nvim_exec("Neotree focus document_symbols left", true)
+                    --     vim.cmd("Neotree focus document_symbols left", true)
                     -- end,
                     ["3"] = function()
-                        vim.api.nvim_exec("Neotree focus git_status left", true)
+                        vim.cmd("Neotree focus git_status left")
                     end,
                 },
             },

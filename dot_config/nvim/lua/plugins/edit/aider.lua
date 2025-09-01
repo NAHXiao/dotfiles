@@ -2,6 +2,7 @@ return {
     "GeorgesAlkhouri/nvim-aider",
     cmd = "Aider",
     lazy = true,
+    cond = false,
     -- event = "VeryLazy",
     keys = {
         { "<leader>a/", "<cmd>Aider toggle<cr>", desc = "Toggle Aider" },

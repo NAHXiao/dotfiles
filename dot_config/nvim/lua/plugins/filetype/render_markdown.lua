@@ -16,6 +16,7 @@ return {
                 local enable = require("render-markdown").get()
                 require("utils").vim_echo(("RenderMarkdown: %s"):format(enable and "On" or "Off"))
             end,
+            desc = "Toggle RenderMarkdown",
         },
     },
     ---@module 'render-markdown'

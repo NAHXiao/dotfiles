@@ -257,7 +257,7 @@ local config = {
                 name = "python run with venv",
                 cmds = {
                     (function()
-                        local root = require("utils").get_rootdir()
+                        local root = require("utils").get_rootdir() or vim.fn.getcwd()
                         local dot_venv_py = vim.fs.joinpath(root, ".venv", "bin", "python")
                         local venv_py = vim.fs.joinpath(root, "venv", "bin", "python")
                         for _, py in ipairs { dot_venv_py, venv_py } do
@@ -333,17 +333,17 @@ local config = {
             {
                 name = "project-refresh-config",
                 cmds = { "cmake", "--fresh", "-B", "build", "-S", "." },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
             {
                 name = "build",
                 cmds = { "cmake", "--build", "build" },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
             {
                 name = "run",
                 cmds = { "build/$(VIM_PRONAME)" },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
         },
     },

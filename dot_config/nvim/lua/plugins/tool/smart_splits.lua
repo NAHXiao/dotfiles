@@ -13,6 +13,7 @@ return {
                 return cond() and require("smart-splits").resize_left()
             end,
             desc = "Resize split left",
+            mode = { "n", "t" },
         },
         {
             "<A-S-j>",
@@ -20,6 +21,7 @@ return {
                 return cond() and require("smart-splits").resize_down()
             end,
             desc = "Resize split down",
+            mode = { "n", "t" },
         },
         {
             "<A-S-k>",
@@ -27,6 +29,7 @@ return {
                 return cond() and require("smart-splits").resize_up()
             end,
             desc = "Resize split up",
+            mode = { "n", "t" },
         },
         {
             "<A-S-l>",
@@ -34,6 +37,7 @@ return {
                 return cond() and require("smart-splits").resize_right()
             end,
             desc = "Resize split right",
+            mode = { "n", "t" },
         },
     },
     config = function()

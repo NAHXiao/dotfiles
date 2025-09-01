@@ -10,12 +10,13 @@ return {
     "folke/todo-comments.nvim",
     version = "*",
     lazy = true,
+    event = { "BufReadPost", "BufWritePost", "BufNewFile" },
     dependencies = {
         "nvim-lua/plenary.nvim",
         "nvim-telescope/telescope.nvim",
     },
     keys = {
-        { "<leader>qt", "<cmd>TodoQuickFix<cr>", mode = "n" },
+        { "<leader>qt", "<cmd>TodoQuickFix<cr>", mode = "n", desc = "QuickFix: Todo" },
         {
             "]t",
             function()

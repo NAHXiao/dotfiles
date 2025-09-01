@@ -12,31 +12,23 @@ return {
         "CodeCompanionCmd",
     },
     opts = {
+        opts = { log_level = "DEBUG", language = "zh.CN" },
         strategies = {
             chat = {
-                adaptor = "copilot",
-                model = "claude-sonnet-4-20250514",
-                keymaps = {
-                    send = {
-                        modes = { n = "<C-s>", i = "<C-s>" },
-                    },
-                    close = {
-                        modes = { n = "q", i = "<C-d>" },
-                    },
-                },
+                adapter = "deepseek",
+                model = "deepseek-reasoner",
             },
             inline = {
-                adaptor = "copilot",
+                adapter = "copilot",
                 model = "claude-sonnet-4-20250514",
             },
             cmd = {
-                adaptor = "copilot",
+                adapter = "copilot",
                 model = "claude-sonnet-4-20250514",
             },
         },
         display = {
             chat = {
-                -- start_in_insert_mode = true,
                 window = {
                     position = "right",
                 },
@@ -84,13 +76,13 @@ When given a task:
     end,
     keys = {
         {
-            "<leader>cc",
+            "<leader>ac",
             "<Cmd>CodeCompanionChat Toggle<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionChat Toggle",
         },
         {
-            "<leader>ca",
+            "<leader>aa",
             "<Cmd>CodeCompanionChat Add<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionChat Add",
@@ -102,7 +94,7 @@ When given a task:
             desc = "CodeCompanionChat",
         },
         {
-            "<leader>c/",
+            "<leader>a/",
             "<Cmd>CodeCompanionActions<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionActions",

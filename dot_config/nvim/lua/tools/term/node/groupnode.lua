@@ -164,9 +164,10 @@ function GroupNode:replace(child, node)
     panel.update_termwinbuf()
 end
 
----@param node NNode
+---@generic T:NNode
+---@param node T
 ---@param uniqname? string
----@return NNode
+---@return T
 function GroupNode:addnode(node, uniqname)
     if uniqname then
         if self.uniqnameMap:getByValue(uniqname) then
@@ -193,6 +194,7 @@ function GroupNode:clean()
     end
 end
 ---@param node NNode
+---@return boolean
 function GroupNode:delnode(node)
     if node.prev then
         node.prev.next = node.next
@@ -203,10 +205,20 @@ function GroupNode:delnode(node)
     for pos, child in ipairs(self.children) do
         if child == node then
             table.remove(self.children, pos):drop()
-            panel.update_data_by_node(self, true)
-            return
+            -- panel.update_data_by_node(self, true)
+            panel.del_data_by_node(node)
+            return true
         end
     end
-    utils.unreachable()
+    utils.log_notify(("%s.delnode: find node %s failed: "):format(self:tostring(), node:tostring()))
+    return false
+end
+---Delete All Children
+function GroupNode:clear()
+    for idx = #self.children, 1, -1 do
+        self.children[idx]:drop()
+        table.remove(self.children, idx)
+    end
+    panel.update_data_by_node(self, true)
 end
 return GroupNode

@@ -44,4 +44,20 @@ return {
             desc = "Toggle Flash Search",
         },
     },
+    config = function(_, opts)
+        require("flash").setup(opts)
+        require("tools.hl").register({
+            FlashLabel = {
+                fg = "FlashLabel.fg",
+                bg = { transform = "darken", from = "FlashLabel.fg", amount = 0.5 },
+            },
+            FlashMatch = {
+                fg = "FlashMatch.fg",
+                bg = { transform = "darken", from = "FlashMatch.fg", amount = 0.5 },
+            },
+        }, {
+            dependency = "outer<-outer",
+            type = "transparent",
+        })
+    end,
 }

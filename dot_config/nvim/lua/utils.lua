@@ -41,36 +41,65 @@ function M.lazy_keymap(keys)
     return ret
 end
 
----@return string[]
-M.log = function(...)
-    local args = { ... }
-    local info = debug.getinfo(2, "nSl")
-    local pretext = ("[%s]"):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
-    if info then
-        pretext = pretext .. (" %s:%d %s(): "):format(info.short_src, info.currentline, info.name)
-    else
-        pretext = pretext .. ": "
-    end
-    local lines = { pretext }
-    local i = 1
-    for k, arg in pairs(args) do
-        if i ~= k then
-            for j = i, k - 1 do
-                lines[#lines + 1] = ("[%d]:"):format(j)
-            end
+---@param opts? {
+---src:(false|"short_src"|"source")?,
+---name:boolean?,
+---time:boolean?,
+---level:number?,
+---callback:(fun(lines:string[])?)}
+---- level default 2
+---@return fun(...):string[]
+M.log = function(opts)
+    local default_opts = {
+        src = "short_src",
+        name = true,
+        level = 2,
+        time = true,
+    }
+    opts = vim.tbl_extend("force", default_opts, opts or {})
+    return function(...)
+        local args = { ... }
+        local pretext = ""
+        if opts.time then
+            pretext = pretext .. ("[%s] "):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
         end
-        lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
-        i = k + 1
+        local info = debug.getinfo(opts.level, "nSl")
+        if opts.src then
+            -- info.src
+            pretext = pretext .. ("%s:%d "):format(info[opts.src], info.currentline)
+        end
+        if opts.name then
+            pretext = pretext .. ("%s() "):format(info.name or "unknown")
+        end
+        if #pretext ~= 0 then
+            pretext = pretext .. ": "
+        end
+        local lines = { #pretext ~= 0 and pretext or nil }
+        local i = 1
+        for k, arg in pairs(args) do
+            if i ~= k then
+                for j = i, k - 1 do
+                    lines[#lines + 1] = ("[%d]:"):format(j)
+                end
+            end
+            lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
+            i = k + 1
+        end
+        lines = vim.split(table.concat(lines, "\n"):gsub("\r\n", "\n"):gsub("\r", "\n"), "\n")
+        if #lines == 2 then
+            lines[1] = lines[1] .. lines[2]
+            lines[2] = nil
+        end
+        if
+            -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa")
+        then
+            vim.notify("write log failed", vim.log.levels.ERROR)
+        end
+        if opts.callback then
+            opts.callback(lines)
+        end
+        return lines
     end
-    lines = vim.split(table.concat(lines, "\n"), "\r?\n")
-    if #lines == 2 then
-        lines[1] = lines[1] .. lines[2]
-        lines[2] = nil
-    end
-    if -1 == vim.fn.writefile(lines, vim.fs.joinpath(uv.os_homedir(), "nvim_config.log"), "sa") then
-        vim.notify("write log failed", vim.log.levels.ERROR)
-    end
-    return lines
 end
 ---@param groupname string
 ---@param clear? boolean
@@ -498,6 +527,7 @@ function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
 
+---@return string
 function M.prefix_replace(str, prefix, replacement)
     if str:sub(1, #prefix) == prefix then
         return replacement .. str:sub(#prefix + 1)
@@ -574,30 +604,125 @@ function M.FindRoot(names, opt)
     end
     return result
 end
-
----- bufnr:filebuf
----bufferProjRoot
----fallback:
----belong to globalProjRoot => globalProjRoot
----otherwise => nil
----- bufnr:other/nil
----globalProjRoot
----@param bufnr? number
+---@class utils.candidates_root : {
+---cur?:"auto"|"cwd"|string, --global:key
+---auto?:string,
+---cwd:string,
+---[string]:string, --lsps
+---[number]:string} --bufnr:key
+local candidates_root = {
+    cur = "auto",
+}
+local candidates_root_inited
+M.auc("DirChanged", {
+    group = M.aug("project-root-manage", true),
+    callback = function()
+        local old_root = candidates_root[candidates_root.cur]
+        candidates_root.cwd = vim.fn.getcwd()
+        --stylua: ignore
+        candidates_root.auto = M.FindRoot({
+            ".git", ".svn", ".hg", ".bzr", "_darcs",
+            ".fslckout", "Makefile", "CMakeLists.txt",
+            "Cargo.toml", "pyproject.toml", "pom.xml",
+            "build.gradle", "package.json", "go.mod",
+            ".project", ".root", ".vscode", ".idea",
+            ".projectile", "compile_commands.json",
+            ".clang-format", ".editorconfig", ".stylua.toml",
+            ".repo", ".gitignore",
+        }, {
+            startpath = vim.fn.getcwd(),
+            use_first_found = false,
+            return_dirname = true,
+        })
+        if old_root ~= candidates_root[candidates_root.cur] and candidates_root_inited then
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+        candidates_root_inited = true
+    end,
+})
+vim.cmd.doautocmd("project-root-manage DirChanged")
+M.auc("LspAttach", {
+    callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client then
+            return
+        end
+        local old_root = candidates_root[candidates_root.cur]
+        local bufnr = ev.buf
+        local root = client.config.root_dir
+        local key = tostring(client.id) .. "." .. client.name
+        candidates_root[key] = root
+        if old_root ~= candidates_root[candidates_root.cur] then
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+        if root and root ~= "" and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root) then
+            candidates_root[bufnr] = key
+        end
+    end,
+})
+---@param bufnr? number fallback: global(if bufnr is a child of globalroot)
 ---@return string|nil
 function M.get_rootdir(bufnr)
+    local global_root = candidates_root[candidates_root.cur]
     if bufnr and vim.bo[bufnr].buftype == "" then
-        local root_dir = vim.b[bufnr].projroot
-        if
-            not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), vim.g.projroot)
-        then
-            root_dir = vim.g.projroot
+        local root_dir = candidates_root[candidates_root[bufnr]]
+        if not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), global_root) then
+            root_dir = global_root
         end
         return root_dir
     else
-        return vim.g.projroot
+        return global_root
     end
 end
-
+---@param bufnr? number
+function M.select_root(bufnr)
+    if bufnr == 0 then
+        bufnr = vim.api.nvim_get_current_buf()
+    end
+    local items = vim.iter(candidates_root)
+        :filter(function(k, _)
+            if type(k) == "string" and k ~= "cur" then
+                return true
+            end
+            return false
+        end)
+        :totable()
+    if nil == candidates_root.auto then
+        table.insert(items, { "auto", "nil" })
+    end
+    table.sort(items, function(a, b)
+        local n1 = tonumber(string.match(a[1], "^[1-9][0-9]*"))
+        local n2 = tonumber(string.match(b[1], "^[1-9][0-9]*"))
+        if not n1 or not n2 then
+            if a[1] == "auto" or (n2 ~= nil and a[1] == "cwd") then
+                return true
+            end
+            return false
+        end
+        return n1 < n2
+    end)
+    vim.ui.select(items, {
+        format_item = function(item)
+            return item[1] .. ": " .. item[2]
+        end,
+        prompt = "Select Root For " .. (bufnr and (("Buf:%d (Current:%s)"):format(
+            bufnr,
+            candidates_root[bufnr]
+        )) or ("Global (Current:%s)"):format(candidates_root.cur)),
+    }, function(item)
+        if not item then
+            return
+        end
+        if bufnr then
+            candidates_root[bufnr] = item[1]
+        else
+            candidates_root.cur = item[1]
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+    end)
+end
+--stylua: ignore
+vim.api.nvim_create_user_command("SelectRoot", function(args) M.select_root(tonumber(args.fargs[1])) end, { nargs = "?", complete = function() return { "0" } end })
 function M.file_parents_has(file, parent)
     for dir in vim.fs.parents(file) do
         if dir == vim.fs.normalize(parent) then
@@ -620,7 +745,7 @@ function M.focus_or_new(filepath, new_content, split)
     vim.validate("filepath", filepath, "string")
     filepath = vim.fs.normalize(filepath)
     if type(new_content) == "table" then
-        new_content = table.concat(new_content, "\r\n")
+        new_content = table.concat(new_content, "\n")
     elseif type(new_content) == "nil" then
         new_content = ""
     end
@@ -642,7 +767,7 @@ function M.focus_or_new(filepath, new_content, split)
             end
             return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
         end
-    local lines = vim.split(new_content, "\r?\n") or { "" }
+    local lines = vim.split(new_content:gsub("\r\n", "\n"):gsub("\r", "\n"), "\n") or { "" }
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr and bufnr ~= -1
     local winid = buf_exists and vim.fn.bufwinid(bufnr) or nil
@@ -711,6 +836,65 @@ function M.transparent_bg_test(filter)
 
     process_next()
 end
-
+---@param filepath string
+---@return boolean success
+---@return any result_or_err
+function M.pdofile(filepath)
+    if not filepath then
+        return false, "filepath is nil"
+    end
+    if vim.fn.filereadable(filepath) == 0 then
+        return false, ("FileNotFound:%s"):format(filepath)
+    end
+    local env = {
+        assert = assert,
+        bit = bit,
+        error = error,
+        -- getmetatable = getmetatable,
+        ipairs = ipairs,
+        pairs = pairs,
+        jit = jit,
+        math = math,
+        next = next,
+        pcall = pcall,
+        -- rawequal = rawequal,
+        -- rawget = rawget,
+        -- rawlen = rawlen,
+        -- rawset = rawset,
+        re = re,
+        select = select,
+        setmetatable = setmetatable,
+        string = string,
+        table = table,
+        tonumber = tonumber,
+        tostring = tostring,
+        type = type,
+        unpack = unpack,
+        vim = {
+            F = vim.F,
+            NIL = vim.NIL,
+            inspect = vim.inspect,
+            notify = function(msg, ...)
+                if type(msg) == "string" then
+                    vim.notify(("[%s]: %s"):format(filepath, msg), ...)
+                end
+            end,
+            iter = vim.iter,
+        },
+    }
+    env._G = env
+    local content = table.concat(vim.fn.readfile(filepath), "\n")
+    local chunk, err = loadstring(content, filepath)
+    if not chunk then
+        return false, err
+    else
+        setfenv(chunk, env)
+        local suc, result_or_err = pcall(chunk)
+        if not suc then
+            return false, result_or_err
+        end
+        return true, result_or_err
+    end
+end
 -------------------------------------------
 return M

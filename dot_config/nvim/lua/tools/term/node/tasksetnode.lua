@@ -142,7 +142,7 @@ function TaskSetNode:generate_nodes()
                     utils.log_notify("14TaskSetNode.start after_finish")
                     if self.break_on_err == false or code == 0 or task.ignore_error then
                         for _, nxt in ipairs(nexts) do
-                            nxt()
+                            nxt:start()
                         end
                         chk_all_finished()
                     else --break

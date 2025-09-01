@@ -1,16 +1,49 @@
 local icons = require("tools.icons")
-local shorten_path = function(filepath, max_len)
-    return require("utils").shorten_path(
-        require("utils").prefix_replace(
-            vim.fs.normalize(filepath),
-            vim.fs.normalize(vim.uv.os_homedir()),
-            "~"
-        ),
-        max_len
+local shorten_path = function(filepath)
+    return require("utils").shorten_path(filepath, math.floor(vim.o.columns / 4))
+end
+local replace_home = function(filepath)
+    return require("utils").prefix_replace(
+        vim.fs.normalize(filepath),
+        vim.fs.normalize(vim.uv.os_homedir()--[[@as string]]),
+        "~"
     )
 end
+local use_global_root = true
+---@return string|nil
+local display_root = function()
+    if use_global_root then
+        local root = require("utils").get_rootdir()
+        if root then
+            return replace_home(root)
+        end
+    else
+        local root = require("utils").get_rootdir(0)
+        if root then
+            return replace_home(root)
+        end
+    end
+end
+local use_shorten_path = true
+local diaplay_path = function()
+    local root = display_root()
+    local buf_path = vim.api.nvim_buf_get_name(0)
+    if not root then
+        if use_shorten_path then
+            return shorten_path(replace_home(buf_path))
+        else
+            return replace_home(buf_path)
+        end
+    else
+        local relpath = replace_home(vim.fs.relpath(root, buf_path) or buf_path)
+        if use_shorten_path then
+            return shorten_path(relpath)
+        else
+            return relpath
+        end
+    end
+end
 
-local shorten_filepath = true
 local colors = {
     bg = "#202328",
     fg = "#bbc2cf",
@@ -32,7 +65,7 @@ return {
     lazy = true,
     event = "VeryLazy",
     dependencies = {
-        "kyazdani42/nvim-web-devicons",
+        "nvim-tree/nvim-web-devicons",
     },
     config = function()
         local conditions = {
@@ -80,23 +113,21 @@ return {
                             return (vim.bo.buftype == "" and vim.api.nvim_buf_get_name(0) ~= "")
                                 or vim.bo.buftype == "terminal"
                         end,
+                        on_click = function()
+                            vim.api.nvim_feedkeys(
+                                ":set ft=" .. (vim.bo.filetype and vim.bo.filetype or ""),
+                                "nt",
+                                false
+                            )
+                        end,
                     },
                     {
                         function()
+                            local padding = vim.bo.filetype and #vim.bo.filetype ~= 0 and "" or " "
                             if vim.bo.buftype == "terminal" then
                                 return vim.api.nvim_buf_get_name(0)
                             end
-                            local root_dir = require("utils").get_rootdir(0)
-                            local buf_path = vim.api.nvim_buf_get_name(0)
-                            local maxlen = shorten_filepath and math.floor(vim.o.columns / 4) or 1e9
-                            if root_dir then
-                                return shorten_path(
-                                    require("utils").relpath(root_dir, buf_path),
-                                    maxlen
-                                )
-                            else
-                                return shorten_path(buf_path, maxlen)
-                            end
+                            return padding .. diaplay_path()
                         end,
                         padding = { right = 0, left = 0 },
                         cond = function()
@@ -104,7 +135,7 @@ return {
                                 or vim.bo.buftype == "terminal"
                         end,
                         on_click = function()
-                            shorten_filepath = not shorten_filepath
+                            use_shorten_path = not use_shorten_path
                             refresh()
                         end,
                     },
@@ -281,10 +312,22 @@ return {
                 lualine_x = {
                     {
                         function()
-                            return shorten_path(
-                                require("utils").get_rootdir(0),
-                                math.floor(vim.o.columns / 3)
-                            )
+                            local root = display_root()
+                            if root and use_global_root then
+                                return root .. " "
+                            end
+                            return root or ""
+                        end,
+                        on_click = function(_, key, _)
+                            if key == "l" then
+                                use_global_root = not use_global_root
+                            else
+                                if use_global_root then
+                                    require("utils").select_root()
+                                else
+                                    require("utils").select_root(0)
+                                end
+                            end
                         end,
                     },
                 },

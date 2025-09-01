@@ -8,7 +8,7 @@ return {
         "rafamadriz/friendly-snippets",
 
         "zbirenbaum/copilot.lua",
-        "kyazdani42/nvim-web-devicons",
+        "nvim-tree/nvim-web-devicons",
         "onsails/lspkind.nvim",
 
         "fang2hou/blink-copilot",
@@ -117,7 +117,7 @@ return {
                 path = { -- ./
                     opts = {
                         get_cwd = function(_)
-                            return require("utils").get_rootdir(0)
+                            return require("utils").get_rootdir(0) or vim.fn.getcwd()
                         end,
                     },
                 },

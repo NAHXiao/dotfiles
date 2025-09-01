@@ -248,6 +248,7 @@ M.auto_enable = keys(M.extend, M.override):exclude(compact {
 })
 M.mason_ensure_install_lsp = keys(M.extend, M.override):exclude(compact {
     ifArch("aarch64", "clangd"),
+    jit.os == "Windows" and "clangd" or nil, --mason's clangd(official) prefer MSVS otherthan MINGW
     ifArch("aarch64", "lua_ls"),
     ifArch("aarch64", "rust_analyzer"),
     ifArch("aarch64", "basedpyright"), --npm install -g basedpyright

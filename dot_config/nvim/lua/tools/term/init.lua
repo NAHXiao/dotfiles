@@ -4,6 +4,11 @@ local function setup()
     local keymaps = require("tools.term.keymaps").global
     map(keymaps)
 end
+---@param name string
+---@param ujobinfo ujobinfo
+---@param focus boolean?
+---@param switch boolean?
+---@param unique_key string?
 local function newtask(name, ujobinfo, focus, switch, unique_key)
     local node = panel.get_root():addnode(
         require("tools.term.node.tasktermnode"):new({ name = name }, ujobinfo, true),
@@ -18,6 +23,11 @@ local function newtask(name, ujobinfo, focus, switch, unique_key)
         panel.open()
     end
 end
+---@param name string
+---@param tasks {name:string,jobinfo:ujobinfo,ignore_err:boolean,bg:boolean}[]
+---@param focus boolean?
+---@param switch boolean?
+---@param unique_key string?
 local function newtaskset(
     name,
     tasks,
@@ -39,8 +49,10 @@ local function newtaskset(
         ),
         unique_key
     )
-    if switch then
-        panel.set_cur_node(node)
+    if node.children and #node.children > 0 then
+        if switch then
+            panel.set_cur_node(node.children[1])
+        end
     end
     if focus then
         panel.focus()
@@ -48,6 +60,10 @@ local function newtaskset(
         panel.open()
     end
 end
+---@param name string
+---@param ujobinfo ujobinfo
+---@param focus boolean?
+---@param switch boolean?
 local function newterm(name, ujobinfo, focus, switch)
     local node = panel
         .get_root()

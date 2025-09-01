@@ -37,9 +37,16 @@ return {
                 "\n"
             )
         )
-
         local jdtls = require("jdtls")
-        local root_dir = require("utils").get_rootdir()
+        local data_dir
+        local cache_dir = os.getenv("XDG_CACHE_HOME") or vim.uv.os_homedir() .. "/.cache"
+        local root = require("utils").get_rootdir()
+        if root then
+            data_dir = ("%s/jdtls/%s"):format(cache_dir, require("utils").encode_path(root))
+        else
+            data_dir = vim.uv.fs_mkdtemp(vim.uv.os_tmpdir() .. "/jdtls-XXXXXXXXXXX")
+                or cache_dir .. "/" .. tostring(math.random(100000))
+        end
         local compact = require("utils").list_compact
         local config = {
             cmd = compact {
@@ -47,12 +54,8 @@ return {
                 ("--jvm-arg=-javaagent:%s"):format(lombok_path),
                 ("--jvm-arg=-Xmx%s"):format(os.getenv("JDTLS_XMX") or "8G"),
                 "-data",
-                ("%s/jdtls/%s"):format(
-                    (os.getenv("XDG_CACHE_HOME") or vim.uv.os_homedir() .. "/.cache"),
-                    require("utils").encode_path(root_dir)
-                ),
+                data_dir,
             },
-            root_dir = root_dir,
             filetypes = { "java" },
             init_options = {
                 bundles = bundles,

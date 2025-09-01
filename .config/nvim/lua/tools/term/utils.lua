@@ -20,7 +20,7 @@ local shell
 if jit.os == "Windows" then
     for _, sh in ipairs { "pwsh", "powershell", "cmd" } do
         if vim.fn.executable(sh) then
-            shell = vim.fn.execute(sh)
+            shell = vim.fn.exepath(sh)
             break
         end
     end

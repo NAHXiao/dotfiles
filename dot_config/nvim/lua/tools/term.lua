@@ -379,9 +379,12 @@ local function setup_keymap_panel(bufnr)
         end
     end, "switch/expand")
 end
+---@type table<string,NNode>
+local unique_map = {}
 ---@class NNode
 ---@field classname string
 ---@field pinned boolean
+---@field unique_name? string
 ---@field name string
 ---@field next NNode
 ---@field prev NNode
@@ -395,11 +398,17 @@ Node.__index = Node
 function Node:rename(name)
     self.name = name
 end
-
+---约定:? __仅自身类调用 _子类调用 无_:外部调用
 Node._display = unreachable
 Node.restart = unreachable
 Node.start = unreachable
-Node.clean = unreachable
+Node.clean = unreachable --没有super.clean的说法
+-- function Node:delnode()
+--     if self.unique_name then
+--         unique_map[self.unique_name] = nil
+--     end
+--     self:clean()
+-- end
 function Node:_toggle_pin()
     self.pinned = not self.pinned
 end
@@ -1928,12 +1937,12 @@ function M.setup()
     }, { dependency = "outer<-inner", type = "colorscheme" })
     vim.keymap.set({ "n", "t", "v" }, "<M-`>", function()
         M.toggle()
-    end)
+    end, { desc = "Term: toggle panel" })
     vim.keymap.set("v", "<cr>", function()
         if M.send(visual_selection(), panelbufcxt._curnode) then
             vim.cmd("normal! \28\14")
         end
-    end)
+    end, { desc = "Term: send" })
     panelbufcxt:_init()
 end
 

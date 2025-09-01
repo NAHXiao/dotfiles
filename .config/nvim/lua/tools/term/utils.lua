@@ -15,6 +15,20 @@ local log = require("utils").log {
 }
 log_notify = noop
 log = noop
+
+local shell
+if jit.os == "Windows" then
+    for _, sh in ipairs { "pwsh", "powershell", "cmd" } do
+        if vim.fn.executable(sh) then
+            shell = vim.fn.execute(sh)
+            break
+        end
+    end
+end
+if not shell then
+    shell = vim.o.shell
+end
+
 local function pmsgcall(...)
     local ok, result_or_errmsg = pcall(...)
     if not ok then
@@ -78,4 +92,5 @@ return {
     log_notify = log_notify,
     log = log,
     visual_selection = visual_selection,
+    default_shell = shell,
 }

@@ -38,14 +38,15 @@ local actions = {
         while node and node.classname ~= "GroupNode" do
             node = node.parent
         end
+        local shell = utils.default_shell
         ---@cast node GroupNode
-        node:addnode(require("tools.term.node.termnode"):new({ name = "append-default" }, {
-            cmds = { vim.o.shell },
+        node:addnode(require("tools.term.node.termnode"):new({ name = vim.fs.basename(shell) }, {
+            cmds = { shell },
             opts = {},
         }, true))
     end,
     add_group_input = function(panel, node)
-        vim.ui.input({ prompt = "[Terminal] Enter name: " }, function(input)
+        vim.ui.input({ prompt = "[Terminal] Enter group name: " }, function(input)
             if not input or input == "" then
                 vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
                 return
@@ -266,43 +267,43 @@ return {
             modes = { "n", "t" },
             keys = "<A-'>",
             rhs = actions.add_group_input,
-            desc = "AppendNewGroupNode",
+            desc = "Term: AppendNewTermNode",
         },
         {
             modes = { "n", "t" },
             keys = "<A-;>",
             rhs = actions.add_term_input,
-            desc = "AppendNewGroupNode",
+            desc = "Term: AppendNewGroupNode",
         },
         {
             modes = { "n", "t" },
             keys = "<A-/>",
             rhs = actions.add_term,
-            desc = "AppendNewTermNode",
+            desc = "Term: AppendNewTermNode(default)",
         },
         {
             modes = { "n", "t" },
             keys = "<A-r>",
             rhs = actions.rename,
-            desc = "NodeRename",
+            desc = "Term: NodeRename",
         },
         {
             modes = { "n", "t" },
             keys = "<A-R>",
             rhs = actions.restart,
-            desc = "NodeRestart",
+            desc = "Term: NodeRestart",
         },
         {
             modes = { "n", "t" },
             keys = "<A-.>",
             rhs = actions.switch_next,
-            desc = "NodeSwitchNext",
+            desc = "Term: NodeSwitchNext",
         },
         {
             modes = { "n", "t" },
             keys = "<A-,>",
             rhs = actions.switch_prev,
-            desc = "NodeSwitchNext",
+            desc = "Term: NodeSwitchNext",
         },
     },
     ---@type {modes:string|string[],keys:string|string[],rhs:string|fun(panel,node),desc?:string}[]
@@ -311,85 +312,85 @@ return {
             modes = { "n", "t" },
             keys = { "<A-;>", "a" },
             rhs = actions.add_term_input,
-            desc = "AppendNewGroupNode",
+            desc = "Term: AppendNewTermNode",
         },
         {
             modes = { "n", "v" },
             keys = { "<A-'>", "A" },
             rhs = actions.add_group_input,
-            desc = "AppendNewGroupNode",
+            desc = "Term: AppendNewGroupNode",
         },
         {
             modes = { "n", "v" },
             keys = { "<A-/>" },
             rhs = actions.add_term,
-            desc = "AppendNewTermNode",
+            desc = "Term: AppendNewTermNode(default)",
         },
         {
             modes = { "n", "v" },
             keys = { "<space>", "<cr>" },
             rhs = actions.toggle_expand_or_set_curnode,
-            desc = "ToggleExpand",
+            desc = "Term: ToggleExpand",
         },
         {
             modes = { "n", "v" },
             keys = { "p" },
             rhs = actions.toggle_pin,
-            desc = "TogglePin",
+            desc = "Term: TogglePin",
         },
         {
             modes = { "n", "v" },
             keys = "r",
             rhs = actions.rename,
-            desc = "NodeRename",
+            desc = "Term: NodeRename",
         },
         {
             modes = { "n", "v" },
             keys = "R",
             rhs = actions.restart,
-            desc = "NodeRestart",
+            desc = "Term: NodeRestart",
         },
         {
             modes = { "n", "v" },
             keys = "i",
             rhs = actions.inspect_node,
-            desc = "NodeInspect",
+            desc = "Term: NodeInspect",
         },
         {
             modes = { "n", "v" },
             keys = "I",
             rhs = actions.inspect_tree,
-            desc = "NodeInspect",
+            desc = "Term: NodeInspect",
         },
         {
             modes = { "n", "v" },
             keys = { "J", "." },
             rhs = actions.switch_next,
-            desc = "NodeSwitchNext",
+            desc = "Term: NodeSwitchNext",
         },
         {
             modes = { "n", "v" },
             keys = { "K", "," },
             rhs = actions.switch_prev,
-            desc = "NodeSwitchNext",
+            desc = "Term: NodeSwitchNext",
         },
         {
             modes = { "n", "v" },
             keys = { "h" },
             rhs = actions.swap_with_prev,
-            desc = "swap_with_prev",
+            desc = "Term: swap_with_prev",
         },
         {
             modes = { "n", "v" },
             keys = { "l" },
             rhs = actions.swap_with_next,
-            desc = "swap_with_next",
+            desc = "Term: swap_with_next",
         },
         {
             modes = { "n", "v" },
             keys = "x",
             rhs = actions.delete,
-            desc = "NodeDelete",
+            desc = "Term: NodeDelete",
         },
     },
     map = map,

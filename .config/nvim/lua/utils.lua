@@ -82,7 +82,7 @@ M.log = function(opts)
             lines[#lines + 1] = ("[%d]:%s"):format(k, vim.inspect(arg))
             i = k + 1
         end
-        lines = vim.split(table.concat(lines, "\n"), "\r?\n")
+        lines = vim.split(table.concat(lines, "\n"):gsub("\r\n", "\n"):gsub("\r", "\n"), "\n")
         if #lines == 2 then
             lines[1] = lines[1] .. lines[2]
             lines[2] = nil
@@ -646,7 +646,7 @@ function M.focus_or_new(filepath, new_content, split)
     vim.validate("filepath", filepath, "string")
     filepath = vim.fs.normalize(filepath)
     if type(new_content) == "table" then
-        new_content = table.concat(new_content, "\r\n")
+        new_content = table.concat(new_content, "\n")
     elseif type(new_content) == "nil" then
         new_content = ""
     end
@@ -668,7 +668,7 @@ function M.focus_or_new(filepath, new_content, split)
             end
             return vim.api.nvim_get_current_buf(), vim.api.nvim_get_current_win()
         end
-    local lines = vim.split(new_content, "\r\n?") or { "" }
+    local lines = vim.split(new_content:gsub("\r\n", "\n"):gsub("\r", "\n"), "\n") or { "" }
     local bufnr = vim.fn.bufnr(filepath)
     local buf_exists = bufnr and bufnr ~= -1
     local winid = buf_exists and vim.fn.bufwinid(bufnr) or nil

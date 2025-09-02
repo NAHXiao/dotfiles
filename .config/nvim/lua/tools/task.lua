@@ -946,6 +946,7 @@ local tmpl = ([[---@module 'tools.task'
 ---@type {tasks:UserTask[],tasksets:UserTaskSet[]}
 ---See [%s]
 ---$(MACRO)/$(-argname)/$(-argname:default)/${ENV}
+---MACRO: VIM_FILENAME VIM_FILENOEXT VIM_FILEEXT VIM_FILEPATH VIM_PATHNOEXT VIM_RELPATH VIM_FILEDIR VIM_DIRNAME VIM_ROOT VIM_PRONAME <TMPFILE>
 return {
 	tasks = {},
 	tasksets = {},

@@ -12,32 +12,23 @@ return {
         "CodeCompanionCmd",
     },
     opts = {
-        -- log_level = "TRACE",
+        opts = { log_level = "DEBUG", language = "zh.CN" },
         strategies = {
             chat = {
-                adaptor = "copilot",
-                model = "claude-sonnet-4-20250514",
-                keymaps = {
-                    send = {
-                        modes = { n = "<C-s>", i = "<C-s>" },
-                    },
-                    close = {
-                        modes = { n = "q", i = "<C-d>" },
-                    },
-                },
+                adapter = "deepseek",
+                model = "deepseek-reasoner",
             },
             inline = {
-                adaptor = "copilot",
+                adapter = "copilot",
                 model = "claude-sonnet-4-20250514",
             },
             cmd = {
-                adaptor = "copilot",
+                adapter = "copilot",
                 model = "claude-sonnet-4-20250514",
             },
         },
         display = {
             chat = {
-                -- start_in_insert_mode = true,
                 window = {
                     position = "right",
                 },

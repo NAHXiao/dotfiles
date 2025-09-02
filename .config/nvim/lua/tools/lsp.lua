@@ -13,7 +13,8 @@ function M.loadconfig(reload)
     M.config.ulsp_config_ok = nil
     local config = M.config
     if vim.uv.fs_stat(config.ulsp_config_path()) then
-        local ok, ulsp_config = pcall(dofile, config.ulsp_config_path())
+        -- local ok, ulsp_config = pcall(dofile, config.ulsp_config_path())
+        local ok, ulsp_config = require("utils").pdofile(config.ulsp_config_path())
         if ok then
             vim.validate("ulsp_config.disable", ulsp_config.disable, function(it)
                 return type(it) == "table" or it == true

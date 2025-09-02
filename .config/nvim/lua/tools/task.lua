@@ -534,7 +534,8 @@ function T:refresh_local()
     if 0 == vim.fn.filereadable(config_file) then
         return false
     end
-    local ok, config = pcall(dofile, config_file)
+    -- local ok, config = pcall(dofile, config_file)
+    local ok, config = require("utils").pdofile(config_file)
     if not ok or type(config) ~= "table" then
         vim.notify(
             "Failed to load local task config: " .. (config or "Invalid config format"),

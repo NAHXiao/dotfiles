@@ -87,7 +87,8 @@ return {
                 function()
                     local dap = require("dap")
                     if vim.fn.filereadable(dap_config_path()) == 1 then
-                        local ok, config = pcall(dofile, dap_config_path())
+                        -- local ok, config = pcall(dofile, dap_config_path())
+                        local ok, config = require("utils").pdofile(dap_config_path())
                         if ok then
                             for ft, conf in pairs(config) do
                                 dap.configurations[ft] = conf

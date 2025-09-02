@@ -740,6 +740,65 @@ function M.transparent_bg_test(filter)
 
     process_next()
 end
-
+---@param filepath string
+---@return boolean success
+---@return any result_or_err
+function M.pdofile(filepath)
+    if not filepath then
+        return false, "filepath is nil"
+    end
+    if vim.fn.filereadable(filepath) == 0 then
+        return false, ("FileNotFound:%s"):format(filepath)
+    end
+    local env = {
+        assert = assert,
+        bit = bit,
+        error = error,
+        -- getmetatable = getmetatable,
+        ipairs = ipairs,
+        pairs = pairs,
+        jit = jit,
+        math = math,
+        next = next,
+        pcall = pcall,
+        -- rawequal = rawequal,
+        -- rawget = rawget,
+        -- rawlen = rawlen,
+        -- rawset = rawset,
+        re = re,
+        select = select,
+        setmetatable = setmetatable,
+        string = string,
+        table = table,
+        tonumber = tonumber,
+        tostring = tostring,
+        type = type,
+        unpack = unpack,
+        vim = {
+            F = vim.F,
+            NIL = vim.NIL,
+            inspect = vim.inspect,
+            notify = function(msg, ...)
+                if type(msg) == "string" then
+                    vim.notify(("[%s]: %s"):format(filepath, msg), ...)
+                end
+            end,
+            iter = vim.iter,
+        },
+    }
+    env._G = env
+    local content = table.concat(vim.fn.readfile(filepath), "\n")
+    local chunk, err = loadstring(content, filepath)
+    if not chunk then
+        return false, err
+    else
+        setfenv(chunk, env)
+        local suc, result_or_err = pcall(chunk)
+        if not suc then
+            return false, result_or_err
+        end
+        return true, result_or_err
+    end
+end
 -------------------------------------------
 return M

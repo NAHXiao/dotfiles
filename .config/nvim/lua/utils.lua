@@ -45,12 +45,15 @@ end
 ---src:(false|"short_src"|"source")?,
 ---name:boolean?,
 ---time:boolean?,
+---level:number?,
 ---callback:(fun(lines:string[])?)}
+---- level default 2
 ---@return fun(...):string[]
 M.log = function(opts)
     local default_opts = {
         src = "short_src",
         name = true,
+        level = 2,
         time = true,
     }
     opts = vim.tbl_extend("force", default_opts, opts or {})
@@ -60,7 +63,7 @@ M.log = function(opts)
         if opts.time then
             pretext = pretext .. ("[%s] "):format(os.date("%Y-%m-%d %H:%M:%S", os.time()))
         end
-        local info = debug.getinfo(2, "nSl")
+        local info = debug.getinfo(opts.level, "nSl")
         if opts.src then
             -- info.src
             pretext = pretext .. ("%s:%d "):format(info[opts.src], info.currentline)

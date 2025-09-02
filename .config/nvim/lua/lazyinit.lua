@@ -41,36 +41,25 @@ function lazy.lazy_plugin_path(plugin_full_name, expand_home)
 end
 require("tools.hl").setup()
 require("tools.lsp").setup()
-lazy.setup(
-    (function(dir)
-        local result = {}
-        local uv = vim.uv
-        local handle = uv.fs_scandir(dir)
-        if not handle then
-            vim.notify("directory doesn't exist: " .. dir, vim.log.levels.WARN)
-            return result
-        end
-        while true do
-            local name, type = uv.fs_scandir_next(handle)
-            if not name then
-                break
-            end
-            if type == "directory" then
-                table.insert(result, { import = vim.fs.basename(dir) .. "." .. name })
-            end
-        end
-        return result
-    end)(vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "plugins")),
-    {
-        checker = {
-            enable = true,
-            frequency = 240, -- 10days
-        },
-        ui = {
-            border = "rounded",
-        },
-    }
-)
+lazy.setup({
+    { import = "plugins.cmp" },
+    { import = "plugins.dap" },
+    { import = "plugins.edit" },
+    { import = "plugins.filetype" },
+    { import = "plugins.lib" },
+    { import = "plugins.lsp" },
+    { import = "plugins.telescope" },
+    { import = "plugins.tool" },
+    { import = "plugins.ui" },
+}, {
+    checker = {
+        enable = true,
+        frequency = 240, -- 10days
+    },
+    ui = {
+        border = "rounded",
+    },
+})
 vim.api.nvim_create_autocmd("User", {
     pattern = "VeryLazy",
     callback = function()

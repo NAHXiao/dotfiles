@@ -164,9 +164,10 @@ function GroupNode:replace(child, node)
     panel.update_termwinbuf()
 end
 
----@param node NNode
+---@generic T:NNode
+---@param node T
 ---@param uniqname? string
----@return NNode
+---@return T
 function GroupNode:addnode(node, uniqname)
     if uniqname then
         if self.uniqnameMap:getByValue(uniqname) then

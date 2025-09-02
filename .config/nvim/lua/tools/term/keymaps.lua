@@ -87,7 +87,11 @@ local actions = {
             end
         end
         if cmds ~= nil and #cmds ~= 0 then
-            panel.get_root():addnode(
+            while node and node.classname ~= "GroupNode" do
+                node = node.parent
+            end
+            ---@cast node GroupNode
+            node:addnode(
                 require("tools.term.node.termnode"):new(
                     { name = cmds[1] },
                     { cmds = cmds, opts = {} },
@@ -102,6 +106,7 @@ local actions = {
             ---@cast node TaskSetNode|GroupNode
             node:toggle_expand()
         else
+            ---@cast node TaskTermNode|TermNode
             panel.set_cur_node(node)
             panel.panel_follow_node(node, { expand = true, always = true })
             panel.focus("term")
@@ -153,6 +158,11 @@ local actions = {
                 end
             end
         end
+        -- local errs = panel.get_root():validate_tree_structure()
+        -- if #errs > 0 then
+        --     tree_lines[#tree_lines + 1] = "ERROR"
+        --     vim.list_extend(tree_lines, errs)
+        -- end
         utils.log("inspect_tree: ", tree_lines)
         vim.notify(table.concat(tree_lines, "\n"))
     end,
@@ -193,8 +203,9 @@ local actions = {
             target = flatten_next_node(target)
         end
         if target then
+            ---@cast target TaskTermNode|TermNode
             panel.set_cur_node(target)
-            panel.panel_follow_node(panel.get_cur_node(), { expand = true, always = true })
+            panel.panel_follow_node(target, { expand = true, always = true })
         end
     end,
     switch_prev = function(panel, node)
@@ -220,8 +231,9 @@ local actions = {
             target = flatten_prev_node(target)
         end
         if target then
+            ---@cast target TaskTermNode|TermNode
             panel.set_cur_node(target)
-            panel.panel_follow_node(panel.get_cur_node(), { expand = true, always = true })
+            panel.panel_follow_node(target, { expand = true, always = true })
         end
     end,
     delete = function(panel, node)

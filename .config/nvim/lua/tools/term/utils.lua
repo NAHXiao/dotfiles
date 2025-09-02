@@ -18,7 +18,7 @@ log = noop
 
 local shell_cmds
 if jit.os == "Windows" then
-    for _, sh in ipairs { { "pwsh", "-nologo" }, "powershell", "cmd" } do
+    for _, sh in ipairs { { "pwsh", "-nologo" }, { "powershell" }, { "cmd" } } do
         if vim.fn.executable(sh[1]) then
             shell_cmds = sh
             shell_cmds[1] = vim.fn.exepath(shell_cmds[1])

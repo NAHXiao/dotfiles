@@ -77,6 +77,7 @@ function TermNode:setup_termbuf()
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
+            utils.log_notify("BufEnter")
             vim.schedule(function()
                 if self.bufnr ~= bufnr then
                     return
@@ -95,6 +96,7 @@ function TermNode:setup_termbuf()
     vim.api.nvim_create_autocmd("ModeChanged", {
         buffer = bufnr,
         callback = function()
+            utils.log_notify("ModeChanged")
             vim.schedule(function()
                 if self.bufnr ~= bufnr then
                     return
@@ -113,12 +115,16 @@ function TermNode:setup_termbuf()
             end)
         end,
     })
-    vim.api.nvim_create_autocmd("BufDelete", {
+    vim.api.nvim_create_autocmd("BufUnload", {
         buffer = bufnr,
         callback = function()
+            utils.log_notify("BufUnload")
             if not self.cleaning then --用户强制删除buffer
+                utils.log_notify("BufUnload:UserForce")
                 vim.schedule(function()
-                    self.parent:delnode(self)
+                    if self.parent then
+                        self.parent:delnode(self)
+                    end
                 end)
             end
         end,

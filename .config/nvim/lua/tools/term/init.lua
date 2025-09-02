@@ -39,8 +39,10 @@ local function newtaskset(
         ),
         unique_key
     )
-    if switch then
-        panel.set_cur_node(node)
+    if node.children and #node.children > 0 then
+        if switch then
+            panel.set_cur_node(node.children[1])
+        end
     end
     if focus then
         panel.focus()

@@ -91,8 +91,9 @@ function M.get_panelbuf()
 end
 ---@return number
 function M.get_termbuf()
-    if M.curnode and M.curnode.bufnr and vim.api.nvim_buf_is_valid(M.curnode.bufnr) then
-        return M.curnode.bufnr
+    local curnode = M.get_cur_node()
+    if curnode and curnode.bufnr and vim.api.nvim_buf_is_valid(curnode.bufnr) then
+        return curnode.bufnr
     else
         M.init_or_repair("fallback_termbuf")
         return M.get_fallback_termbuf()
@@ -225,10 +226,17 @@ function M.del_data_by_node(node)
     local panelbuf = M.get_panelbuf()
     local startline, finishline = get_lines_range_by_node(node)
     set_lines({ startline, finishline }, {}, panelbuf)
+    if M.get_cur_node() == node then
+        M.set_cur_node(nil)
+    end
 end
 function M.panel_follow_curnode(opts)
-    M.panel_follow_node(M.curnode, opts)
+    local curnode = M.get_cur_node()
+    if curnode then
+        M.panel_follow_node(curnode, opts)
+    end
 end
+---@param node NNode
 ---@param opts { expand:boolean?, always:boolean?}
 ---- expand: default `true`
 ---- always: follow even when the focus is on the panelwin.default `false`
@@ -253,13 +261,7 @@ function M.panel_follow_node(node, opts)
         end
     end
 end
-function M.get_cursor_node()
-    return M.cursornode
-end
----@param node NNode
-function M.set_cursor_node(node)
-    M.cursornode = node
-end
+---@return TaskTermNode|TermNode|nil
 function M.get_cur_node()
     return M.curnode
 end
@@ -271,13 +273,15 @@ function M.get_data()
     M.init_or_repair("data")
     return M.data
 end
----@param node TermNode|TaskTermNode
+---@param node TermNode|TaskTermNode|nil
 function M.set_cur_node(node)
     if not node or node.classname == "TermNode" or node.classname == "TaskTermNode" then
         M.curnode = node
         M.update_termwinbuf()
         M.panel_follow_curnode { expand = false, always = false }
         log_notify("set curnode to " .. (node and node.name or "nil"))
+    else
+        log_notify("set_cur_node arg error: ", node and node:tostring())
     end
 end
 ---@param who? "term"|"panel"
@@ -377,7 +381,6 @@ function M.open(focus)
         )
         M.root:addnode(node)
         M.set_cur_node(node)
-        M.set_cursor_node(node)
     end
     local panelbuf = M.get_panelbuf()
     local termbuf = M.get_termbuf()
@@ -505,7 +508,7 @@ end
 ---@field update_data_by_node fun(node:NNode,recurse?:boolean) WriteAble
 ---@field del_data_by_node fun(node:NNode) WriteAble
 ---@field update_termwinbuf fun() WriteAble
----@field set_cur_node fun(node:any) WriteAble ButShouldOnlyUsedInKeyMap
+---@field set_cur_node fun(node:TermNode|TaskTermNode) WriteAble ButShouldOnlyUsedInKeyMap
 ---
 ---@field open fun() Expose
 ---@field close fun() Expose

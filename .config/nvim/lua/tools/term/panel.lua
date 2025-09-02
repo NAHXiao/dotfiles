@@ -234,7 +234,7 @@ end
 ---- always: follow even when the focus is on the panelwin.default `false`
 function M.panel_follow_node(node, opts)
     opts = vim.tbl_extend("force", { expand = true, always = false }, opts)
-    if M.opened and (opts.always or vim.api.nvim_get_current_win() ~= M.panelwin) then
+    if M.opened and (opts.always or (not M.is_focused("panel"))) then
         local row = M.data:getByKey(node)
         if row then
             vim.api.nvim_win_set_cursor(M.panelwin, { row, 0 })
@@ -280,18 +280,31 @@ function M.set_cur_node(node)
         log_notify("set curnode to " .. (node and node.name or "nil"))
     end
 end
-function M.is_focused()
+---@param who? "term"|"panel"
+function M.is_focused(who)
     local winid = vim.api.nvim_get_current_win()
-    return M.opened and (winid == M.get_termwin() or winid == M.get_panelwin())
+    return M.opened
+        and (
+            ((not who or who == "term") and winid == M.get_termwin())
+            or ((not who or who == "panel") and winid == M.get_panelwin())
+        )
 end
-function M.focus()
+---@param who? "term"|"panel" default term
+function M.focus(who)
     log("focus")
     if not M.opened then
         M.open(true)
     end
-    local termwin = M.get_termwin()
-    if termwin then
-        vim.api.nvim_set_current_win(termwin)
+    if not who or who == "term" then
+        local termwin = M.get_termwin()
+        if termwin then
+            vim.api.nvim_set_current_win(termwin)
+        end
+    else
+        local panelwin = M.get_panelwin()
+        if panelwin then
+            vim.api.nvim_set_current_win(panelwin)
+        end
     end
 end
 function M.toggle()
@@ -336,7 +349,7 @@ function M.init_or_repair(who)
                 group = g,
                 pattern = "TerminalPanel",
                 callback = function()
-                    M.panel_follow_curnode { expand = true, always = false }
+                    M.panel_follow_curnode { expand = true, always = true }
                 end,
             })
         end
@@ -499,7 +512,7 @@ end
 ---@field open fun() Expose
 ---@field close fun() Expose
 ---@field is_focused fun():boolean Expose
----@field focus fun() Expose
+---@field focus fun(who?:"term"|"panel") Expose default term
 ---@field toggle fun() Expose
 ---@field panel_follow_node fun(node:NNode,opts:{ expand:boolean?, always:boolean?})
 ---@field send_feedkey fun(lines:string[], node:TaskTermNode|TermNode, extra_cr?:number) Expose

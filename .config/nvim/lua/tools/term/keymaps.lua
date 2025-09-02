@@ -97,7 +97,8 @@ local actions = {
             node:toggle_expand()
         else
             panel.set_cur_node(node)
-            panel.panel_follow_node(panel.get_cur_node(), { expand = true, always = true })
+            panel.panel_follow_node(node, { expand = true, always = true })
+            panel.focus("term")
         end
     end,
     toggle_pin = function(panel, node)
@@ -250,7 +251,7 @@ return {
                     vim.cmd("normal! \28\14")
                 end
             end,
-            desc = "Term: send to curnode",
+            desc = "Term: SendToCurnode",
         },
         {
             modes = { "n", "t", "v", "i" },
@@ -258,7 +259,7 @@ return {
             rhs = function(panel)
                 panel.toggle()
             end,
-            desc = "Term: toggle panel",
+            desc = "Term: TogglePanel",
         },
     },
     ---@type {modes:string|string[],keys:string|string[],rhs:string|fun(panel:panel,node:NNode),desc?:string}[]
@@ -328,7 +329,7 @@ return {
         },
         {
             modes = { "n", "v" },
-            keys = { "<space>", "<cr>" },
+            keys = { "<space>", "<cr>", "<2-LeftMouse>" },
             rhs = actions.toggle_expand_or_set_curnode,
             desc = "Term: ToggleExpand",
         },
@@ -372,19 +373,19 @@ return {
             modes = { "n", "v" },
             keys = { "K", "," },
             rhs = actions.switch_prev,
-            desc = "Term: NodeSwitchNext",
+            desc = "Term: NodeSwitchPrev",
         },
         {
             modes = { "n", "v" },
             keys = { "h" },
             rhs = actions.swap_with_prev,
-            desc = "Term: swap_with_prev",
+            desc = "Term: SwapWithPrev",
         },
         {
             modes = { "n", "v" },
             keys = { "l" },
             rhs = actions.swap_with_next,
-            desc = "Term: swap_with_next",
+            desc = "Term: SwapWithNext",
         },
         {
             modes = { "n", "v" },

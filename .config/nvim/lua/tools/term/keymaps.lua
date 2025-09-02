@@ -229,12 +229,16 @@ local actions = {
         end
     end,
     swap_with_next = function(panel, node)
-        node.parent:swap(node, 1)
-        panel.panel_follow_node(node, { expand = false, always = true })
+        if node and node.parent then
+            node.parent:swap(node, 1)
+            panel.panel_follow_node(node, { expand = false, always = true })
+        end
     end,
     swap_with_prev = function(panel, node)
-        node.parent:swap(node, -1)
-        panel.panel_follow_node(node, { expand = false, always = true })
+        if node and node.parent then
+            node.parent:swap(node, -1)
+            panel.panel_follow_node(node, { expand = false, always = true })
+        end
     end,
 }
 

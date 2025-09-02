@@ -210,4 +210,12 @@ function GroupNode:delnode(node)
     end
     utils.unreachable()
 end
+---Delete All Children
+function GroupNode:clear()
+    for idx = #self.children, 1, -1 do
+        self.children[idx]:drop()
+        table.remove(self.children, idx)
+    end
+    panel.update_data_by_node(self, true)
+end
 return GroupNode

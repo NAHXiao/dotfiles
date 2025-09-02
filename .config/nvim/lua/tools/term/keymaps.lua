@@ -124,6 +124,14 @@ local actions = {
             classname = node.classname,
             display = node:display(),
             tostring = node:tostring(),
+            parent = node.parent and node.parent:tostring() or "nil",
+            children = node--[[@as GroupNode]].children
+                    and vim.iter(node--[[@as GroupNode]].children)
+                        :map(function(n)
+                            return n:tostring()
+                        end)
+                        :totable()
+                or nil,
             uniqueName = node.parent and node.parent:getUniqueNameByNode(node) or nil,
         }
         if node.classname == "TermNode" or node.classname == "TaskTermNode" then
@@ -237,7 +245,15 @@ local actions = {
         end
     end,
     delete = function(panel, node)
-        if node ~= panel.get_root() then
+        local root = panel.get_root()
+        if node == root then
+            vim.ui.input({ prompt = "[Terminal] Ensure clear all? [y/n]" }, function(input)
+                if not input or input == "" or (not input:lower():find("^y")) then
+                    return
+                end
+                root:clear()
+            end)
+        else
             vim.ui.input({ prompt = "[Terminal] Ensure delete? [y/n]" }, function(input)
                 if not input or input == "" or (not input:lower():find("^y")) then
                     return

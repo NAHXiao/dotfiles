@@ -403,17 +403,15 @@ function M.open(focus)
     })
     vim.api.nvim_create_autocmd("WinResized", {
         group = win_autocmd_group,
-        pattern = table.concat({ M.termwin, M.panelwin }, ","),
-        callback = function(args)
-            if args.match == M.panelwin then
-                vim.api.nvim_win_set_width(
-                    M.panelwin,
-                    math.min(
-                        vim.api.nvim_win_get_width(M.panelwin),
-                        math.floor(vim.api.nvim_win_get_width(M.panelwin) / 5)
-                    )
+        -- pattern = table.concat({ M.termwin, M.panelwin }, ","),
+        callback = function()
+            vim.api.nvim_win_set_width(
+                M.panelwin,
+                math.min(
+                    vim.api.nvim_win_get_width(M.panelwin),
+                    math.floor(vim.api.nvim_win_get_width(M.termwin) / 4)
                 )
-            end
+            )
         end,
     })
     --if not focus then return origin window else focus termwin

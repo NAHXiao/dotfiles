@@ -177,7 +177,7 @@ local actions = {
         end)
     end,
     restart = function(panel, node)
-        node:restart()
+        node:restart(true)
     end,
     switch_next = function(panel, node)
         local function flatten_next_node(cur)

@@ -40,10 +40,16 @@ local actions = {
         end
         local shell = utils.default_shell
         ---@cast node GroupNode
-        node:addnode(require("tools.term.node.termnode"):new({ name = vim.fs.basename(shell[1]) }, {
-            cmds = shell,
-            opts = {},
-        }, true))
+        node:addnode(
+            require("tools.term.node.termnode"):new(
+                { name = vim.fn.fnamemodify(shell[1], ":t:r") },
+                {
+                    cmds = shell,
+                    opts = {},
+                },
+                true
+            )
+        )
     end,
     add_group_input = function(panel, node)
         vim.ui.input({ prompt = "[Terminal] Enter group name: " }, function(input)

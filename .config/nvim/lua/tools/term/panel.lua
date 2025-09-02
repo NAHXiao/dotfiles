@@ -371,7 +371,7 @@ function M.open(focus)
     --if root.children len==0 then root.addnode
     if #M.root.children == 0 then
         local node = require("tools.term.node.termnode"):new(
-            { name = vim.fs.basename(utils.default_shell[1]) },
+            { name = vim.fn.fnamemodify(utils.default_shell[1], ":t:r") },
             { cmds = utils.default_shell, opts = {} },
             true
         )

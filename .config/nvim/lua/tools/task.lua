@@ -1131,3 +1131,4 @@ function T.setup()
     end, { desc = "Edit: Task" })
 end
 return T
+--with shell and with cmd_wrapper cannot coexist ( )

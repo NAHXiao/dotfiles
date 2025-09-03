@@ -650,7 +650,7 @@ M.auc("LspAttach", {
         local old_root = candidates_root[candidates_root.cur]
         local bufnr = ev.buf
         local root = client.config.root_dir
-        local key = client.name .. tostring(client.id)
+        local key = tostring(client.id) .. "." .. client.name
         candidates_root[key] = root
         if old_root ~= candidates_root[candidates_root.cur] then
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
@@ -679,36 +679,47 @@ function M.select_root(bufnr)
     if bufnr == 0 then
         bufnr = vim.api.nvim_get_current_buf()
     end
-    vim.ui.select(
-        vim.iter(candidates_root)
-            :filter(function(k, _)
-                if type(k) == "string" and k ~= "cur" then
-                    return true
-                end
-                return false
-            end)
-            :totable(),
-        {
-            format_item = function(item)
-                return item[1] .. ": " .. item[2]
-            end,
-            prompt = "Select Root For " .. (bufnr and (("Buf:%d (Current:%s)"):format(
-                bufnr,
-                candidates_root[bufnr]
-            )) or ("Global (Current:%s)"):format(candidates_root.cur)),
-        },
-        function(item)
-            if not item then
-                return
+    local items = vim.iter(candidates_root)
+        :filter(function(k, _)
+            if type(k) == "string" and k ~= "cur" then
+                return true
             end
-            if bufnr then
-                candidates_root[bufnr] = item[1]
-            else
-                candidates_root.cur = item[1]
-                vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+            return false
+        end)
+        :totable()
+    if nil == candidates_root.auto then
+        table.insert(items, { "auto", "nil" })
+    end
+    table.sort(items, function(a, b)
+        local n1 = tonumber(string.match(a[1], "^[1-9][0-9]*"))
+        local n2 = tonumber(string.match(b[1], "^[1-9][0-9]*"))
+        if not n1 or not n2 then
+            if a[1] == "auto" or (n2 ~= nil and a[1] == "cwd") then
+                return true
             end
+            return false
         end
-    )
+        return n1 < n2
+    end)
+    vim.ui.select(items, {
+        format_item = function(item)
+            return item[1] .. ": " .. item[2]
+        end,
+        prompt = "Select Root For " .. (bufnr and (("Buf:%d (Current:%s)"):format(
+            bufnr,
+            candidates_root[bufnr]
+        )) or ("Global (Current:%s)"):format(candidates_root.cur)),
+    }, function(item)
+        if not item then
+            return
+        end
+        if bufnr then
+            candidates_root[bufnr] = item[1]
+        else
+            candidates_root.cur = item[1]
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+    end)
 end
 --stylua: ignore
 vim.api.nvim_create_user_command("SelectRoot", function(args) M.select_root(tonumber(args.fargs[1])) end, { nargs = "?", complete = function() return { "0" } end })

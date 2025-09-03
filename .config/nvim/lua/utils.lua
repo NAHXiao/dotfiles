@@ -527,6 +527,7 @@ function M.trim(s)
     return s:match("^%s*(.-)%s*$")
 end
 
+---@return string
 function M.prefix_replace(str, prefix, replacement)
     if str:sub(1, #prefix) == prefix then
         return replacement .. str:sub(#prefix + 1)
@@ -603,30 +604,112 @@ function M.FindRoot(names, opt)
     end
     return result
 end
-
----- bufnr:filebuf
----bufferProjRoot
----fallback:
----belong to globalProjRoot => globalProjRoot
----otherwise => nil
----- bufnr:other/nil
----globalProjRoot
----@param bufnr? number
+---@class utils.candidates_root : {
+---cur?:"auto"|"cwd"|string, --global:key
+---auto?:string,
+---cwd:string,
+---[string]:string, --lsps
+---[number]:string} --bufnr:key
+local candidates_root = {
+    cur = "auto",
+}
+M.auc("DirChanged", {
+    group = M.aug("project-root-manage", true),
+    callback = function()
+        local old_root = candidates_root[candidates_root.cur]
+        candidates_root.cwd = vim.fn.getcwd()
+        --stylua: ignore
+        candidates_root.auto = M.FindRoot({
+            ".git", ".svn", ".hg", ".bzr", "_darcs",
+            ".fslckout", "Makefile", "CMakeLists.txt",
+            "Cargo.toml", "pyproject.toml", "pom.xml",
+            "build.gradle", "package.json", "go.mod",
+            ".project", ".root", ".vscode", ".idea",
+            ".projectile", "compile_commands.json",
+            ".clang-format", ".editorconfig", ".stylua.toml",
+            ".repo", ".gitignore",
+        }, {
+            startpath = vim.fn.getcwd(),
+            use_first_found = false,
+            return_dirname = true,
+        })
+        if old_root ~= candidates_root[candidates_root.cur] and vim.v.vim_did_enter then
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+    end,
+})
+vim.cmd.doautocmd("project-root-manage DirChanged")
+M.auc("LspAttach", {
+    callback = function(ev)
+        local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client then
+            return
+        end
+        local old_root = candidates_root[candidates_root.cur]
+        local bufnr = ev.buf
+        local root = client.config.root_dir
+        local key = client.name .. tostring(client.id)
+        candidates_root[key] = root
+        if old_root ~= candidates_root[candidates_root.cur] then
+            vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+        end
+        if root and root ~= "" and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root) then
+            candidates_root[bufnr] = key
+        end
+    end,
+})
+---@param bufnr? number fallback: global(if bufnr is a child of globalroot)
 ---@return string|nil
 function M.get_rootdir(bufnr)
+    local global_root = candidates_root[candidates_root.cur]
     if bufnr and vim.bo[bufnr].buftype == "" then
-        local root_dir = vim.b[bufnr].projroot
-        if
-            not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), vim.g.projroot)
-        then
-            root_dir = vim.g.projroot
+        local root_dir = candidates_root[candidates_root[bufnr]]
+        if not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), global_root) then
+            root_dir = global_root
         end
         return root_dir
     else
-        return vim.g.projroot
+        return global_root
     end
 end
-
+---@param bufnr? number
+function M.select_root(bufnr)
+    if bufnr == 0 then
+        bufnr = vim.api.nvim_get_current_buf()
+    end
+    vim.ui.select(
+        vim.iter(candidates_root)
+            :filter(function(k, _)
+                if type(k) == "string" and k ~= "cur" then
+                    return true
+                end
+                return false
+            end)
+            :totable(),
+        {
+            format_item = function(item)
+                return item[1] .. ": " .. item[2]
+            end,
+            prompt = "Select Root For " .. (bufnr and (("Buf:%d (Current:%s)"):format(
+                bufnr,
+                candidates_root[bufnr]
+            )) or ("Global (Current:%s)"):format(candidates_root.cur)),
+        },
+        function(item)
+            if not item then
+                return
+            end
+            if bufnr then
+                candidates_root[bufnr] = item[1]
+            else
+                candidates_root.cur = item[1]
+                vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+            end
+        end
+    )
+end
+--stylua: ignore
+vim.api.nvim_create_user_command("SelectRoot", function(args) M.select_root(tonumber(args.fargs[1])) end, { nargs = "?", complete = function() return { "0" } end })
 function M.file_parents_has(file, parent)
     for dir in vim.fs.parents(file) do
         if dir == vim.fs.normalize(parent) then

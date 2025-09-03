@@ -76,13 +76,13 @@ When given a task:
     end,
     keys = {
         {
-            "<leader>cc",
+            "<leader>ac",
             "<Cmd>CodeCompanionChat Toggle<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionChat Toggle",
         },
         {
-            "<leader>ca",
+            "<leader>aa",
             "<Cmd>CodeCompanionChat Add<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionChat Add",
@@ -94,7 +94,7 @@ When given a task:
             desc = "CodeCompanionChat",
         },
         {
-            "<leader>c/",
+            "<leader>a/",
             "<Cmd>CodeCompanionActions<CR>",
             mode = { "n", "v" },
             desc = "CodeCompanionActions",

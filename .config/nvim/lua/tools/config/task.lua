@@ -257,7 +257,7 @@ local config = {
                 name = "python run with venv",
                 cmds = {
                     (function()
-                        local root = require("utils").get_rootdir()
+                        local root = require("utils").get_rootdir() or vim.fn.getcwd()
                         local dot_venv_py = vim.fs.joinpath(root, ".venv", "bin", "python")
                         local venv_py = vim.fs.joinpath(root, "venv", "bin", "python")
                         for _, py in ipairs { dot_venv_py, venv_py } do

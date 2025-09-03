@@ -5,7 +5,7 @@ vim.fn.sign_define("DapBreakpointRejected", { text = "" })
 ---@type vim.lsp.rpc.PublicClient
 
 local dap_config_path = function()
-    return vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "dap.lua")
+    return vim.fs.joinpath(require("utils").get_rootdir() or vim.fn.getcwd(), ".vim", "dap.lua")
 end
 local dap_config_tmpl = ([[---@module 'dap'
 ---@alias ft string

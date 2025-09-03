@@ -530,7 +530,8 @@ function T:refresh_local()
         tasks = {},
         tasksets = {},
     }
-    local config_file = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua")
+    local config_file =
+        vim.fs.joinpath(require("utils").get_rootdir() or vim.fn.getcwd(), ".vim", "task.lua")
     if 0 == vim.fn.filereadable(config_file) then
         return false
     end
@@ -754,10 +755,10 @@ local function macro_repalce(task)
             return vim.fn.fnamemodify(vim.fn.expand("%:p:h"), ":t")
         end,
         ["$(VIM_ROOT)"] = function()
-            return require("utils").get_rootdir()
+            return require("utils").get_rootdir() or vim.fn.getcwd()
         end,
         ["$(VIM_PRONAME)"] = function()
-            return vim.fs.basename(vim.g.projroot)
+            return vim.fs.basename(require("utils").get_rootdir() or vim.fn.getcwd())
         end,
     }
     for macro_name, content in pairs(task.with_tmpfile or {}) do
@@ -962,7 +963,11 @@ function T.setup()
     T:loadconfig()
     T:refresh_local()
     require("utils").auc({ "BufWritePost", "FileWritePost" }, {
-        pattern = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+        pattern = vim.fs.joinpath(
+            require("utils").get_rootdir() or vim.fn.getcwd(),
+            ".vim",
+            "task.lua"
+        ),
         group = require("utils").aug("tools.task.refresh_when_save_task.lua", true),
         callback = function()
             if T:refresh_local() then
@@ -977,7 +982,11 @@ function T.setup()
                 vim.notify("[task]: refresh_local ok")
             end
             require("utils").auc({ "BufWritePost", "FileWritePost" }, {
-                pattern = vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+                pattern = vim.fs.joinpath(
+                    require("utils").get_rootdir() or vim.fn.getcwd(),
+                    ".vim",
+                    "task.lua"
+                ),
                 group = require("utils").aug("tools.task.refresh_when_save_task.lua", true),
                 callback = function()
                     if T:refresh_local() then
@@ -1010,7 +1019,7 @@ function T.setup()
             or (
                 vim.api.nvim_get_option_value("buftype", { buf = 0 }) == ""
                 and vim.fs.dirname(vim.api.nvim_buf_get_name(0))
-                    == vim.fs.joinpath(require("utils").get_rootdir(), ".vim")
+                    == vim.fs.joinpath(require("utils").get_rootdir() or vim.fn.getcwd(), ".vim")
             )
         then
             return nil
@@ -1126,7 +1135,7 @@ function T.setup()
     end, { desc = "Task: refresh local" })
     map("n", "<leader>et", function()
         require("utils").focus_or_new(
-            vim.fs.joinpath(require("utils").get_rootdir(), ".vim", "task.lua"),
+            vim.fs.joinpath(require("utils").get_rootdir() or vim.fn.getcwd(), ".vim", "task.lua"),
             tmpl
         )
     end, { desc = "Edit: Task" })

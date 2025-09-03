@@ -117,7 +117,7 @@ return {
                 path = { -- ./
                     opts = {
                         get_cwd = function(_)
-                            return require("utils").get_rootdir(0)
+                            return require("utils").get_rootdir(0) or vim.fn.getcwd()
                         end,
                     },
                 },

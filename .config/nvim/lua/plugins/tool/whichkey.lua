@@ -2,6 +2,7 @@ local expand_keys_prefixs = {
     "<leader>f",
     "<leader><space>",
     "<leader>\\",
+    "<leader>a",
 }
 ---@type string[][]
 local formatted_expand_keys_prefixs
@@ -45,7 +46,7 @@ return {
     config = function(_, opts)
         require("which-key").setup(opts)
         require("which-key").add {
-            { "<leader>a", group = "Aider" },
+            { "<leader>a", group = "Ai" },
             { "<leader>b", group = "Buffer" },
             { "<leader>d", group = "Debug" },
             { "<leader>f", group = "Find" },

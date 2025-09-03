@@ -39,7 +39,6 @@ return {
         )
 
         local jdtls = require("jdtls")
-        local root_dir = require("utils").get_rootdir()
         local compact = require("utils").list_compact
         local config = {
             cmd = compact {
@@ -52,7 +51,6 @@ return {
                     require("utils").encode_path(root_dir)
                 ),
             },
-            root_dir = root_dir,
             filetypes = { "java" },
             init_options = {
                 bundles = bundles,

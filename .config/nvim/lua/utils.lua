@@ -613,6 +613,7 @@ end
 local candidates_root = {
     cur = "auto",
 }
+local candidates_root_inited
 M.auc("DirChanged", {
     group = M.aug("project-root-manage", true),
     callback = function()
@@ -633,9 +634,10 @@ M.auc("DirChanged", {
             use_first_found = false,
             return_dirname = true,
         })
-        if old_root ~= candidates_root[candidates_root.cur] and vim.v.vim_did_enter then
+        if old_root ~= candidates_root[candidates_root.cur] and candidates_root_inited then
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
         end
+        candidates_root_inited = true
     end,
 })
 vim.cmd.doautocmd("project-root-manage DirChanged")

@@ -40,8 +40,13 @@ local function find_group_upward(node)
     ---@cast node GroupNode|nil
     return node
 end
+
+---fallback seq -> return `expected?`
+---NOTE: code -> return `did practical work?`
+
 ---@type table<string,fun(panel:panel,node:NNode|nil):boolean>
-local actions = {
+local actions
+actions = {
     add_term_and_focus = function(panel, node)
         node = not node and panel.get_root() or find_group_upward(node)
         if not node then
@@ -87,7 +92,7 @@ local actions = {
         local i = 1
         while true do
             local prompt = ("Enter value for cmd[%d]"):format(i)
-                .. (i ~= 1 and ": " .. (table.concat(cmds, " ")) or "")
+                .. (i ~= 1 and ": " .. ("`" .. table.concat(cmds, " ") .. "`") or "")
             local done = false
             vim.ui.input({ prompt = prompt }, function(input)
                 if input == nil then
@@ -204,7 +209,7 @@ local actions = {
         end
         vim.ui.input({ prompt = "[Terminal] Enter name: " }, function(input)
             if not input or input == "" then
-                vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
+                vim.notify("[Terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
                 return
             end
             assert(type(input) == "string")
@@ -303,6 +308,9 @@ local actions = {
                 if not input or input == "" or (not input:lower():find("^y")) then
                     return
                 end
+                if not actions.switch_next(panel, node) then
+                    actions.switch_prev(panel, node)
+                end
                 node.parent:delnode(node)
             end)
         end
@@ -315,6 +323,9 @@ local actions = {
         local root = panel.get_root()
         if not node or node == root then
             return false
+        end
+        if not actions.switch_next(panel, node) then
+            actions.switch_prev(panel, node)
         end
         node.parent:delnode(node)
         return true
@@ -415,12 +426,13 @@ return {
         {
             modes = { "n", "t" },
             keys = "<A-q>",
-            rhs = function(panel, node)
-                if not actions.switch_next(panel, node) then
-                    actions.switch_prev(panel, node)
-                end
-                actions.delete_noconfirm(panel, node)
-            end,
+            rhs = actions.delete_confirm,
+            desc = "Term: NodeDeleteWithConfirm",
+        },
+        {
+            modes = { "n", "t" },
+            keys = "<A-S-q>",
+            rhs = actions.delete_noconfirm,
             desc = "Term: NodeDeleteNoConfirm",
         },
     },
@@ -506,9 +518,15 @@ return {
         },
         {
             modes = { "n", "v" },
-            keys = "x",
+            keys = { "x", "<A-q>" },
             rhs = actions.delete_confirm,
             desc = "Term: NodeDeleteWithConfirm",
+        },
+        {
+            modes = { "n", "v" },
+            keys = { "X", "<A-S-q>" },
+            rhs = actions.delete_noconfirm,
+            desc = "Term: NodeDeleteNoConfirm",
         },
     },
     map = map,

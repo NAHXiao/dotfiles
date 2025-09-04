@@ -812,12 +812,11 @@ local function macro_repalce(task)
                 cached_value = input_cache[task][cache_key]
             end
             local input_value = nil
-            vim.ui.input({
+            input_value = vim.fn.input {
                 prompt = "Enter value for " .. argname .. ": ",
                 default = cached_value or default,
-            }, function(value)
-                input_value = value or default
-            end)
+                cancelreturn = default,
+            }
             if input_value == nil or input_value == "" then
                 error("please input value for " .. argname)
             end

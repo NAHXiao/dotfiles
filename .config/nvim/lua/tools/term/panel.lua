@@ -51,7 +51,7 @@ local function create_fbtermbuf()
     vim.bo[bufnr].buflisted = false
 
     local keymaps = require("tools.term.keymaps").termbuf
-    require("tools.term.keymaps").map(keymaps, nil)
+    require("tools.term.keymaps").map(keymaps, nil, bufnr)
     return bufnr
 end
 ---@param range {[1]:number,[2]:number} [start,finish] 1-based
@@ -346,6 +346,7 @@ function M.init_or_repair(who)
             end
             M.panelbuf = create_panelbuf()
             local keymaps = require("tools.term.keymaps").panelbuf
+            assert(M.panelbuf)
             require("tools.term.keymaps").map(keymaps, function()
                 local row = vim.api.nvim_win_get_cursor(0)[1]
                 log_notify("get row : " .. row)
@@ -511,7 +512,7 @@ end
 ---@field update_data_by_node fun(node:NNode,recurse?:boolean) WriteAble
 ---@field del_data_by_node fun(node:NNode) WriteAble
 ---@field update_termwinbuf fun() WriteAble
----@field set_cur_node fun(node:TermNode|TaskTermNode) WriteAble ButShouldOnlyUsedInKeyMap
+---@field set_cur_node fun(node:TermNode|TaskTermNode|nil) WriteAble ButShouldOnlyUsedInKeyMap
 ---
 ---@field open fun() Expose
 ---@field close fun() Expose

@@ -333,17 +333,17 @@ local config = {
             {
                 name = "project-refresh-config",
                 cmds = { "cmake", "--fresh", "-B", "build", "-S", "." },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
             {
                 name = "build",
                 cmds = { "cmake", "--build", "build" },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
             {
                 name = "run",
                 cmds = { "build/$(VIM_PRONAME)" },
-                filetypes = { "c", "cpp" },
+                filetypes = { "c", "cpp", "cmake" },
             },
         },
     },

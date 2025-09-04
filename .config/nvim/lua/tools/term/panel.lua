@@ -49,6 +49,9 @@ local function create_fbtermbuf()
     vim.bo[bufnr].buftype = "nofile"
     vim.bo[bufnr].modifiable = false
     vim.bo[bufnr].buflisted = false
+
+    local keymaps = require("tools.term.keymaps").termbuf
+    require("tools.term.keymaps").map(keymaps, nil)
     return bufnr
 end
 ---@param range {[1]:number,[2]:number} [start,finish] 1-based

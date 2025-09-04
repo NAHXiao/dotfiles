@@ -1,8 +1,8 @@
 ---@diagnostic disable: unused-local
 local utils = require("tools.term.utils")
 
----@param keymaps {modes:string|string[],keys:string|string[],rhs:string|(fun(panel,node)|fun(panel)),desc?:string}[]
----@param node? NNode|fun():NNode
+---@param keymaps {modes:string|string[],keys:string|string[],rhs:string|(fun(panel:panel,node:NNode?)),desc?:string}[]
+---@param node (NNode|nil)|fun():(NNode|nil)
 ---@param bufnr? number nil==global
 local map = function(keymaps, node, bufnr)
     local function map(mode, lhs, rhs, desc)
@@ -31,16 +31,25 @@ local map = function(keymaps, node, bufnr)
         end
     end
 end
-
----@type table<string,fun(panel:panel,node:NNode)>
+---@param node NNode?
+---@return GroupNode|nil
+local function find_group_upward(node)
+    while node and node.classname ~= "GroupNode" do
+        node = node.parent
+    end
+    ---@cast node GroupNode|nil
+    return node
+end
+---@type table<string,fun(panel:panel,node:NNode|nil):boolean>
 local actions = {
-    add_term = function(panel, node)
-        while node and node.classname ~= "GroupNode" do
-            node = node.parent
+    add_term_and_focus = function(panel, node)
+        node = not node and panel.get_root() or find_group_upward(node)
+        if not node then
+            return false
         end
         local shell = utils.default_shell
         ---@cast node GroupNode
-        node:addnode(
+        local target = node:addnode(
             require("tools.term.node.termnode"):new(
                 { name = vim.fn.fnamemodify(shell[1], ":t:r") },
                 {
@@ -50,21 +59,30 @@ local actions = {
                 true
             )
         )
+        panel.set_cur_node(target)
+        panel.panel_follow_node(target, { expand = true, always = true })
+        return true
     end,
     add_group_input = function(panel, node)
+        node = not node and panel.get_root() or find_group_upward(node)
+        if not node then
+            return false
+        end
         vim.ui.input({ prompt = "[Terminal] Enter group name: " }, function(input)
             if not input or input == "" then
                 vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
                 return
             end
-            while node and node.classname ~= "GroupNode" do
-                node = node.parent
-            end
             ---@cast node GroupNode
             node:addnode(require("tools.term.node.groupnode"):new { name = input })
         end)
+        return true
     end,
     add_term_input = function(panel, node)
+        node = not node and panel.get_root() or find_group_upward(node)
+        if not node then
+            return false
+        end
         local cmds = {}
         local i = 1
         while true do
@@ -99,8 +117,12 @@ local actions = {
                 )
             )
         end
+        return true
     end,
     toggle_expand_or_set_curnode = function(panel, node)
+        if not node then
+            return false
+        end
         utils.log_notify("<cr> on " .. node.name)
         if node.classname == "GroupNode" or node.classname == "TaskSetNode" then
             ---@cast node TaskSetNode|GroupNode
@@ -111,13 +133,18 @@ local actions = {
             panel.panel_follow_node(node, { expand = true, always = true })
             panel.focus("term")
         end
+        return true
     end,
     toggle_pin = function(panel, node)
+        if not node then
+            return false
+        end
         node:toggle_pin()
+        return true
     end,
     inspect_node = function(panel, node)
         if not node then
-            return
+            return false
         end
         local msg = {
             name = node.name,
@@ -144,8 +171,9 @@ local actions = {
             }
         end
         vim.notify(vim.inspect(msg))
+        return true
     end,
-    inspect_tree = function(panel, node)
+    inspect_tree = function(panel, _)
         local data = panel.getdata()
         local tree_lines = {}
         ---@type {[1]:NNode,[2]:number}[]
@@ -166,15 +194,14 @@ local actions = {
                 end
             end
         end
-        -- local errs = panel.get_root():validate_tree_structure()
-        -- if #errs > 0 then
-        --     tree_lines[#tree_lines + 1] = "ERROR"
-        --     vim.list_extend(tree_lines, errs)
-        -- end
         utils.log("inspect_tree: ", tree_lines)
         vim.notify(table.concat(tree_lines, "\n"))
+        return true
     end,
     rename = function(panel, node)
+        if not node then
+            return false
+        end
         vim.ui.input({ prompt = "[Terminal] Enter name: " }, function(input)
             if not input or input == "" then
                 vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
@@ -183,11 +210,19 @@ local actions = {
             assert(type(input) == "string")
             node:rename(input)
         end)
+        return true
     end,
     restart = function(panel, node)
+        if not node then
+            return false
+        end
         node:restart(true)
+        return true
     end,
-    switch_next = function(panel, node)
+    switch_next = function(panel, node) -- node's next other than curnode's next
+        if not node then
+            return false
+        end
         local function flatten_next_node(cur)
             if not cur then
                 return nil
@@ -214,9 +249,14 @@ local actions = {
             ---@cast target TaskTermNode|TermNode
             panel.set_cur_node(target)
             panel.panel_follow_node(target, { expand = true, always = true })
+            return true
         end
+        return false
     end,
-    switch_prev = function(panel, node)
+    switch_prev = function(panel, node) -- node's prev other than curnode's prev
+        if not node then
+            return false
+        end
         local function flatten_prev_node(cur)
             if not cur then
                 return nil
@@ -242,9 +282,14 @@ local actions = {
             ---@cast target TaskTermNode|TermNode
             panel.set_cur_node(target)
             panel.panel_follow_node(target, { expand = true, always = true })
+            return true
         end
+        return false
     end,
-    delete = function(panel, node)
+    delete_confirm = function(panel, node)
+        if not node then
+            return false
+        end
         local root = panel.get_root()
         if node == root then
             vim.ui.input({ prompt = "[Terminal] Ensure clear all? [y/n]" }, function(input)
@@ -261,18 +306,41 @@ local actions = {
                 node.parent:delnode(node)
             end)
         end
+        return true
+    end,
+    delete_noconfirm = function(panel, node) --NoRoot
+        if not node then
+            return false
+        end
+        local root = panel.get_root()
+        if not node or node == root then
+            return false
+        end
+        node.parent:delnode(node)
+        return true
     end,
     swap_with_next = function(panel, node)
-        if node and node.parent then
-            node.parent:swap(node, 1)
-            panel.panel_follow_node(node, { expand = false, always = true })
+        if not node then
+            return false
         end
+        if node and node.parent then
+            if node.parent:swap(node, 1) then
+                panel.panel_follow_node(node, { expand = false, always = true })
+                return true
+            end
+        end
+        return false
     end,
     swap_with_prev = function(panel, node)
-        if node and node.parent then
-            node.parent:swap(node, -1)
-            panel.panel_follow_node(node, { expand = false, always = true })
+        if not node then
+            return false
         end
+        if node and node.parent then
+            if node.parent:swap(node, -1) then
+                panel.panel_follow_node(node, { expand = false, always = true })
+            end
+        end
+        return false
     end,
 }
 
@@ -317,7 +385,7 @@ return {
         {
             modes = { "n", "t" },
             keys = "<A-/>",
-            rhs = actions.add_term,
+            rhs = actions.add_term_and_focus,
             desc = "Term: AppendNewTermNode(default)",
         },
         {
@@ -344,6 +412,17 @@ return {
             rhs = actions.switch_prev,
             desc = "Term: NodeSwitchNext",
         },
+        {
+            modes = { "n", "t" },
+            keys = "<A-q>",
+            rhs = function(panel, node)
+                if not actions.switch_next(panel, node) then
+                    actions.switch_prev(panel, node)
+                end
+                actions.delete_noconfirm(panel, node)
+            end,
+            desc = "Term: NodeDeleteNoConfirm",
+        },
     },
     ---@type {modes:string|string[],keys:string|string[],rhs:string|fun(panel,node),desc?:string}[]
     panelbuf = {
@@ -362,7 +441,7 @@ return {
         {
             modes = { "n", "v" },
             keys = { "<A-/>" },
-            rhs = actions.add_term,
+            rhs = actions.add_term_and_focus,
             desc = "Term: AppendNewTermNode(default)",
         },
         {
@@ -428,8 +507,8 @@ return {
         {
             modes = { "n", "v" },
             keys = "x",
-            rhs = actions.delete,
-            desc = "Term: NodeDelete",
+            rhs = actions.delete_confirm,
+            desc = "Term: NodeDeleteWithConfirm",
         },
     },
     map = map,

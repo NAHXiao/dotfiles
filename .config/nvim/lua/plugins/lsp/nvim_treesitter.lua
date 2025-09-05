@@ -48,6 +48,15 @@ local function select_inner()
     if not node or node:child_count() < 3 then
         return
     end
+    local pairs = {
+        ["{"] = "}",
+        ["("] = ")",
+        ["["] = "]",
+        ["<"] = ">",
+        ["'"] = "'",
+        ['"'] = '"',
+        ["`"] = "`",
+    }
     local start_node = node:child(0)
     local start_next_node = node:child(1)
     local end_node = node:child(node:child_count() - 1)
@@ -56,8 +65,8 @@ local function select_inner()
         not start_node
         or not end_node
         or start_node == end_node
-        -- or pairs[start_node:type()] == nil
-        -- or pairs[start_node:type()] ~= end_node:type()
+        or pairs[start_node:type()] == nil
+        or pairs[start_node:type()] ~= end_node:type()
         or not start_next_node
         or not end_prev_node
     then
@@ -160,7 +169,7 @@ return {
                 desc = "Toggle TreeSitter(Buffer indent)",
             },
             {
-                "gi",
+                "ii",
                 select_inner,
                 mode = "v",
                 desc = "change selection to inner",
@@ -281,5 +290,34 @@ return {
         "RRethy/nvim-treesitter-endwise",
         event = { "BufReadPost", "BufWritePost", "BufNewFile" },
     },
-    -- nvim-treesitter-textobjects
+    {
+        "nvim-treesitter/nvim-treesitter-textobjects",
+        event = { "BufReadPost", "BufWritePost", "BufNewFile" },
+        opts = {
+            textobjects = {
+                select = {
+                    enable = true,
+                    -- Automatically jump forward to textobj, similar to targets.vim
+                    lookahead = true,
+                    keymaps = {
+                        -- You can use the capture groups defined in textobjects.scm
+                        ["af"] = { query = "@function.outer", desc = "function" },
+                        ["if"] = { query = "@function.inner", desc = "inner function" },
+                        ["ac"] = { query = "@class.outer", desc = "class" },
+                        ["ic"] = { query = "@class.inner", desc = "inner class" },
+                    },
+                    include_surrounding_whitespace = true,
+                },
+                swap = {
+                    enable = false,
+                },
+                move = {
+                    enable = false,
+                },
+            },
+        },
+        config = function(_, opts)
+            require("nvim-treesitter.configs").setup(opts)
+        end,
+    },
 }

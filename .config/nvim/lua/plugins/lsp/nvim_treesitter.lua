@@ -65,31 +65,29 @@ local function select_pairs_inner()
         not start_node
         or not end_node
         or start_node == end_node
-        or pairs[start_node:type()] == nil
-        or pairs[start_node:type()] ~= end_node:type()
         or not start_next_node
         or not end_prev_node
     then
         return
     end
-    local start_row, start_col, _, _ = start_next_node:range()
-    local _, _, end_row, end_col = end_prev_node:range()
+    local start_row, start_col, _, _ = start_node:range()
+    local _, _, end_row, end_col = end_node:range()
     start_row, start_col, end_row, end_col = start_row + 1, start_col + 1, end_row + 1, end_col
-    if
-        vim.api
-            .nvim_buf_get_lines(0, start_row - 1, start_row, false)[1]
-            :sub(1, start_col - 1)
-            :match("^%s*$")
-    then
-        start_col = 1
+    if start_col == #vim.api.nvim_buf_get_lines(0, start_row - 1, start_row, false)[1] then
+        start_row, start_col = start_row + 1, 1
+    else
+        start_col = start_col + 1
     end
     if
         vim.api
             .nvim_buf_get_lines(0, end_row - 1, end_row, false)[1]
-            :sub(end_col + 1)
+            :sub(1, end_col - 1)
             :match("^%s*$")
     then
+        end_row = end_row - 1
         end_col = #vim.api.nvim_buf_get_lines(0, end_row - 1, end_row, false)[1]
+    else
+        end_col = end_col - 1
     end
     local suc, a, b, c, d, e = pcall(get_visual_select_range)
     if not suc then

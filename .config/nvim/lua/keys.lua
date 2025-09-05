@@ -87,7 +87,7 @@ end, { noremap = true, silent = true })
 map("i", "<C-s>", "<C-[>:wa<CR>")
 map("n", "<C-s>", "<C-[>:wa<CR>")
 
-map("i", "<C-l>", function()
+map({ "i", "v" }, "<C-l>", function()
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local line = vim.api.nvim_get_current_line()
     local line_length = #line

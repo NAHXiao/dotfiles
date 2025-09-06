@@ -12,7 +12,7 @@ local function scroll(node)
     local winid = panel.get_termwin()
     local is_focused = vim.api.nvim_get_current_buf() == node.bufnr
         and vim.api.nvim_get_current_win() == winid
-    if is_running and is_focused then
+    if is_running and not is_focused then
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
             vim.api.nvim_win_set_cursor(winid, { last, 0 })

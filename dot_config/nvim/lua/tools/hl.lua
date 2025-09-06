@@ -19,7 +19,7 @@ local log = function(act, hlname, msg)
     --     vim.log.levels.INFO
     -- )
 end
-local __mk_handle = require("libs.hl").mkhandle
+local apply_transforms = require("libs.hl").apply_transforms
 local path = vim.fn.stdpath("data") .. package.config:sub(1, 1) .. "nvim_transparent_cache"
 ---@type boolean
 local transparent_enabled
@@ -118,7 +118,7 @@ local function register(tbl, opts)
                     tbl[k] = v
                     return tbl
                 end)
-            __mk_handle(hltbl)()
+            apply_transforms(hltbl)
         elseif opts.color_hook_type == "transparent" then
             local hltbl = vim.iter(tbl)
                 :map(function(k, v)
@@ -135,7 +135,7 @@ local function register(tbl, opts)
                     tbl[k] = v
                     return tbl
                 end)
-            __mk_handle(hltbl)()
+            apply_transforms(hltbl)
         end
     elseif opts.dependency_type == "outer<-outer" then
         assert(opts.on_transparent and not opts.on_colorscheme)
@@ -154,7 +154,7 @@ local function register(tbl, opts)
                 tbl[k] = v
                 return tbl
             end)
-        __mk_handle(hltbl)()
+        apply_transforms(hltbl)
     end
 end
 
@@ -244,7 +244,7 @@ local function apply(colorscheme_changed, transparent_changed)
                     tbl[k] = v
                     return tbl
                 end)
-            local errs = __mk_handle(tbl)()
+            local errs = apply_transforms(tbl)
             if next(errs) then
                 for hlname, err in pairs(errs) do
                     log("Error", hlname, err)

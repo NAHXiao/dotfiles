@@ -31,7 +31,7 @@ if
     (vim.fn.has("wsl") and stat and stat.type == "file" and require("bit").band(stat.mode, 73) ~= 0)
     or (jit.os == "Windows" and stat and stat.type == "file")
 then
-    local enabled = false
+    local enabled = true
     require("utils").aug("IME_Control", true)
     local locked = false
     local latest_call = nil
@@ -61,10 +61,10 @@ then
         end
         try_get_lock()
     end
-    ---@type "英语"|"英语模式"|"中文模式"
+    ---@type "0"|"1"|"2"
     local insert_imemode
     local function to_normal() --normal
-        __lock_jobid = vim.fn.jobstart({ im_select_mspy, "英语模式" }, {
+        __lock_jobid = vim.fn.jobstart({ im_select_mspy, "2" }, {
             on_stdout = function(_, data, _)
                 for _, line in ipairs(data) do
                     line = require("utils").trim(line)
@@ -114,15 +114,13 @@ then
             end
         end,
     })
-    --TODO:WinEnter
-
     --RESUME(WAIT)
     aucmd("VimLeavePre", {
         group = "IME_Control",
         pattern = "*",
         callback = function()
             if enabled then
-                vim.system({ im_select_mspy, insert_imemode }):wait()
+                vim.system({ im_select_mspy, insert_imemode }, { detach = true })
             end
         end,
     })

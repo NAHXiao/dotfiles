@@ -2,7 +2,7 @@ local enable
 return {
     {
         "rcarriga/nvim-notify",
-        event = "VeryLazy",
+        event = "UIEnter",
         keys = {
             {
                 "<leader>fn",
@@ -32,7 +32,7 @@ return {
     },
     {
         "folke/noice.nvim",
-        event = "VeryLazy",
+        event = "UIEnter",
         conf = false,
         dependencies = {
             "MunifTanjim/nui.nvim",

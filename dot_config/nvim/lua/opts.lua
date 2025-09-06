@@ -36,8 +36,10 @@ if vim.env.SSH_CLIENT ~= nil then
             ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
         },
         paste = {
-            ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-            ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+            --stylua: ignore
+            ["+"] = function() return vim.split(vim.fn.getreg('"'), '\n') end,
+            --stylua: ignore
+            ["*"] = function() return vim.split(vim.fn.getreg('"'), '\n') end,
         },
     }
 end

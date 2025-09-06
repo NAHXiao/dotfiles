@@ -394,68 +394,6 @@ M.relpath = vim.fs.relpath
         end
         return table.concat(rel_parts, "/")
     end
-
----valuetype_cond 将过滤key和value类型都是(number|string|boolean)的item
----table_cond将过滤key类型是(number|string|boolean),value类型是table的item
----nullkeys将含有这些键的item去除
----valuetype_cond, table_cond保证了这些键出现时必须满足条件或与给定值相等
----nullkeys保证了这些键不能出现
----@generic T
----@param list T[]
----@param valuetype_cond table<(number|string|boolean),(number|string|boolean)|(number|string|boolean)[]|fun(value:(number|string|boolean),item:table):boolean>|nil
----@param table_cond table<(number|string|boolean),fun(value:table,item:table):boolean>|nil
----@param nullkeys (number|string|boolean)[]|nil
----@return T[]
-function M.list_filter(list, valuetype_cond, table_cond, nullkeys)
-    local filtered = {}
-    for _, item in ipairs(list) do
-        if valuetype_cond then
-            for k, v in pairs(valuetype_cond) do
-                if item[k] then
-                    if type(v) == "table" then
-                        local bypass = false
-                        for _, bypassv in ipairs(v) do
-                            if bypassv == item[k] then
-                                bypass = true
-                                break
-                            end
-                        end
-                        if not bypass then
-                            goto next
-                        end
-                    elseif type(v) == "function" then
-                        if not v(item[k], item) then
-                            goto next
-                        end
-                    else
-                        if v ~= item[k] then
-                            goto next
-                        end
-                    end
-                end
-            end
-        end
-        if table_cond then
-            for k, f in pairs(table_cond) do
-                local x = f(item[k], item)
-                if true ~= x then
-                    goto next
-                end
-            end
-        end
-        if nullkeys then
-            for _, k in ipairs(nullkeys) do
-                if item[k] then
-                    goto next
-                end
-            end
-        end
-        table.insert(filtered, item)
-        ::next::
-    end
-    return filtered
-end
-
 ---原地修改
 function M.list_compact(list)
     local p = 1
@@ -584,7 +522,9 @@ function M.FindRoot(names, opt)
     local opts = {
         startpath = opt.startpath or uv.cwd(),
         use_first_found = opt.use_first_found ~= nil and opt.use_first_found or false,
-        exclude_dirs = opt.exclude_dirs or { uv.os_homedir() },
+        exclude_dirs = opt.exclude_dirs or {
+            vim.fs.normalize(uv.os_homedir()--[[@as string]]),
+        },
         return_matchpath = opt.return_matchpath ~= nil and opt.return_matchpath or false,
     }
     local results = vim.fs.find(names, {
@@ -655,7 +595,14 @@ M.auc("LspAttach", {
         if old_root ~= candidates_root[candidates_root.cur] then
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
         end
-        if root and root ~= "" and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), root) then
+        local bufpath = vim.api.nvim_buf_get_name(bufnr)
+        if
+            root
+            and root ~= ""
+            and bufpath
+            and bufpath ~= ""
+            and M.file_parents_has(bufpath, root)
+        then
             candidates_root[bufnr] = key
         end
     end,
@@ -666,7 +613,15 @@ function M.get_rootdir(bufnr)
     local global_root = candidates_root[candidates_root.cur]
     if bufnr and vim.bo[bufnr].buftype == "" then
         local root_dir = candidates_root[candidates_root[bufnr]]
-        if not root_dir and M.file_parents_has(vim.api.nvim_buf_get_name(bufnr), global_root) then
+        local filepath = vim.api.nvim_buf_get_name(bufnr)
+        if
+            not root_dir
+            and global_root
+            and global_root ~= ""
+            and filepath
+            and filepath ~= ""
+            and M.file_parents_has(filepath, global_root)
+        then
             root_dir = global_root
         end
         return root_dir
@@ -724,6 +679,7 @@ end
 --stylua: ignore
 vim.api.nvim_create_user_command("SelectRoot", function(args) M.select_root(tonumber(args.fargs[1])) end, { nargs = "?", complete = function() return { "0" } end })
 function M.file_parents_has(file, parent)
+    assert(file ~= nil and parent ~= nil)
     for dir in vim.fs.parents(file) do
         if dir == vim.fs.normalize(parent) then
             return true

@@ -35,9 +35,15 @@ if test $ISWSL ;then
             echo "No curl or wget found, cannot auto detect proxy." >&2
             return
         fi
+        local arr=("127.0.0.1")
         local ipconfig_exe=$(get_winbin ipconfig.exe)
-        [[ -z ${ipconfig_exe} ]] && return
-        local arr=("127.0.0.1" $($ipconfig_exe | grep --binary-files=text -i 'IPV4'|grep -Eo '([0-9]{1,3}\.){3}([0-9]{1,3})'))
+        local gateway=$(command -v ip &>/dev/null && command -v jq &>/dev/null && ip -j route | jq -r '.[]|select(.dst=="default")|.gateway')
+        if [[ -n $gateway ]] then
+            arr+=($gateway)
+        fi
+        if [[ -n ${ipconfig_exe} ]] then
+            arr+=($(${ipconfig_exe} | grep --binary-files=text -i 'IPV4'|grep -Eo '([0-9]{1,3}\.){3}([0-9]{1,3})'))
+        fi
         for port in ${ports[@]}; do
             for ip in ${arr[@]}; do
                 echo "try: $ip:$port"

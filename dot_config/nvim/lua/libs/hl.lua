@@ -159,52 +159,50 @@ end
 ---@field  link? string
 ---@alias HighlightTransformRegistMap table<string, HighlightTable |fun():HighlightTable>
 ---@param tbl HighlightTransformRegistMap
----@return fun():table<string,string> err
-local function __mk_handle(tbl)
-    return function()
-        local keys = {}
-        for k, _ in pairs(tbl) do
-            keys[#keys + 1] = k
-        end
-        table.sort(keys)
-        local errs = {}
-        for _, hl_name in ipairs(keys) do
-            local set = function()
-                local hl_opts = tbl[hl_name]
-                local result = {}
-                if type(hl_opts) == "function" then
-                    hl_opts = hl_opts()
-                end
-                ---@cast hl_opts HighlightTransformTable
-                for attr, opts in pairs(hl_opts or {}) do
-                    if attr == "fg" or attr == "bg" then
-                        if type(opts) == "function" then
-                            opts = opts()
-                        end
-                        ---@cast opts string | string[] | HighlightTransform
-                        if type(opts) == "table" and opts.transform then
-                            ---@cast opts HighlightTransform
-                            result[attr] = transform_one(opts)
-                        else
-                            result[attr] = get_color_attr(opts)
-                        end
-                    else
-                        result[attr] = opts
-                    end
-                end
-                result.force = true
-                vim.api.nvim_set_hl(0, hl_name, result)
-            end
-            local ok, err = pcall(set)
-            if not ok then
-                errs[hl_name] = err
-            end
-        end
-        return errs
+---@return table<string,string> err
+local function apply_transforms(tbl)
+    local keys = {}
+    for k, _ in pairs(tbl) do
+        keys[#keys + 1] = k
     end
+    table.sort(keys)
+    local errs = {}
+    for _, hl_name in ipairs(keys) do
+        local set = function()
+            local hl_opts = tbl[hl_name]
+            local result = {}
+            if type(hl_opts) == "function" then
+                hl_opts = hl_opts()
+            end
+            ---@cast hl_opts HighlightTransformTable
+            for attr, opts in pairs(hl_opts or {}) do
+                if attr == "fg" or attr == "bg" then
+                    if type(opts) == "function" then
+                        opts = opts()
+                    end
+                    ---@cast opts string | string[] | HighlightTransform
+                    if type(opts) == "table" and opts.transform then
+                        ---@cast opts HighlightTransform
+                        result[attr] = transform_one(opts)
+                    else
+                        result[attr] = get_color_attr(opts)
+                    end
+                else
+                    result[attr] = opts
+                end
+            end
+            result.force = true
+            vim.api.nvim_set_hl(0, hl_name, result)
+        end
+        local ok, err = pcall(set)
+        if not ok then
+            errs[hl_name] = err
+        end
+    end
+    return errs
 end
 return {
     get_color_attr = get_color_attr,
     transform_one = transform_one,
-    mkhandle = __mk_handle,
+    apply_transforms = apply_transforms,
 }

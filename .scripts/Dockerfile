@@ -40,6 +40,8 @@ RUN set -e && \
     groupadd --system ubuntu --gid 1000 && \
     useradd --uid 1000 --system --gid ubuntu --home-dir /home/ubuntu --create-home --comment "Docker image user" ubuntu && \
     chown -R ubuntu:ubuntu /home/ubuntu ;\
+    mkdir -p /run/user/$(id -u ubuntu);\
+    chown ubuntu:ubuntu /run/user/$(id -u ubuntu);\
     fi \ 
     } && \
     usermod --password $(openssl passwd -6 root) root && \
@@ -52,17 +54,26 @@ RUN set -e && \
     mkdir -p /root/.ssh && chmod 700 /root/.ssh && \
     mkdir -p /home/ubuntu/.ssh && chmod 700 /home/ubuntu/.ssh && chown ubuntu:ubuntu -R /home/ubuntu/.ssh && \
     chsh -s /bin/zsh ubuntu || exit 127
+
 RUN set -e && \
     retry apt-get install -y locales && \
     sed -i '/zh_CN.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen zh_CN.UTF-8 || exit 127
+
+#neovim
+RUN tmpdir=$(mktemp -d /tmp/nvim-XXXXXX) && cd $tmpdir && useproxy retry git clone https://github.com/neovim/neovim && cd neovim && git checkout stable && \
+    make CMAKE_BUILD_TYPE=Release && cd build && cpack -G DEB && dpkg -i nvim-linux-*.deb || exit 127
+
+#bitwarden
 RUN set -e && \
-    #lemonade
-    # useproxy retry wget -tries=10 -qO- 'https://github.com/lemonade-command/lemonade/releases/download/v1.1.1/lemonade_linux_amd64.tar.gz' | tar xz -C /usr/local/bin && \
-    #bitwarden
-    useproxy retry wget -O/tmp/bw.zip -tries=10 'https://bitwarden.com/download/?app=cli&platform=linux' && unzip /tmp/bw.zip -d /usr/local/bin && rm /tmp/bw.zip && [ -f /usr/local/bin/bw ] && \
-    #chezmoi
-    useproxy retry sh -c "$(curl --retry 10 --retry-delay 2 --retry-connrefused -fsLS get.chezmoi.io)" -- -b /usr/local/bin && [ -f /usr/local/bin/chezmoi ] && \
+    useproxy retry wget -O/tmp/bw.zip -tries=10 'https://bitwarden.com/download/?app=cli&platform=linux' && unzip /tmp/bw.zip -d /usr/local/bin && rm /tmp/bw.zip && [ -f /usr/local/bin/bw ] || exit 127
+
+#chezmoi
+RUN set -e && \
+    useproxy retry sh -c "$(curl --retry 10 --retry-delay 2 --retry-connrefused -fsLS get.chezmoi.io)" -- -b /usr/local/bin && [ -f /usr/local/bin/chezmoi ] || exit 127
+
+#yazi
+RUN set -e  && \
     useproxy retry wget -L https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-musl.zip -O/tmp/yazi.zip && \
     tmpdir=$(mktemp -d /tmp/yazi-XXXXXX) && \
     unzip /tmp/yazi.zip -d $tmpdir && \
@@ -79,9 +90,9 @@ RUN set -e && \
     cp completions/yazi.nu /usr/share/nushell/vendor/autoload && \
     [ -f /usr/local/bin/ya ] && [ -f /usr/local/bin/yazi ] || exit 127
 
-RUN tmpdir=$(mktemp -d /tmp/nvim-XXXXXX) && cd $tmpdir && useproxy retry git clone https://github.com/neovim/neovim && cd neovim && git checkout stable && \
-    make CMAKE_BUILD_TYPE=Release && cd build && cpack -G DEB && dpkg -i nvim-linux-*.deb || exit 127
 USER ubuntu
+#fnm
+RUN set -e && useproxy retry bash -c 'curl -fsSL https://fnm.vercel.app/install | bash' || exit 127
 RUN useproxy retry /usr/local/bin/chezmoi init --apply NAHXiao --exclude encrypted --mode=file || exit 127
 USER root
 RUN rm /usr/local/bin/useproxy || exit 127

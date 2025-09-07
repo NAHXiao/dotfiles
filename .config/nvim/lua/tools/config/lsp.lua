@@ -235,11 +235,7 @@ M.extend = {
             },
         },
     },
-    sqls = {
-        on_attach = function(client, bufnr)
-            require("sqls").on_attach(client, bufnr)
-        end,
-    },
+    sqls = {},
 }
 M.auto_enable = keys(M.extend, M.override):exclude(compact {
     "jdtls",

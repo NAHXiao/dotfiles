@@ -120,7 +120,7 @@ then
         pattern = "*",
         callback = function()
             if enabled then
-                vim.system({ im_select_mspy, insert_imemode }):wait()
+                vim.system({ im_select_mspy, insert_imemode }, { detach = true })
             end
         end,
     })

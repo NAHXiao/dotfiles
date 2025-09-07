@@ -37,13 +37,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(${PROJECT_NAME} src/main.cpp)
 #target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
-
-execute_process(
-  COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${CMAKE_BINARY_DIR}/compile_commands.json"
-    "${CMAKE_SOURCE_DIR}/compile_commands.json"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-)
+file(RELATIVE_PATH compile_commands_relpath "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/compile_commands.json")
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${compile_commands_relpath}" "${CMAKE_SOURCE_DIR}/compile_commands.json")
 EOF
 
 sed -i "s/PROJECT_NAME_PLACEHOLDER/$PROJECT_NAME/g" CMakeLists.txt

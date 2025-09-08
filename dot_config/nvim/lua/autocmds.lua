@@ -120,7 +120,7 @@ then
         pattern = "*",
         callback = function()
             if enabled then
-                vim.system({ im_select_mspy, insert_imemode }, { detach = true })
+                vim.system({ im_select_mspy, "2" }, { detach = true })
             end
         end,
     })
@@ -128,6 +128,24 @@ then
         enabled = not enabled
         require("utils").vim_echo(("AutoSwitch Keyboard: %s"):format(enabled and "On" or "Off"))
     end, { desc = "Toggle autoswitch keyboard" })
+
+    require("utils").map("n", "gQ", function()
+        local filename = vim.fn.input("FilePath")
+        while true do
+            insert_imemode = "1"
+            to_insert()
+            local input = vim.fn.input("Ex-insert")
+            if input == "visual" or input == ":visual" then
+                break
+            end
+            if input ~= "" then
+                vim.fn.writefile({ input }, filename, "a")
+                -- local last_line = vim.fn.line("$")
+                -- vim.fn.append(last_line, input)
+                -- vim.cmd("normal! G")
+            end
+        end
+    end)
 end
 
 -- 终端终止时自动进入normal模式

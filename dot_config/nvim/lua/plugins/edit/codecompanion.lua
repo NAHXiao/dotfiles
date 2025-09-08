@@ -17,6 +17,7 @@ return {
             chat = {
                 adapter = "deepseek",
                 model = "deepseek-reasoner",
+                modes = { n = "<C-s>", i = "<C-s>" },
             },
             inline = {
                 adapter = "copilot",

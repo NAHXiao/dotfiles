@@ -571,11 +571,12 @@ M.auc("DirChanged", {
             ".repo", ".gitignore",
         }, {
             startpath = vim.fn.getcwd(),
-            use_first_found = false,
+            use_first_found = true,
             return_dirname = true,
         })
         if old_root ~= candidates_root[candidates_root.cur] and candidates_root_inited then
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+            vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
         end
         candidates_root_inited = true
     end,
@@ -594,6 +595,7 @@ M.auc("LspAttach", {
         candidates_root[key] = root
         if old_root ~= candidates_root[candidates_root.cur] then
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+            vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
         end
         local bufpath = vim.api.nvim_buf_get_name(bufnr)
         if
@@ -671,8 +673,12 @@ function M.select_root(bufnr)
         if bufnr then
             candidates_root[bufnr] = item[1]
         else
+            local old_root = candidates_root[candidates_root.cur]
             candidates_root.cur = item[1]
             vim.notify("[Root]: " .. tostring(candidates_root[candidates_root.cur]))
+            if old_root ~= candidates_root[candidates_root.cur] then
+                vim.api.nvim_exec_autocmds("User", { pattern = "ProjRootChanged" })
+            end
         end
     end)
 end

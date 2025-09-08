@@ -3,16 +3,17 @@ local utils = require("tools.term.utils")
 local panel = require("tools.term.panel")
 ---@param node TermNode
 local function scroll(node)
-    ---NOTE: vim.fn.jobwait Cannnot be used in interactive binary,that will causes block
+    ---NOTE: vim.fn.jobwait Cannnot be used in interactive program,that will causes block
     -- local is_running = vim.fn.jobwait({ vim.b[].terminal_job_id, })[1] == -1
     if not node.auto_scroll then
         return
     end
     local is_running = vim.uv.kill(vim.b[node.bufnr].terminal_job_pid, 0) == 0
     local winid = panel.get_termwin()
+    local opened = winid ~= nil
     local is_focused = vim.api.nvim_get_current_buf() == node.bufnr
         and vim.api.nvim_get_current_win() == winid
-    if is_running and not is_focused then
+    if is_running and not is_focused and opened then
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
             vim.api.nvim_win_set_cursor(winid, { last, 0 })

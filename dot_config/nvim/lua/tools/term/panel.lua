@@ -226,11 +226,24 @@ function M.update_data_by_node(node, recurse)
     end
 end
 function M.del_data_by_node(node)
-    local panelbuf = M.get_panelbuf()
-    local startline, finishline = get_lines_range_by_node(node)
-    set_lines({ startline, finishline }, {}, panelbuf)
     if M.get_cur_node() == node then
         M.set_cur_node(nil)
+    end
+    local panelbuf = M.get_panelbuf()
+    local startline, finishline = get_lines_range_by_node(node)
+    if startline then
+        vim.notify(("del_data_by_node [%d,%d]"):format(startline, finishline))
+        set_lines({ startline, finishline }, {}, panelbuf)
+        for i = startline, finishline do
+            M.data:delByValue(i)
+        end
+        for linenum = finishline + 1, math.huge do
+            local n = M.data:getByValue(linenum)
+            if not n then
+                break
+            end
+            M.data:setValue(n, linenum - (finishline - startline + 1))
+        end
     end
 end
 function M.panel_follow_curnode(opts)

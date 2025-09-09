@@ -196,17 +196,15 @@ end
 ---@param node NNode
 ---@return boolean
 function GroupNode:delnode(node)
-    if node.prev then
-        node.prev.next = node.next
-    end
-    if node.next then
-        node.next.prev = node.prev
-    end
     for pos, child in ipairs(self.children) do
         if child == node then
+            if node.prev then
+                node.prev.next = node.next
+            end
+            if node.next then
+                node.next.prev = node.prev
+            end
             table.remove(self.children, pos):drop()
-            -- panel.update_data_by_node(self, true)
-            panel.del_data_by_node(node)
             return true
         end
     end

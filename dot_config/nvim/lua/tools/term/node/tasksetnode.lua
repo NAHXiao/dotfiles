@@ -82,7 +82,7 @@ end
 
 function TaskSetNode:restart(reset_repeat)
     if self.start_nodes == nil then
-        vim.notify("You cannot restart a node which has not been started once", utils.ERROR)
+        vim.notify("[Terminal]: You cannot restart a node which has not been started once", utils.ERROR)
         return
     end
     self:clean()
@@ -122,7 +122,7 @@ function TaskSetNode:generate_nodes()
         self.after_finish_all()
     end
     if self.seq then
-        local start_nodes_seq = {}
+        local next_tasks = {}
         for i = #self.tasks, 1, -1 do
             local task = self.tasks[i]
             local after_finish
@@ -136,8 +136,8 @@ function TaskSetNode:generate_nodes()
                     end
                 end
             else
-                local nexts = start_nodes_seq
-                start_nodes_seq = {}
+                local nexts = next_tasks
+                next_tasks = {}
                 after_finish = function(_, code, _)
                     utils.log_notify("14TaskSetNode.start after_finish")
                     if self.break_on_err == false or code == 0 or task.ignore_error then
@@ -157,14 +157,15 @@ function TaskSetNode:generate_nodes()
                     _after_finish(...)
                 end
             end
-            local node = TaskTermNode:new({
-                name = self.tasks[i].name,
-                parent = self,
-            }, self.tasks[i].jobinfo, false)
+            local node = TaskTermNode:new(
+                { name = self.tasks[i].name, parent = self },
+                self.tasks[i].jobinfo,
+                false
+            )
             self.children[i] = node
-            table.insert(start_nodes_seq, node)
+            table.insert(next_tasks, node)
         end
-        self.start_nodes = start_nodes_seq
+        self.start_nodes = next_tasks
     else
         local start_nodes_seq = {}
         for i, task in ipairs(self.tasks) do

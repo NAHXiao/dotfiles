@@ -2,22 +2,22 @@
 ---@field name string
 ---@field label? string
 ---@field cmds string[]|string
----@field filetypes? string[]|"*"
----@field with_shell? boolean
----@field with_cmd_wrapper? boolean default true
+---@field filetypes? string[]|"*" default nil
+---@field with_shell? boolean default false
+---@field with_cmd_wrapper? boolean default true;when with_shell is true,only work with the first shell command
 ---@field with_tmpfile? table<string,string>
----@field cwd? string
----@field clear_env? boolean
+---@field cwd? string default $(VIM_ROOT)
+---@field clear_env? boolean default nil(false)
 ---@field env? table<string,string>
----@field detach? boolean
----@field stdin_file? string
+---@field detach? boolean default nil(false)
+---@field stdin_file? string cannot coexist with stdin_pipe
 ---@field stdin_pipe? string
----@field stdin_pipe_close? boolean
+---@field stdin_pipe_close? boolean default nil(false)
 ---@field before_start? fun()
 ---@field on_start? fun(jobid,code,event)
 ---@field on_exit? fun(jobid,code,event)
 ---@field after_finish? fun(jobid,code)
----@field repeat_opts? {time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}
+---@field repeat_opts? {time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean} default: nil|{time:math.huge,timeinterval=1(second)}
 ---@class Task
 ---@field classname "Task"
 ---@field name string
@@ -42,9 +42,9 @@
 ---@field repeat_opts? {time:number,timeinterval:number,stop_cond:fun(code,stdout,stderr):boolean}
 ---@class UserTaskSet
 ---@field name string
----@field break_on_err? boolean
----@field seq? boolean
----@field filetypes? string[]|"*"
+---@field break_on_err? boolean default true
+---@field seq? boolean default true
+---@field filetypes? string[]|"*" default nil
 ---@field [number] string|{name:string,field?:string,label?:string}|UserTask|{
 ---[1]:string|{name:string,field?:string,label?:string}|UserTask,
 ---bg?:boolean,
@@ -291,28 +291,24 @@ function T.ensure_valid_utaskset(utaskset, field)
         for idx, utask in ipairs(utaskset) do
             local string_type = function(it)
                 if type(it) == "string" then
-                    -- vim.notify("string_type")
                     return true
                 end
                 return false
             end
             local tbl_type = function(it) --{name:string,field?:string,label?:string}
                 if type(it) == "table" and (it[1] == nil) and it.name and not it.cmds then
-                    -- vim.notify("tbl_type")
                     return true
                 end
                 return false
             end
             local with_opts_type = function(it) --{ [1]:string|{name:string,field?:string,label?:string}|UserTask ...}
                 if type(it) == "table" and it[1] ~= nil then
-                    -- vim.notify("with_opts_type")
                     return true
                 end
                 return false
             end
             local task_type = function(it)
                 if not string_type(it) and not tbl_type(it) and not with_opts_type(it) then
-                    -- vim.notify("task_type")
                     return true
                 else
                     return false
@@ -324,11 +320,9 @@ function T.ensure_valid_utaskset(utaskset, field)
                 ---@type Task (copy,not ref)
                 local task
                 local opts
-                if string_type(utask) then
-                    ---@cast utask string
+                if string_type(utask) then ---@cast utask string
                     anchor.name = utask
-                elseif tbl_type(utask) then
-                    ---@cast utask {name:string,field?:string,label?:string}
+                elseif tbl_type(utask) then ---@cast utask {name:string,field?:string,label?:string}
                     anchor = utask
                 elseif with_opts_type(utask) then
                     opts = utask
@@ -1140,4 +1134,5 @@ function T.setup()
     end, { desc = "Edit: Task" })
 end
 return T
---with shell and with cmd_wrapper cannot coexist ( )
+--when #cmds>1,with shell and with cmd_wrapper cannot coexist ()
+--TODO: Move env logic from cmd_wrapper to macro_expand

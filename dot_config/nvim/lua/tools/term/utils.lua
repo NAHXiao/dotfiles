@@ -38,7 +38,7 @@ local function pmsgcall(...)
             result_or_errmsg = ("%s:%d %s(): "):format(info.short_src, info.currentline, info.name)
                 .. result_or_errmsg
         end
-        vim.notify(result_or_errmsg, ERROR)
+        vim.notify("[Terminal]: " .. result_or_errmsg, ERROR)
     end
 end
 local function validbuf(bufnr) --strict

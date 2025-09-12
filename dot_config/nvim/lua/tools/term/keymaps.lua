@@ -75,7 +75,7 @@ actions = {
         end
         vim.ui.input({ prompt = "[Terminal] Enter group name: " }, function(input)
             if not input or input == "" then
-                vim.notify("[terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
+                vim.notify("[Terminal]: Terminal name cannot be empty", vim.log.levels.ERROR)
                 return
             end
             ---@cast node GroupNode
@@ -154,6 +154,8 @@ actions = {
         local msg = {
             name = node.name,
             classname = node.classname,
+            bufnr = node--[[@as TermNode]].bufnr,
+            repeat_left_times = node--[[@as TermNode]].repeat_left_times,
             display = node:display(),
             tostring = node:tostring(),
             parent = node.parent and node.parent:tostring() or "nil",
@@ -179,7 +181,7 @@ actions = {
         return true
     end,
     inspect_tree = function(panel, _)
-        local data = panel.getdata()
+        local data = panel.get_data()
         local tree_lines = {}
         ---@type {[1]:NNode,[2]:number}[]
         local stack = { { panel.get_root(), 0 } }
@@ -188,7 +190,7 @@ actions = {
             tree_lines[#tree_lines + 1] = string.rep(" ", topIndent)
                 .. topNode:tostring()
                 .. " line"
-                .. tostring(panel.getdata():getByKey(topNode))
+                .. tostring(panel.get_data():getByKey(topNode))
 
             if topNode.classname == "GroupNode" or topNode.classname == "TaskSetNode" then
                 ---@cast topNode GroupNode|TaskSetNode

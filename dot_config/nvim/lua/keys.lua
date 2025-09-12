@@ -113,6 +113,7 @@ map("n", "<leader>bn", ":bnext<CR>", {})
 map("n", "<leader>bf", ":bfirst<CR>", {})
 map("n", "<leader>bl", ":blast<CR>", {})
 map("n", "<leader>bd", ":bdelete<CR>", {})
+map("n", "<leader>bw", ":bwipeout<CR>", {})
 -- Navigate Brother Files
 local function switch_file(direction)
     local current = vim.api.nvim_buf_get_name(0)

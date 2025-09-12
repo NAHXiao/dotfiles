@@ -189,6 +189,7 @@ local fts = {
     "TelescopePrompt",
     "dropbar_menu",
     "TerminalBuf",
+    "Outline",
     "noice",
     -- "neo-tree",
     -- "neo-tree-popup",
@@ -220,7 +221,7 @@ aucmd("WinEnter", {
         end)
     end,
 })
--- 自动保存光标位置
+-- 自动恢复光标位置
 vim.cmd([[
   au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 ]])

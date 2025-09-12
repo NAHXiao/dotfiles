@@ -1,3 +1,10 @@
+---`UserTaskSet[number]`:
+---```lua
+---"taskname"
+---{"taskname",bg=true,break_on_err=true}
+---{{name="taskname",label="labelname"},bg=true,break_on_err=true}
+---{{name="taskname",label="tasklabel",cmds="sleep 1",with_shell=true},bg=true,break_on_err=true}
+---```
 ---@type table<string,{tasks:UserTask[],tasksets:UserTaskSet[]}>
 local config = {
     template = {
@@ -453,6 +460,5 @@ local config = {
         },
     },
 }
-
 return config
 -- vim: foldlevel=1

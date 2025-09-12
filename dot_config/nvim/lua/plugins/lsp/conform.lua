@@ -3,7 +3,7 @@ return {
     branch = "master",
     keys = require("utils").lazy_keymap {
         {
-            { "gq", "gQ" },
+            { "gq" },
             function()
                 require("conform").format({ async = true }, function(err)
                     if not err then

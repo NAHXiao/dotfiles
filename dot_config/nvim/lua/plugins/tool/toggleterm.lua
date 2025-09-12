@@ -32,7 +32,7 @@ return {
             persist_mode = true,
             direction = "float",
             close_on_exit = false,
-            shell = vim.o.shell,
+            shell = (jit.os == "Windows" and vim.fn.executable("pwsh")) and "pwsh" or vim.o.shell,
             auto_scroll = true,
             float_opts = {
                 border = "curved",

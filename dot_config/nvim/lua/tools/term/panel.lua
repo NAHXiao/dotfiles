@@ -67,60 +67,85 @@ local function set_lines(range, lines, bufnr)
     vim.api.nvim_buf_set_lines(bufnr, start_line - 1, end_line, false, lines)
     vim.bo[bufnr].modifiable = false
 end
+
+---@class panel
 local M = {
+    ---@private
     ---@type BijectionMap<NNode,number>
     data = nil,
+    ---@private
     ---@type GroupNode
     root = nil,
 
+    ---@private
     ---@type number
     panelbuf = nil,
+    ---@private
     ---@type number?
     panelwin = nil,
+    ---@private
     ---@type number?
     termwin = nil,
+    ---@private
     ---@type number
     fallback_termbuf = nil,
 
+    ---@private
     ---@type TermNode|TaskTermNode|nil
     curnode = nil,
+    ---@private
     ---@type boolean
     opened = false,
 }
----@return number
-function M.get_panelbuf()
-    M.init_or_repair("panelbuf")
-    return M.panelbuf
-end
----@return number
-function M.get_termbuf()
-    local curnode = M.get_cur_node()
-    if curnode and curnode.bufnr and vim.api.nvim_buf_is_valid(curnode.bufnr) then
-        return curnode.bufnr
-    else
-        M.init_or_repair("fallback_termbuf")
-        return M.get_fallback_termbuf()
-    end
-end
-function M.update_termwinbuf()
-    if M.opened then
-        log_notify("update_termwinbuf")
-        local termbuf = M.get_termbuf()
-        if termbuf ~= vim.api.nvim_win_get_buf(M.termwin) then
-            vim.wo[M.termwin].winfixbuf = false
-            vim.api.nvim_win_set_buf(M.termwin, M.get_termbuf())
+
+---ensure data,root,panelbuf,fallback_termbuf
+---@private
+---@param who? "root"|"data"|"panelbuf"|"fallback_termbuf"
+function M.init_or_repair(who)
+    if not who or who == "data" then
+        if M.data == nil then
+            M.data = BijectionMap.new()
         end
-        vim.wo[M.termwin].winfixbuf = true
+    end
+    if not who or who == "root" then
+        M.init_or_repair("data")
+        if M.root == nil then
+            M.data:clear()
+            M.root = require("tools.term.node.groupnode"):new { name = "Root" }
+            M.data:set(M.root, 1)
+        end
+    end
+    if not who or who == "panelbuf" then
+        if not M.panelbuf or not utils.validbuf(M.panelbuf) then
+            if M.panelbuf and vim.fn.bufexists(M.panelbuf) then
+                vim.api.nvim_buf_delete(M.panelbuf, { force = true })
+            end
+            M.panelbuf = create_panelbuf()
+            local keymaps = require("tools.term.keymaps").panelbuf
+            assert(M.panelbuf)
+            require("tools.term.keymaps").map(keymaps, function()
+                local row = vim.api.nvim_win_get_cursor(0)[1]
+                log_notify("get row : " .. row)
+                return M.data:getByValue(row)
+            end, M.panelbuf)
+            local g = vim.api.nvim_create_augroup("tools.terminal.panelbufcxt", { clear = true })
+            vim.api.nvim_create_autocmd("WinLeave", {
+                group = g,
+                pattern = "TerminalPanel",
+                callback = function()
+                    M.panel_follow_curnode { expand = true, always = true }
+                end,
+            })
+        end
+    end
+    if not who or who == "fallback_termbuf" then
+        if not M.fallback_termbuf or not utils.validbuf(M.fallback_termbuf) then
+            M.fallback_termbuf = create_fbtermbuf()
+        end
     end
 end
----@return number?
-function M.get_panelwin()
-    return M.opened and M.panelwin or nil
-end
----@return number?
-function M.get_termwin()
-    return M.opened and M.termwin or nil
-end
+
+---@private
 ---@return number
 function M.get_fallback_termbuf()
     if utils.validbuf(M.fallback_termbuf) then
@@ -133,10 +158,12 @@ function M.get_fallback_termbuf()
         return M.fallback_termbuf
     end
 end
----@param node GroupNode|TaskSetNode
+
+---@private
+---@param node NNode
 ---@return number? start [start,finish] 1-based ; when node isnot displayed,return nil
 ---@return number? finish
-local function get_lines_range_by_node(node)
+function M.get_lines_range_by_node(node)
     local linenum = M.data:getByKey(node)
     if not linenum then
         return nil, nil
@@ -159,6 +186,67 @@ local function get_lines_range_by_node(node)
     log(("get_lines_range_by_node: startline:%d finishline:%d"):format(startline, finishline))
     return startline, finishline
 end
+
+---EXPOSE:READONLY
+
+---@return number
+function M.get_panelbuf()
+    M.init_or_repair("panelbuf")
+    return M.panelbuf
+end
+
+---@return number
+function M.get_termbuf()
+    local curnode = M.get_cur_node()
+    if curnode and curnode.bufnr and vim.api.nvim_buf_is_valid(curnode.bufnr) then
+        return curnode.bufnr
+    else
+        M.init_or_repair("fallback_termbuf")
+        return M.get_fallback_termbuf()
+    end
+end
+
+---@return number?
+function M.get_panelwin()
+    return M.opened and M.panelwin or nil
+end
+
+---@return number?
+function M.get_termwin()
+    return M.opened and M.termwin or nil
+end
+
+---@return TaskTermNode|TermNode|nil
+function M.get_cur_node()
+    return M.curnode
+end
+
+---@return GroupNode
+function M.get_root()
+    M.init_or_repair("root")
+    return M.root
+end
+
+---@return BijectionMap<NNode,number>
+function M.get_data()
+    M.init_or_repair("data")
+    return M.data
+end
+
+---EXPOSE
+
+function M.update_termwinbuf()
+    if M.opened then
+        log_notify("update_termwinbuf")
+        local termbuf = M.get_termbuf()
+        if termbuf ~= vim.api.nvim_win_get_buf(M.termwin) then
+            vim.wo[M.termwin].winfixbuf = false
+            vim.api.nvim_win_set_buf(M.termwin, M.get_termbuf())
+        end
+        vim.wo[M.termwin].winfixbuf = true
+    end
+end
+
 ---@param node NNode
 ---@param recurse boolean?
 function M.update_data_by_node(node, recurse)
@@ -173,7 +261,7 @@ function M.update_data_by_node(node, recurse)
     end
     if recurse and node.classname == "GroupNode" or node.classname == "TaskSetNode" then
         ---@cast node GroupNode|TaskSetNode
-        local startline, finishline = get_lines_range_by_node(node)
+        local startline, finishline = M.get_lines_range_by_node(node)
         if not startline then
             return
         end
@@ -225,14 +313,16 @@ function M.update_data_by_node(node, recurse)
         set_lines({ linenum, linenum }, { string.rep(" ", indent) .. node:display() }, panelbuf)
     end
 end
+
+---@param node NNode
 function M.del_data_by_node(node)
     if M.get_cur_node() == node then
         M.set_cur_node(nil)
     end
     local panelbuf = M.get_panelbuf()
-    local startline, finishline = get_lines_range_by_node(node)
+    local startline, finishline = M.get_lines_range_by_node(node)
     if startline then
-        vim.notify(("del_data_by_node [%d,%d]"):format(startline, finishline))
+        log_notify(("del_data_by_node [%d,%d]"):format(startline, finishline))
         set_lines({ startline, finishline }, {}, panelbuf)
         for i = startline, finishline do
             M.data:delByValue(i)
@@ -246,16 +336,23 @@ function M.del_data_by_node(node)
         end
     end
 end
-function M.panel_follow_curnode(opts)
-    local curnode = M.get_cur_node()
-    if curnode then
-        M.panel_follow_node(curnode, opts)
+
+---@param node TermNode|TaskTermNode|nil
+function M.set_cur_node(node)
+    if not node or node.classname == "TermNode" or node.classname == "TaskTermNode" then
+        M.curnode = node
+        M.update_termwinbuf()
+        M.panel_follow_curnode { expand = false, always = false }
+        log_notify("set curnode to " .. (node and node.name or "nil"))
+    else
+        log_notify("set_cur_node arg error: ", node and node:tostring())
     end
 end
+
 ---@param node NNode
 ---@param opts { expand:boolean?, always:boolean?}
 ---- expand: default `true`
----- always: follow even when the focus is on the panelwin.default `false`
+---- always: follow even when the focus is on the panelwin; default `false`
 function M.panel_follow_node(node, opts)
     opts = vim.tbl_extend("force", { expand = true, always = false }, opts)
     if M.opened and (opts.always or (not M.is_focused("panel"))) then
@@ -277,30 +374,16 @@ function M.panel_follow_node(node, opts)
         end
     end
 end
----@return TaskTermNode|TermNode|nil
-function M.get_cur_node()
-    return M.curnode
-end
-function M.get_root()
-    M.init_or_repair("root")
-    return M.root
-end
-function M.get_data()
-    M.init_or_repair("data")
-    return M.data
-end
----@param node TermNode|TaskTermNode|nil
-function M.set_cur_node(node)
-    if not node or node.classname == "TermNode" or node.classname == "TaskTermNode" then
-        M.curnode = node
-        M.update_termwinbuf()
-        M.panel_follow_curnode { expand = false, always = false }
-        log_notify("set curnode to " .. (node and node.name or "nil"))
-    else
-        log_notify("set_cur_node arg error: ", node and node:tostring())
+
+---@param opts { expand:boolean?, always:boolean?}
+function M.panel_follow_curnode(opts)
+    local curnode = M.get_cur_node()
+    if curnode then
+        M.panel_follow_node(curnode, opts)
     end
 end
----@param who? "term"|"panel"
+
+---@param who? "term"|"panel" nil == any
 function M.is_focused(who)
     local winid = vim.api.nvim_get_current_win()
     return M.opened
@@ -309,6 +392,7 @@ function M.is_focused(who)
             or ((not who or who == "panel") and winid == M.get_panelwin())
         )
 end
+
 ---@param who? "term"|"panel" default term
 function M.focus(who)
     log("focus")
@@ -327,6 +411,7 @@ function M.focus(who)
         end
     end
 end
+
 function M.toggle()
     if not M.opened then
         M.open(true)
@@ -336,51 +421,7 @@ function M.toggle()
         M.close()
     end
 end
----ensure data,root,panelbuf,fallback_termbuf
----@param who? "root"|"data"|"panelbuf"|"fallback_termbuf"
-function M.init_or_repair(who)
-    if not who or who == "data" then
-        if M.data == nil then
-            M.data = BijectionMap.new()
-        end
-    end
-    if not who or who == "root" then
-        M.init_or_repair("data")
-        if M.root == nil then
-            M.data:clear()
-            M.root = require("tools.term.node.groupnode"):new { name = "Root" }
-            M.data:set(M.root, 1)
-        end
-    end
-    if not who or who == "panelbuf" then
-        if not M.panelbuf or not utils.validbuf(M.panelbuf) then
-            if M.panelbuf and vim.fn.bufexists(M.panelbuf) then
-                vim.api.nvim_buf_delete(M.panelbuf, { force = true })
-            end
-            M.panelbuf = create_panelbuf()
-            local keymaps = require("tools.term.keymaps").panelbuf
-            assert(M.panelbuf)
-            require("tools.term.keymaps").map(keymaps, function()
-                local row = vim.api.nvim_win_get_cursor(0)[1]
-                log_notify("get row : " .. row)
-                return M.data:getByValue(row)
-            end, M.panelbuf)
-            local g = vim.api.nvim_create_augroup("tools.terminal.panelbufcxt", { clear = true })
-            vim.api.nvim_create_autocmd("WinLeave", {
-                group = g,
-                pattern = "TerminalPanel",
-                callback = function()
-                    M.panel_follow_curnode { expand = true, always = true }
-                end,
-            })
-        end
-    end
-    if not who or who == "fallback_termbuf" then
-        if not M.fallback_termbuf or not utils.validbuf(M.fallback_termbuf) then
-            M.fallback_termbuf = create_fbtermbuf()
-        end
-    end
-end
+
 ---@param focus boolean?
 function M.open(focus)
     log(("open: focus: %s"):format(tostring(focus)))
@@ -444,6 +485,7 @@ function M.open(focus)
 
     M.panel_follow_curnode { expand = true, always = false }
 end
+
 function M.close()
     log("close")
     if not M.opened then
@@ -460,6 +502,7 @@ function M.close()
     vim.api.nvim_clear_autocmds { group = win_autocmd_group }
     M.opened = false
 end
+
 ---@param lines string[]
 ---@param node TaskTermNode|TermNode
 ---@param extra_cr number? default 2
@@ -467,7 +510,7 @@ end
 function M.send_feedkey(lines, node, extra_cr)
     extra_cr = extra_cr or 2
     if node == nil then
-        vim.notify("You can not send to nil", vim.log.levels.ERROR)
+        vim.notify("[Terminal]: You can not send to nil", vim.log.levels.ERROR)
         return false
     end
     local ok, pid = pcall(vim.fn.jobpid, node.jobinfo.jobid)
@@ -500,7 +543,7 @@ end
 ---@return boolean
 function M.send_chansend(lines, node, extra_cr)
     if node == nil then
-        vim.notify("You can not send to nil", vim.log.levels.ERROR)
+        vim.notify("[Terminal]: You can not send to nil", vim.log.levels.ERROR)
         return false
     end
     local ok, pid = pcall(vim.fn.jobpid, node.jobinfo.jobid)
@@ -513,46 +556,4 @@ function M.send_chansend(lines, node, extra_cr)
     return true
 end
 
----@class panel
----@field get_panelbuf fun():number ShouldBe ReadOnly
----@field get_termbuf fun():number ShouldBe ReadOnly
----@field get_panelwin fun():number ShouldBe ReadOnly
----@field get_termwin fun():number ShouldBe ReadOnly
----@field get_cur_node fun():TermNode|TaskTermNode|nil ShouldBe ReadOnly
----@field get_root fun():GroupNode ShouldBe ReadOnly
----@field getdata fun():BijectionMap<NNode,number> ShouldBe ReadOnly
----
----@field update_data_by_node fun(node:NNode,recurse?:boolean) WriteAble
----@field del_data_by_node fun(node:NNode) WriteAble
----@field update_termwinbuf fun() WriteAble
----@field set_cur_node fun(node:TermNode|TaskTermNode|nil) WriteAble ButShouldOnlyUsedInKeyMap
----
----@field open fun() Expose
----@field close fun() Expose
----@field is_focused fun():boolean Expose
----@field focus fun(who?:"term"|"panel") Expose default term
----@field toggle fun() Expose
----@field panel_follow_node fun(node:NNode,opts:{ expand:boolean?, always:boolean?})
----@field send_feedkey fun(lines:string[], node:TaskTermNode|TermNode, extra_cr?:number) Expose
----@field send_chansend fun(lines:string[], node:TaskTermNode|TermNode, extra_cr?:number) Expose
-return {
-    get_panelbuf = M.get_panelbuf,
-    get_termbuf = M.get_termbuf,
-    get_panelwin = M.get_panelwin,
-    get_termwin = M.get_termwin,
-    get_cur_node = M.get_cur_node,
-    get_root = M.get_root,
-    getdata = M.get_data,
-    update_data_by_node = M.update_data_by_node,
-    del_data_by_node = M.del_data_by_node,
-    update_termwinbuf = M.update_termwinbuf,
-    panel_follow_node = M.panel_follow_node,
-    set_cur_node = M.set_cur_node,
-    open = M.open,
-    close = M.close,
-    is_focused = M.is_focused,
-    focus = M.focus,
-    toggle = M.toggle,
-    send_feedkey = M.send_feedkey,
-    send_chansend = M.send_chansend,
-}
+return M

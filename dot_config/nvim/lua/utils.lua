@@ -120,7 +120,7 @@ function M.vim_echo(str, hlgroup)
     ))
 end
 
----@param opt {
+---@param opt? {
 ---line_limit?:number,
 ---size_limit?:number,
 ---avg_linesize_limit?:number}

@@ -10,10 +10,9 @@ local function scroll(node)
     end
     local is_running = vim.uv.kill(vim.b[node.bufnr].terminal_job_pid, 0) == 0
     local winid = panel.get_termwin()
-    local opened = winid ~= nil
     local is_focused = vim.api.nvim_get_current_buf() == node.bufnr
         and vim.api.nvim_get_current_win() == winid
-    if is_running and not is_focused and opened then
+    if winid ~= nil and is_running and not is_focused then
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))
             vim.api.nvim_win_set_cursor(winid, { last, 0 })
@@ -33,7 +32,7 @@ local function jobstop(jobid)
                 local still_running = vim.uv.kill(pid, 0) == 0
                 if still_running then
                     vim.notify(
-                        ("[term]: jobid:%s,pid:%s is still running after kill-9"):format(
+                        ("[Terminal]: jobid:%s,pid:%s is still running after kill-9"):format(
                             tostring(jobid),
                             tostring(pid)
                         )
@@ -334,7 +333,7 @@ function TermNode:start()
         else
             success = false
             vim.notify(
-                "[terminal]: create terminal error:" .. tostring(result),
+                "[Terminal]: create terminal error:" .. tostring(result),
                 vim.log.levels.ERROR
             )
         end
@@ -345,7 +344,7 @@ function TermNode:start()
         self.jobinfo.jobid = jobid
         onBufNrChanged(self)
     else
-        vim.notify(("[%s]: start error"):format(self.classname), vim.log.levels.ERROR)
+        vim.notify(("[Terminal.%s]: start error"):format(self.classname), vim.log.levels.ERROR)
     end
     return success
 end

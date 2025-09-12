@@ -189,6 +189,7 @@ local fts = {
     "TelescopePrompt",
     "dropbar_menu",
     "TerminalBuf",
+    "Outline",
     "noice",
     -- "neo-tree",
     -- "neo-tree-popup",

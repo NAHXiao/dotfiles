@@ -179,7 +179,7 @@ actions = {
         return true
     end,
     inspect_tree = function(panel, _)
-        local data = panel.getdata()
+        local data = panel.get_data()
         local tree_lines = {}
         ---@type {[1]:NNode,[2]:number}[]
         local stack = { { panel.get_root(), 0 } }
@@ -188,7 +188,7 @@ actions = {
             tree_lines[#tree_lines + 1] = string.rep(" ", topIndent)
                 .. topNode:tostring()
                 .. " line"
-                .. tostring(panel.getdata():getByKey(topNode))
+                .. tostring(panel.get_data():getByKey(topNode))
 
             if topNode.classname == "GroupNode" or topNode.classname == "TaskSetNode" then
                 ---@cast topNode GroupNode|TaskSetNode

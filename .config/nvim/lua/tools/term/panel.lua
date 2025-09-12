@@ -70,31 +70,31 @@ end
 
 ---@class panel
 local M = {
+    ---@private
     ---@type BijectionMap<NNode,number>
-    ---@private
     data = nil,
-    ---@type GroupNode
     ---@private
+    ---@type GroupNode
     root = nil,
 
-    ---@type number
     ---@private
+    ---@type number
     panelbuf = nil,
-    ---@type number?
     ---@private
+    ---@type number?
     panelwin = nil,
+    ---@private
     ---@type number?
-    ---@private
     termwin = nil,
-    ---@type number
     ---@private
+    ---@type number
     fallback_termbuf = nil,
 
+    ---@private
     ---@type TermNode|TaskTermNode|nil
-    ---@private
     curnode = nil,
-    ---@type boolean
     ---@private
+    ---@type boolean
     opened = false,
 }
 

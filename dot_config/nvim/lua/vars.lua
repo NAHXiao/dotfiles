@@ -13,7 +13,6 @@ vim.g.cleanui_funcs = {
     end,
 }
 vim.g.cleanui = function()
-    vim.notify("0")
     for _, f in ipairs(vim.g.cleanui_funcs) do
         vim.notify(tostring(_))
         f()

@@ -1,6 +1,7 @@
 local Node = require("tools.term.node.node")
 local utils = require("tools.term.utils")
 local panel = require("tools.term.panel")
+local pmsgcall = require("tools.term.utils").pmsgcall
 ---@param node TermNode
 local function scroll(node)
     ---NOTE: vim.fn.jobwait Cannnot be used in interactive program,that will causes block
@@ -77,7 +78,6 @@ function TermNode:setup_termbuf()
     vim.api.nvim_create_autocmd("BufEnter", {
         buffer = bufnr,
         callback = function()
-            utils.log_notify("BufEnter")
             vim.schedule(function()
                 if self.bufnr ~= bufnr then
                     return
@@ -96,7 +96,6 @@ function TermNode:setup_termbuf()
     vim.api.nvim_create_autocmd("ModeChanged", {
         buffer = bufnr,
         callback = function()
-            utils.log_notify("ModeChanged")
             vim.schedule(function()
                 if self.bufnr ~= bufnr then
                     return
@@ -118,9 +117,7 @@ function TermNode:setup_termbuf()
     vim.api.nvim_create_autocmd("BufUnload", {
         buffer = bufnr,
         callback = function()
-            utils.log_notify("BufUnload")
             if not self.cleaning then --用户强制删除buffer
-                utils.log_notify("BufUnload:UserForce")
                 vim.schedule(function()
                     if self.parent then
                         self.parent:delnode(self)
@@ -155,45 +152,23 @@ function TermNode:new(newnode_opts, ujobinfo, startnow)
     obj.jobinfo = vim.tbl_deep_extend("force", TermNode.jobinfo, ujobinfo, {
         opts = {
             before_start = function(node)
-                if ujobinfo.opts.before_start then
-                    utils.pmsgcall(ujobinfo.opts.before_start, node)
-                end
+                pmsgcall(ujobinfo.opts.before_start, node)
             end,
             on_stdout = function(jobid, data, event, node)
-                utils.log_notify("15scroll")
                 buffered_stdout = vim.list_extend(buffered_stdout, data)
-                utils.pmsgcall(scroll, node)
-                utils.log_notify("16try TermNode.jobinfo.on_stdout")
-                if TermNode.jobinfo.opts.on_stdout then
-                    utils.pmsgcall(TermNode.jobinfo.opts.on_stdout, jobid, data, event, node)
-                end
-                utils.log_notify("17try ujobinfo.on_stdout")
-                if ujobinfo.opts.on_stdout then
-                    utils.pmsgcall(ujobinfo.opts.on_stdout, jobid, data, event, node)
-                end
+                pmsgcall(scroll, node)
+                pmsgcall(TermNode.jobinfo.opts.on_stdout, jobid, data, event, node)
+                pmsgcall(ujobinfo.opts.on_stdout, jobid, data, event, node)
             end,
             on_stderr = function(jobid, data, event, node)
-                utils.log_notify("18scroll")
                 buffered_stderr = vim.list_extend(buffered_stderr, data)
-                utils.pmsgcall(scroll, node)
-                utils.log_notify("19try TermNode.jobinfo.on_stderr")
-                if TermNode.jobinfo.opts.on_stderr then
-                    utils.pmsgcall(TermNode.jobinfo.opts.on_stderr, jobid, data, event, node)
-                end
-                utils.log_notify("20trp ujobinfo.on_stderr")
-                if ujobinfo.opts.on_stderr then
-                    utils.pmsgcall(ujobinfo.opts.on_stderr, jobid, data, event, node)
-                end
+                pmsgcall(scroll, node)
+                pmsgcall(TermNode.jobinfo.opts.on_stderr, jobid, data, event, node)
+                pmsgcall(ujobinfo.opts.on_stderr, jobid, data, event, node)
             end,
             on_exit = function(jobid, code, event, node)
-                utils.log_notify("2try TermNode.on_exit")
-                if TermNode.jobinfo.opts.on_exit then
-                    utils.pmsgcall(TermNode.jobinfo.opts.on_exit, jobid, code, event, node)
-                end
-                utils.log_notify("3try ujobinfo.on_exit")
-                if ujobinfo.opts.on_exit then
-                    utils.pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
-                end
+                pmsgcall(TermNode.jobinfo.opts.on_exit, jobid, code, event, node)
+                pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
                 if node.repeat_left_times and node.repeat_left_times > 0 then
                     node.repeat_left_times = node.repeat_left_times - 1
                 end
@@ -201,21 +176,14 @@ function TermNode:new(newnode_opts, ujobinfo, startnow)
                 local finished = not repeat_opts or node.repeat_left_times == 0
                 if not finished then
                     assert(repeat_opts and node.repeat_left_times > 0)
-                    local ok, result = utils.pmsgcall(
-                        repeat_opts.stop_cond,
-                        code,
-                        buffered_stdout,
-                        buffered_stderr
-                    )
+                    local ok, result =
+                        pmsgcall(repeat_opts.stop_cond, code, buffered_stdout, buffered_stderr)
                     if ok and result == true then
                         finished = true
                     end
                 end
                 if finished then
-                    utils.log_notify("1try after_finish")
-                    if after_finish then
-                        utils.pmsgcall(after_finish, jobid, code, node)
-                    end
+                    pmsgcall(after_finish, jobid, code, node)
                 else
                     assert(repeat_opts and node.repeat_left_times > 0)
                     local timer = vim.uv.new_timer()
@@ -223,7 +191,6 @@ function TermNode:new(newnode_opts, ujobinfo, startnow)
                         node.repeat_timer = timer
                         timer:start(1000 * repeat_opts.timeinterval, 0, function()
                             vim.schedule(function()
-                                utils.log_notify("4restart")
                                 obj:restart()
                             end)
                         end)
@@ -231,17 +198,10 @@ function TermNode:new(newnode_opts, ujobinfo, startnow)
                 end
             end,
             on_start = function(...)
-                utils.log_notify("5clear stdout/stderr buffer")
                 buffered_stdout = {}
                 buffered_stderr = {}
-                utils.log_notify("6try TermNode.on_start")
-                if TermNode.jobinfo.opts.on_start then
-                    utils.pmsgcall(TermNode.jobinfo.opts.on_start, ...)
-                end
-                utils.log_notify("7try ujobinfo.on_start")
-                if ujobinfo.opts.on_start then
-                    utils.pmsgcall(ujobinfo.opts.on_start, ...)
-                end
+                pmsgcall(TermNode.jobinfo.opts.on_start, ...)
+                pmsgcall(ujobinfo.opts.on_start, ...)
             end,
         },
     })
@@ -253,9 +213,10 @@ function TermNode:new(newnode_opts, ujobinfo, startnow)
     return obj
 end
 
-function TermNode:restart(reset_repeat)
+---@param full boolean? full-restart will reset repeat_lefttimes
+function TermNode:restart(full)
     self:clean()
-    if reset_repeat then
+    if full then
         if self.jobinfo.opts and self.jobinfo.opts.repeat_opts then
             self.repeat_left_times = self.jobinfo.opts.repeat_opts.time
         end

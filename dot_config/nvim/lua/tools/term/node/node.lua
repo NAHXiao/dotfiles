@@ -23,17 +23,17 @@ function Node:rename(name)
     panel.update_data_by_node(self)
 end
 ---@generic T
----@param typeName `T`
+---@param T `T`
 ---@return fun(...):T
-local function abstract_unreachable(typeName)
+local function abstract_unreachable(T)
     return function(...)
         assert(false, "abstract method,unreachable")
     end
 end
 ---@generic T
----@param typeName `T`
+---@param T `T`
 ---@return fun(...):T
-local function dropped_unreachable(typeName)
+local function dropped_unreachable(T)
     return function(...)
         assert(false, "attempt to call method on a dropped Node")
     end
@@ -50,6 +50,7 @@ function Node:drop()
     self.prev = nil
     self.next = nil
     self.name = self.name .. "(Droped)"
+    self:clean()
     self.clean = dropped_unreachable("nil")
     self.restart = dropped_unreachable("nil")
     self.start = dropped_unreachable("nil")

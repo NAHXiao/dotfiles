@@ -11,11 +11,11 @@ local config = {
         tasks = {
             {
                 name = "build",
-                cmds = { "echo", "${CC}", "build" },
+                cmds = { "echo", "$(=CC)", "build" },
                 label = "debug",
                 opts = {
                     clear_env = false,
-                    cwd = "$(VIM_ROOT)",
+                    cwd = "$(-VIM_ROOT)",
                     env = {
                         CC = "clang",
                     },
@@ -23,11 +23,11 @@ local config = {
             },
             {
                 name = "run",
-                cmds = { "echo", "${CC}", "run" },
+                cmds = { "echo", "$(=CC)", "run" },
                 label = "debug",
                 opts = {
                     clear_env = false,
-                    cwd = "$(VIM_ROOT)",
+                    cwd = "$(-VIM_ROOT)",
                     env = {
                         CC = "clang",
                     },
@@ -64,9 +64,9 @@ local config = {
                     "gcc",
                     "-O3",
                     "--std=c23",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                     "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "$(-VIM_FILEDIR)/$(-VIM_FILENOEXT)",
                 },
                 filetypes = { "c" },
                 label = "release",
@@ -77,9 +77,9 @@ local config = {
                     "gcc",
                     "-O3",
                     "--std=c23",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                     "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "$(-VIM_FILEDIR)/$(-VIM_FILENOEXT)",
                     "--debug",
                 },
                 filetypes = { "c" },
@@ -88,7 +88,7 @@ local config = {
             {
                 name = "run",
                 cmds = {
-                    "$(VIM_PATHNOEXT)",
+                    "$(-VIM_PATHNOEXT)",
                 },
                 filetypes = { "c" },
             },
@@ -120,9 +120,9 @@ local config = {
                     "g++",
                     "-O2",
                     "--std=c++23",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                     "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "$(-VIM_FILEDIR)/$(-VIM_FILENOEXT)",
                 },
                 filetypes = { "cpp" },
                 label = "release",
@@ -133,9 +133,9 @@ local config = {
                     "g++",
                     "-O0",
                     "--std=c++23",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                     "-o",
-                    "$(VIM_FILEDIR)/$(VIM_FILENOEXT)",
+                    "$(-VIM_FILEDIR)/$(-VIM_FILENOEXT)",
                     "-g",
                 },
                 filetypes = { "cpp" },
@@ -144,7 +144,7 @@ local config = {
             {
                 name = "run",
                 cmds = {
-                    "$(VIM_PATHNOEXT)",
+                    "$(-VIM_PATHNOEXT)",
                 },
                 filetypes = { "cpp" },
             },
@@ -175,8 +175,8 @@ local config = {
                 cmds = {
                     "javac",
                     "-d",
-                    "$(VIM_ROOT)/.build",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_ROOT)/.build",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "java" },
             },
@@ -185,8 +185,8 @@ local config = {
                 cmds = {
                     "java",
                     "-cp",
-                    "$(VIM_ROOT)/.build",
-                    "$(VIM_FILENOEXT)",
+                    "$(-VIM_ROOT)/.build",
+                    "$(-VIM_FILENOEXT)",
                 },
                 filetypes = { "java" },
             },
@@ -196,7 +196,7 @@ local config = {
         tasks = {
             {
                 name = "project-create",
-                cmds = { "go", "mod", "init", "$(-name:main)" },
+                cmds = { "go", "mod", "init", "$(+name:main)" },
                 filetypes = { "go" },
             },
             {
@@ -211,7 +211,7 @@ local config = {
             },
             {
                 name = "go run <file>",
-                cmds = { "go", "run", "$(VIM_FILEPATH)" },
+                cmds = { "go", "run", "$(-VIM_FILEPATH)" },
                 filetypes = { "go" },
             },
             {
@@ -225,12 +225,12 @@ local config = {
         tasks = {
             {
                 name = "build",
-                cmds = { "zig", "build-exe", "$(VIM_FILEPATH)" },
+                cmds = { "zig", "build-exe", "$(-VIM_FILEPATH)" },
                 filetypes = { "zig" },
             },
             {
                 name = "run",
-                cmds = { "zig", "run", "$(VIM_FILEPATH)" },
+                cmds = { "zig", "run", "$(-VIM_FILEPATH)" },
                 filetypes = { "zig" },
             },
         },
@@ -239,7 +239,7 @@ local config = {
         tasks = {
             {
                 name = "run",
-                cmds = { "swift", "$(VIM_FILEPATH)" },
+                cmds = { "swift", "$(-VIM_FILEPATH)" },
                 filetypes = { "swift" },
             },
         },
@@ -248,7 +248,7 @@ local config = {
         tasks = {
             {
                 name = "run",
-                cmds = { "julia", "$(VIM_FILEPATH)" },
+                cmds = { "julia", "$(-VIM_FILEPATH)" },
                 filetypes = { "julia" },
             },
         },
@@ -257,7 +257,7 @@ local config = {
         tasks = {
             {
                 name = "python run",
-                cmds = { "python3", "$(VIM_FILEPATH)" },
+                cmds = { "python3", "$(-VIM_FILEPATH)" },
                 filetypes = { "python" },
             },
             {
@@ -274,7 +274,7 @@ local config = {
                         end
                         return "python3"
                     end)(),
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "python" },
             },
@@ -292,7 +292,7 @@ local config = {
                 name = "lua run",
                 cmds = {
                     "lua",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "lua" },
             },
@@ -303,7 +303,7 @@ local config = {
                     "-u",
                     "NONE",
                     "-l",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "lua" },
             },
@@ -311,7 +311,7 @@ local config = {
                 name = "node run",
                 cmds = {
                     "node",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "javascript" },
             },
@@ -320,7 +320,7 @@ local config = {
                 cmds = {
                     "powershell",
                     "-file",
-                    "$(VIM_FILEPATH)",
+                    "$(-VIM_FILEPATH)",
                 },
                 filetypes = { "ps1" },
             },
@@ -333,7 +333,7 @@ local config = {
                 cmds = {
                     "bash",
                     vim.fs.joinpath(vim.fn.stdpath("config"), "bin", "cmake_create.bash"),
-                    "$(-name:)",
+                    "$(+name:)",
                 },
                 filetypes = "*",
             },
@@ -349,7 +349,7 @@ local config = {
             },
             {
                 name = "run",
-                cmds = { "build/$(VIM_PRONAME)" },
+                cmds = { "build/$(-VIM_PRONAME)" },
                 filetypes = { "c", "cpp", "cmake" },
             },
         },
@@ -358,7 +358,7 @@ local config = {
         tasks = {
             {
                 name = "cargo-create",
-                cmds = { "cargo", "new", "$(-name)", "--bin" },
+                cmds = { "cargo", "new", "$(+name)", "--bin" },
                 filetypes = "*",
             },
             {
@@ -385,8 +385,8 @@ local config = {
                 cmds = {
                     "mvn",
                     "archetype:generate",
-                    "-DgroupId=$(-group:com.example)",
-                    "-DartifactId=$(-artifactname:hello-world)",
+                    "-DgroupId=$(+group:com.example)",
+                    "-DartifactId=$(+artifactname:hello-world)",
                     "-DarchetypeArtifactId=maven-archetype-quickstart",
                     "-Dinteractivelabel=false",
                 },
@@ -404,7 +404,7 @@ local config = {
             },
             {
                 name = "run",
-                cmds = { "mvn", "exec:java", "-Dexec.mainClass=$(-mainClass:)" },
+                cmds = { "mvn", "exec:java", "-Dexec.mainClass=$(+mainClass:)" },
                 filetypes = { "java" },
             },
         },
@@ -413,23 +413,23 @@ local config = {
         tasks = {
             {
                 name = "build",
-                cmds = { "$(VIM_ROOT)/gradlew", "build" },
+                cmds = { "$(-VIM_ROOT)/gradlew", "build" },
                 filetypes = { "java", "kotlin" },
             },
             {
                 name = "test",
-                cmds = { "$(VIM_ROOT)/gradlew", "test" },
+                cmds = { "$(-VIM_ROOT)/gradlew", "test" },
                 filetypes = { "java", "kotlin" },
             },
             {
                 name = "buildAndInstall",
-                cmds = { "$(VIM_ROOT)/gradlew", "installDebug" },
+                cmds = { "$(-VIM_ROOT)/gradlew", "installDebug" },
                 label = "debug",
                 filetypes = { "java", "kotlin" },
             },
             {
                 name = "buildAndInstall",
-                cmds = { "$(VIM_ROOT)/gradlew", "installRelease" },
+                cmds = { "$(-VIM_ROOT)/gradlew", "installRelease" },
                 label = "release",
                 filetypes = { "java", "kotlin" },
             },
@@ -454,7 +454,7 @@ local config = {
             },
             {
                 name = "deno run",
-                cmds = { "deno", "run", "--allow-all", "$(VIM_FILEPATH)" },
+                cmds = { "deno", "run", "--allow-all", "$(-VIM_FILEPATH)" },
                 filetypes = { "javascript", "typescript" },
             },
         },

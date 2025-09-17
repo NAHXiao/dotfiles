@@ -54,7 +54,7 @@ lazy.setup({
 }, {
     checker = {
         enable = true,
-        frequency = 240, -- 10days
+        frequency = 240,
     },
     ui = {
         border = "rounded",
@@ -65,6 +65,5 @@ vim.api.nvim_create_autocmd("User", {
     callback = function()
         require("tools.term").setup()
         require("tools.task").setup()
-        -- require("tools.proj"):setup()
     end,
 })

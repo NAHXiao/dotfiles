@@ -49,15 +49,13 @@ local function newtaskset(
         ),
         unique_key
     )
-    if node.children and #node.children > 0 then
-        if switch then
-            panel.set_cur_node(node.children[1])
-        end
-    end
     if focus then
         panel.focus()
     else
         panel.open()
+    end
+    if switch then
+        node:start_follow()
     end
 end
 ---@param name string

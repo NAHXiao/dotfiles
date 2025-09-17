@@ -1,15 +1,15 @@
 ---@class ujobinfo
----@field cmds string[]|string
+---@field cmds string[]|string when cmds is string,cmds will be resolved by vim.o.shell
 ---@field opts {
 ---clear_env?:boolean,
 ---detach?:boolean,
 ---cwd?:string,
 ---env?:table<string,string>,
----before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
----on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
----on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
----on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
----on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---before_start?:fun(node:TermNode|TaskTermNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode),
 ---after_finish?:fun(jobid,code,node),
 ---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
 
@@ -20,11 +20,11 @@
 ---detach:boolean,
 ---cwd?:string,
 ---env?:table<string,string>,
----before_start?:fun(node:TermNode|TaskTermNode|TaskSetNode),
----on_start?:fun(job: number,node:TermNode|TaskTermNode|TaskSetNode),
----on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
----on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode|TaskSetNode),
----on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode|TaskSetNode),
+---before_start?:fun(node:TermNode|TaskTermNode),
+---on_start?:fun(job: number,node:TermNode|TaskTermNode),
+---on_stdout?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode),
+---on_stderr?:fun(job: number, data: string[], event: string,node:TermNode|TaskTermNode),
+---on_exit?:fun(job: number, code: number, event: string,node:TermNode|TaskTermNode),
 ---repeat_opts?:{time?:number,timeinterval?:number,stop_cond?:fun(code,stdout,stderr):boolean}}
 ---@field jobid integer
 ---jobid,clear_env,detach

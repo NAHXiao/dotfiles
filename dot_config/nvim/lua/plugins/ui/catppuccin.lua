@@ -120,6 +120,8 @@ return {
             end,
         }
         require("catppuccin").setup(opts)
+        local bg = require("tools.config.hl").use_lightbg and "light" or "dark"
         vim.cmd.colorscheme("catppuccin")
+        vim.o.background = bg
     end,
 }

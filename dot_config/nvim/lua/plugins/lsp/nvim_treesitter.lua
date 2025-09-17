@@ -171,7 +171,7 @@ return {
             {
                 "ii",
                 select_inner,
-                mode = "v",
+                mode = "x",
                 desc = "change selection to inner",
             },
         },
@@ -278,10 +278,7 @@ return {
         },
         config = function(_, opts)
             require("tools.hl").register({
-                TreesitterContextLineNumber = {
-                    fg = { transform = "lighten", from = "#e3a680", amount = 0.55 },
-                    bg = { "LineNr.bg" },
-                },
+                TreesitterContextLineNumber = { link = "CursorLineNr" },
             }, { dependency = "outer<-inner", type = "colorscheme" })
             require("treesitter-context").setup(opts)
         end,

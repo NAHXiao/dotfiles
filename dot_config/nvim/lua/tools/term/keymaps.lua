@@ -167,6 +167,7 @@ actions = {
                         :totable()
                 or nil,
             uniqueName = node.parent and node.parent:getUniqueNameByNode(node) or nil,
+            status = node--[[@as TaskTermNode|TaskSetNode]].status,
         }
         if node.classname == "TermNode" or node.classname == "TaskTermNode" then
             ---@cast node TermNode|TaskTermNode
@@ -175,6 +176,7 @@ actions = {
                 pid = vim.F.npcall(vim.fn.jobpid, node.jobinfo.jobid),
                 cmds = node.jobinfo.cmds,
                 repeat_left_times = node.repeat_left_times,
+                opts = node.jobinfo.opts,
             }
         end
         vim.notify(vim.inspect(msg))
@@ -492,7 +494,7 @@ return {
             modes = { "n", "v" },
             keys = "I",
             rhs = actions.inspect_tree,
-            desc = "Term: NodeInspect",
+            desc = "Term: TreeInspect",
         },
         {
             modes = { "n", "v" },

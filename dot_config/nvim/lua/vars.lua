@@ -2,7 +2,6 @@
 local uv = vim.uv
 -- 256 色
 vim.g.t_co = 256
-vim.g.background = "dark"
 ---@type fun()[]
 vim.g.cleanui_funcs = {
     function()

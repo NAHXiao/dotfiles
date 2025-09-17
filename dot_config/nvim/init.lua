@@ -7,6 +7,7 @@ end
 --[[ init.lua ]]
 -- LEADER
 vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
 vim.o.timeoutlen = 800
 vim.cmd([[clearjumps]])
 vim.api.nvim_set_hl(0, "TRANSPARENT", { bg = "NONE" })

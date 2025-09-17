@@ -11,7 +11,7 @@ map(
 map(
     "n",
     "<leader>;u",
-    [[<cmd>:%s/\\u\(\x\{4,6\}\)/\=nr2char(str2nr(submatch(1), 16))/g<cr>]],
+    [[<cmd>:%s/\\u\(\x\{4}\)/\=nr2char(str2nr(submatch(1), 16))/g<cr>]],
     { silent = true, desc = "Decode unicode \\uxxxx / \\uxxxxxx" }
 )
 -- 翻页

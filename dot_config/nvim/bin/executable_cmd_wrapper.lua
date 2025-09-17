@@ -1,5 +1,5 @@
 ---limitation:for windows,the executable replacement will start from the first "--cmds" with spaces on both sides.
----dependendy:bash
+---TODO:prepend_stdout
 local ffi = require("ffi")
 local is_windows = ffi.os == "Windows"
 local is_unix = not is_windows
@@ -9,31 +9,15 @@ local options = {
         match = { "-p", "--print-cmds" },
         default = false,
     },
-    stdin_append = {
-        type = "string",
-        match = { "--stdin-append", "-ia" },
-    },
-    stdin_prepend = {
-        type = "string",
-        match = { "--stdin-prepend", "-ip" },
-    },
     stdin_file = {
         type = "string",
         match = { "--stdin-file", "-if" },
-    },
-    expand_env = {
-        type = "boolean",
-        match = { "--expand-env", "-e" },
-        default = true,
     },
 }
 ---@alias options {
 ---cmds:string[],
 ---print_cmds:boolean,
----stdin_prepend?:string,
----stdin_append?:string,
----stdin_file?:string,
----expand_env:boolean}
+---stdin_file?:string}
 local cleanfuncs = {}
 local function err(str)
     io.stderr:write("Error:" .. str .. "\n")
@@ -47,21 +31,6 @@ local function exit(code)
         func()
     end
     os.exit(code)
-end
-local function new_temp_file(str)
-    local dir = vim.fs.joinpath(vim.fn.stdpath("cache"), "cmd_wrapper")
-    vim.fn.mkdir(dir, ":p")
-    local fd, path_or_msg = vim.uv.fs_mkstemp(dir .. "/XXXXXX")
-    if fd then
-        vim.uv.fs_write(fd, str)
-        vim.uv.fs_close(fd)
-        cleanfuncs[#cleanfuncs + 1] = function()
-            vim.fn.delete(path_or_msg)
-        end
-        return path_or_msg
-    else
-        err("failed to create stdin file")
-    end
 end
 if is_windows then
     vim.cmd("language en_us.UTF-8")
@@ -157,14 +126,6 @@ elseif is_unix then
 		int close(int fd);
     ]])
 end
-
----@return string
-local function expand_env_vars(str)
-    local result = string.gsub(str, "(%${[^}]+})", function(var)
-        return vim.fn.system { "bash", "-c", ("echo -n %s"):format(var) }
-    end)
-    return result
-end
 ---@param opts options
 local function execute_windows(opts)
     local kernel32 = ffi.load("kernel32")
@@ -190,9 +151,6 @@ local function execute_windows(opts)
     cmd_start = cmd_start + 1
     local cmdline = full_cmdline:sub(cmd_start)
     cmdline = prefix_replace(cmdline, opts.cmds[1], vim.fn.exepath(opts.cmds[1]))
-    if opts.expand_env then
-        cmdline = expand_env_vars(cmdline)
-    end
     if opts.print_cmds then
         print("[" .. cmdline .. "]")
         print()
@@ -261,11 +219,6 @@ local function execute_windows(opts)
 end
 ---@param opts options
 local function execute_unix(opts)
-    if opts.expand_env then
-        for idx, cmd in ipairs(opts.cmds) do
-            opts.cmds[idx] = expand_env_vars(cmd)
-        end
-    end
     if opts.print_cmds then
         print("[" .. table.concat(opts.cmds, " ") .. "]")
         print()
@@ -406,19 +359,6 @@ local function parse_args(args)
 end
 ---@param opts options
 local function execute(opts)
-    if opts.stdin_prepend or opts.stdin_append then
-        if not opts.stdin_file then
-            opts.stdin_file = new_temp_file((opts.stdin_prepend or "") .. (opts.stdin_append or ""))
-        else
-            opts.stdin_file = new_temp_file(
-                (opts.stdin_prepend or "")
-                    .. table.concat(vim.fn.readfile(opts.stdin_file), "\n")
-                    .. (opts.stdin_append or "")
-            )
-        end
-        opts.stdin_append = nil
-        opts.stdin_prepend = nil
-    end
     if is_windows then
         return execute_windows(opts)
     else

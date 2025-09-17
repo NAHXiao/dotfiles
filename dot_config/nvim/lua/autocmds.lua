@@ -128,12 +128,13 @@ then
         enabled = not enabled
         require("utils").vim_echo(("AutoSwitch Keyboard: %s"):format(enabled and "On" or "Off"))
     end, { desc = "Toggle autoswitch keyboard" })
-
     require("utils").map("n", "gQ", function()
         local filename = vim.fn.input("FilePath")
         while true do
-            insert_imemode = "1"
-            to_insert()
+            if enabled then
+                insert_imemode = "1"
+                to_insert()
+            end
             local input = vim.fn.input("Ex-insert")
             if input == "visual" or input == ":visual" then
                 break
@@ -147,7 +148,6 @@ then
         end
     end)
 end
-
 -- 终端终止时自动进入normal模式
 aucmd("TermClose", {
     callback = function(ctx)

@@ -1,35 +1,20 @@
+---@diagnostic disable: unused-local
 ---@alias dependency_type "inner<-inner"|"outer<-inner"|"outer<-outer"
 ---@alias color_hook_type "colorscheme"|"transparent"
----winbar
+local enable = true
+if not enable then
+    return setmetatable({}, {
+        __index = function()
+            return function() end
+        end,
+    })
+end
+
 local M = {}
 local config = require("tools.config.hl")
-local enable = true
--- local log = require("utils").log
-local log = function(act, hlname, msg)
-    -- if not vim.list_contains({
-    --         "LspInlayHint"
-    --     }, hlname) then
-    --     return
-    -- end
-    -- if not string.find(hlname,"BlinkCmpMenuSelection") then
-    --     return
-    -- end
-    -- vim.notify(
-    --     ("[hl:%s] %s :%s"):format(hlname, act, vim.inspect(msg)),
-    --     vim.log.levels.INFO
-    -- )
-end
+local UIEntered = false
+local log = function(act, hlname, msg) end
 local apply_transforms = require("libs.hl").apply_transforms
-local path = vim.fn.stdpath("data") .. package.config:sub(1, 1) .. "nvim_transparent_cache"
----@type boolean
-local transparent_enabled
-local function readswitch()
-    local exists, lines = pcall(vim.fn.readfile, path)
-    transparent_enabled = exists and #lines > 0 and vim.trim(lines[1]) == "true"
-end
-local function writeswitch()
-    vim.fn.writefile({ tostring(transparent_enabled) }, path)
-end
 
 --- | type    | colorscheme  |     transparent         |
 --- | --------| ------------ | ------------------------|
@@ -61,7 +46,7 @@ local function register(tbl, opts)
                         return hltftbl
                     elseif this.color_hook_type == "transparent" then
                         if colorscheme_changed and not transparent_changed then
-                            if transparent_enabled then
+                            if config.transparent_enabled then
                                 -- this.cached = vim.api.nvim_get_hl(0, { name = name, link = false })
                                 this.cached = vim.api.nvim_get_hl(0, { name = name })
                                 log("save and set", name, { save = this.cached, set = hltftbl })
@@ -72,7 +57,7 @@ local function register(tbl, opts)
                                 return false
                             end
                         elseif not colorscheme_changed and transparent_changed then
-                            if transparent_enabled then
+                            if config.transparent_enabled then
                                 -- this.cached = vim.api.nvim_get_hl(0, { name = name, link = false })
                                 this.cached = vim.api.nvim_get_hl(0, { name = name })
                                 log("save and set", name, { save = this.cached, set = hltftbl })
@@ -87,18 +72,21 @@ local function register(tbl, opts)
                         end
                     end
                 elseif this.dependency_type == "outer<-outer" then
-                    assert(transparent_changed)
-                    if transparent_enabled then
-                        -- this.cached = vim.api.nvim_get_hl(0, { name = name, link = false })
-                        this.cached = vim.api.nvim_get_hl(0, { name = name })
-                        log("save and set", name, { save = this.cached, set = hltftbl })
+                    if transparent_changed then
+                        if config.transparent_enabled then
+                            -- this.cached = vim.api.nvim_get_hl(0, { name = name, link = false })
+                            this.cached = vim.api.nvim_get_hl(0, { name = name })
+                            log("save and set", name, { save = this.cached, set = hltftbl })
+                            return hltftbl
+                        else
+                            local cached = this.cached
+                            log("resume and clear", name, cached)
+                            assert(cached ~= nil, "cached should not be nil")
+                            this.cached = nil
+                            return cached
+                        end
+                    elseif colorscheme_changed then
                         return hltftbl
-                    else
-                        local cached = this.cached
-                        log("resume and clear", name, cached)
-                        assert(cached ~= nil, "cached should not be nil")
-                        this.cached = nil
-                        return cached
                     end
                 end
                 assert(false, "unreachable code")
@@ -122,7 +110,7 @@ local function register(tbl, opts)
         elseif opts.color_hook_type == "transparent" then
             local hltbl = vim.iter(tbl)
                 :map(function(k, v)
-                    if transparent_enabled then
+                    if config.transparent_enabled then
                         return k, color_tbls[k].hltransform_wrapped(false, true)
                     else
                         return k, false
@@ -138,23 +126,37 @@ local function register(tbl, opts)
             apply_transforms(hltbl)
         end
     elseif opts.dependency_type == "outer<-outer" then
-        assert(opts.on_transparent and not opts.on_colorscheme)
-        local hltbl = vim.iter(tbl)
-            :map(function(k, v)
-                if transparent_enabled then
-                    return k, color_tbls[k].hltransform_wrapped(false, true)
-                else
-                    return k, false
-                end
-            end)
-            :filter(function(k, v)
-                return v ~= false
-            end)
-            :fold({}, function(t, k, v)
-                tbl[k] = v
-                return tbl
-            end)
-        apply_transforms(hltbl)
+        if opts.on_transparent then
+            local hltbl = vim.iter(tbl)
+                :map(function(k, v)
+                    if config.transparent_enabled then
+                        return k, color_tbls[k].hltransform_wrapped(false, true)
+                    else
+                        return k, false
+                    end
+                end)
+                :filter(function(k, v)
+                    return v ~= false
+                end)
+                :fold({}, function(t, k, v)
+                    tbl[k] = v
+                    return tbl
+                end)
+            apply_transforms(hltbl)
+        else
+            local hltbl = vim.iter(tbl)
+                :map(function(k, v)
+                    return k, color_tbls[k].hltransform_wrapped(true, false)
+                end)
+                :filter(function(k, v)
+                    return v ~= false
+                end)
+                :fold({}, function(t, k, v)
+                    tbl[k] = v
+                    return tbl
+                end)
+            apply_transforms(hltbl)
+        end
     end
 end
 
@@ -178,7 +180,11 @@ function M.register(tbl, opts)
         end
     elseif opts.dependency == "outer<-outer" then
         if opts.type == "colorscheme" then
-            assert(false)
+            register(tbl, {
+                dependency_type = opts.dependency,
+                color_hook_type = opts.type,
+                on_colorscheme = true,
+            })
         elseif opts.type == "transparent" then
             register(tbl, {
                 dependency_type = opts.dependency,
@@ -220,10 +226,6 @@ local function apply(colorscheme_changed, transparent_changed)
         return
     end
     __running = true
-    -- if vim.g.colors_name and not colorscheme_changed and transparent_changed and not transparent_enabled then
-    --     pcall(vim.cmd.colorscheme, vim.g.colors_name)
-    -- end
-
     local clearcb = function()
         for _, dependency_type in ipairs { "inner<-inner", "outer<-inner", "outer<-outer" } do
             local tbl = vim.iter(color_tbls)
@@ -258,7 +260,7 @@ local function apply(colorscheme_changed, transparent_changed)
         __running = false
     end
 
-    if M.UIEnter then --it's work but i don't know why (Fixed:ColorScheme switch)
+    if UIEntered then --it's work but i don't know why (Fixed:ColorScheme switch)
         vim.schedule(clearcb)
     else
         clearcb()
@@ -266,27 +268,26 @@ local function apply(colorscheme_changed, transparent_changed)
 end
 ---@return boolean
 function M.is_transparented()
-    return transparent_enabled or false
+    return config.transparent_enabled or false
 end
 
 ---@param on? boolean
 function M.toggle_transparent(on)
     if on then
-        transparent_enabled = on
+        config.transparent_enabled = on
     else
-        transparent_enabled = not transparent_enabled
+        config.transparent_enabled = not config.transparent_enabled
     end
-    writeswitch()
+    config.save_config()
     apply(false, true)
 end
 
-M.UIEnter = false
 ---should be called before colorscheme load
 function M.setup()
-    if transparent_enabled == nil then
-        readswitch()
-        writeswitch()
-        if transparent_enabled == true then
+    if config.transparent_enabled == nil or config.use_lightbg == nil then
+        config.read_config()
+        config.save_config()
+        if config.transparent_enabled == true then
             apply(false, true)
         end
     end
@@ -318,29 +319,28 @@ function M.setup()
         dependency = "inner<-inner",
         type = "transparent",
     })
-    -- vim.api.nvim_create_autocmd("OptionSet", {
-    --     pattern = "background",
-    --     callback = __handle,
-    -- })
     require("utils").map("n", "<leader>\\\\", function()
         M.toggle_transparent()
         require("utils").vim_echo(
             ("Transparent: %s"):format(M.is_transparented() and "On" or "Off")
         )
     end, { desc = "Toggle transparent" })
+
+    require("utils").map("n", "<leader>\\|", function()
+        if vim.o.background == "dark" then
+            vim.o.background = "light"
+        else
+            vim.o.background = "dark"
+        end
+        config.use_lightbg = vim.o.background == "light"
+        config.save_config()
+        require("utils").vim_echo(("Background: %s"):format(vim.o.background))
+    end, { desc = "Toggle background" })
+
     require("utils").auc("UIEnter", {
         callback = function()
-            M.UIEnter = true
+            UIEntered = true
         end,
     })
-end
-
-if not enable then
-    local noop = function() end
-    M.is_transparented = noop
-    M.register = noop
-    M.register_transparent = noop
-    M.setup = noop
-    M.toggle_transparent = noop
 end
 return M

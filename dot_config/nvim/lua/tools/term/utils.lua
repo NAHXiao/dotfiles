@@ -31,6 +31,9 @@ if not shell_cmds then
 end
 
 local function pmsgcall(...)
+    if select(1, ...) == nil then
+        return false
+    end
     local ok, result_or_errmsg = pcall(...)
     if not ok then
         local info = debug.getinfo(2, "nSl")

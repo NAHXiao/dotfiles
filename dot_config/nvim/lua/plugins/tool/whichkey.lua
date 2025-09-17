@@ -3,6 +3,7 @@ local expand_keys_prefixs = {
     "<leader><space>",
     "<leader>\\",
     "<leader>a",
+    "<localleader>"
 }
 ---@type string[][]
 local formatted_expand_keys_prefixs

@@ -45,17 +45,11 @@ local diaplay_path = function()
 end
 
 local colors = {
-    bg = "#202328",
-    fg = "#bbc2cf",
     yellow = "#ECBE7B",
     cyan = "#008080",
-    darkblue = "#081633",
     green = "#98be65",
-    violet = "#a9a1e1",
     magenta = "#c678dd",
     red = "#ec5f67",
-    white = "#cdd6f4",
-    icy_aqua = "#83d2e1",
     orange = "#ff9e64",
     blue = "#6daaba",
 }
@@ -100,7 +94,7 @@ return {
                     {
                         "branch",
                         icon = "",
-                        color = { fg = colors.violet, gui = "bold" },
+                        color = { fg = colors.magenta, gui = "bold" },
                     },
                 },
                 lualine_c = {
@@ -267,19 +261,19 @@ return {
                 lualine_y = {
                     {
                         "progress",
-                        color = { fg = colors.violet },
+                        color = { fg = colors.magenta },
                         padding = { left = 1, right = 1 },
                         fmt = vim.trim,
                     },
                     {
                         "location",
-                        color = { fg = colors.violet },
+                        color = { fg = colors.magenta },
                         padding = { left = 0, right = 1 },
                         fmt = vim.trim,
                     },
                     {
                         "filesize",
-                        color = { fg = colors.violet },
+                        color = { fg = colors.magenta },
                         cond = conditions.buffer_not_empty,
                         padding = { left = 0, right = 1 },
                         fmt = vim.trim,

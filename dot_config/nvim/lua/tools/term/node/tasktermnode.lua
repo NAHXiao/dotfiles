@@ -1,8 +1,24 @@
 local utils = require("tools.term.utils")
 local TermNode = require("tools.term.node.termnode")
 local panel = require("tools.term.panel")
+local log_notify = require("tools.term.utils").log_notify
+local pmsgcall = require("tools.term.utils").pmsgcall
 ---@class TaskTermNode:TermNode
+---                     ╭──────Sleep,Restart(Clean) ───────────╮
+---                     │                                      │
+---                     │                          ╭───────────┴─────────╮          ╭───────╮
+---                     │                  ╭─exit-→│ error_retry_pending │──finish-→│ error │
+---                     ↓                  │       ╰─────────────────────╯          ╰───────╯
+---╭──────╮        ╭────┴───╮          ╭───┴───╮
+---│uninit│───new─→│waitting│───start─→│running│
+---╰──────╯        ╰────┬───╯          ╰───┬───╯
+---                     ↑                  │       ╭─────────────────────╮          ╭───────╮
+---                     │                  ╰─exit-→│success_retry_pending│──finish-→│success│
+---                     │                          ╰───────────┬─────────╯          ╰───────╯
+---                     │                                      │
+---                     ╰──────Sleep,Restart(Clean) ───────────╯
 ---@field status "uninit"|"waitting"|"running"|"error_retry_pending"|"success_retry_pending"|"error"|"success"
+---@field has_been_started boolean
 local TaskTermNode = {
     classname = "TaskTermNode",
     name = "TaskTermNode",
@@ -33,56 +49,28 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow)
         vim.tbl_deep_extend("force", TaskTermNode.jobinfo, ujobinfo, {
             opts = {
                 before_start = function(...)
-                    if TaskTermNode.jobinfo.opts.before_start then
-                        utils.pmsgcall(TaskTermNode.jobinfo.opts.before_start, ...)
-                    end
-                    if ujobinfo.opts.before_start then
-                        utils.pmsgcall(ujobinfo.opts.before_start, ...)
-                    end
+                    pmsgcall(TaskTermNode.jobinfo.opts.before_start, ...)
+                    pmsgcall(ujobinfo.opts.before_start, ...)
                 end,
                 on_start = function(jobid, node)
-                    self.status = "running"
+                    node.status = "running"
+                    node.has_been_started = true
                     ---@cast node TaskTermNode
-                    utils.log_notify("8try TaskTermNode.on_start")
-                    if TaskTermNode.jobinfo.opts.on_start then
-                        utils.pmsgcall(TaskTermNode.jobinfo.opts.on_start, jobid, node)
-                    end
-                    utils.log_notify("9try ujobinfo.on_start")
-                    if ujobinfo.opts.on_start then
-                        utils.pmsgcall(ujobinfo.opts.on_start, jobid, node)
-                    end
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_start, jobid, node)
+                    pmsgcall(ujobinfo.opts.on_start, jobid, node)
                     panel.update_data_by_node(node, false)
                 end,
                 on_stderr = function(...)
-                    utils.log_notify("21try TaskTermNode.on_stderr")
-                    if TaskTermNode.jobinfo.opts.on_stderr then
-                        utils.pmsgcall(TaskTermNode.jobinfo.opts.on_stderr, ...)
-                    end
-                    utils.log_notify("22try ujobinfo.on_stderr")
-                    if ujobinfo.opts.on_stderr then
-                        utils.pmsgcall(ujobinfo.opts.on_stderr, ...)
-                    end
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_stderr, ...)
+                    pmsgcall(ujobinfo.opts.on_stderr, ...)
                 end,
                 on_stdout = function(...)
-                    utils.log_notify("23try TaskTermNode.on_stdout")
-                    if TaskTermNode.jobinfo.opts.on_stdout then
-                        utils.pmsgcall(TaskTermNode.jobinfo.opts.on_stdout, ...)
-                    end
-                    utils.log_notify("24try ujobinfo.on_stdout")
-                    if ujobinfo.opts.on_stdout then
-                        utils.pmsgcall(ujobinfo.opts.on_stdout, ...)
-                    end
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_stdout, ...)
+                    pmsgcall(ujobinfo.opts.on_stdout, ...)
                 end,
                 on_exit = function(jobid, code, event, node)
                     ---@cast node TaskTermNode
-                    utils.log_notify("10try TaskTermNode.on_exit")
-                    if TaskTermNode.jobinfo.opts.on_exit then
-                        utils.pmsgcall(TaskTermNode.jobinfo.opts.on_exit, jobid, code, event, node)
-                    end
-                    utils.log_notify("11try ujobinfo.on_exit")
-                    if ujobinfo.opts.on_exit then
-                        utils.pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
-                    end
+                    pmsgcall(TaskTermNode.jobinfo.opts.on_exit, jobid, code, event, node)
                     assert(node.classname == "TaskTermNode")
                     if code == 0 then
                         node.status = "success_retry_pending"
@@ -90,11 +78,9 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow)
                         node.status = "error_retry_pending"
                     end
                     panel.update_data_by_node(node, false)
+                    pmsgcall(ujobinfo.opts.on_exit, jobid, code, event, node)
                 end,
                 after_finish = function(jobid, code, node)
-                    if ujobinfo.opts.after_finish then
-                        utils.pmsgcall(ujobinfo.opts.after_finish, jobid, code, node)
-                    end
                     ---@cast node TaskTermNode
                     if node.status == "success_retry_pending" then
                         node.status = "success"
@@ -102,6 +88,7 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow)
                         node.status = "error"
                     end
                     panel.update_data_by_node(node, false)
+                    pmsgcall(ujobinfo.opts.after_finish, jobid, code, node)
                 end,
             },
         }),
@@ -110,6 +97,7 @@ function TaskTermNode:new(newnode_opts, ujobinfo, startnow)
     setmetatable(obj, self)
     obj.new = utils.unreachable
     obj.status = "waitting"
+    obj.has_been_started = false
     if startnow then
         obj:start()
     end
@@ -120,6 +108,16 @@ end
 ---@return string
 function TaskTermNode:display()
     return taskterm_icons[self.status] .. " " .. self.name
+end
+
+---@param full boolean? default false;full-restart will reset has_been_started
+function TaskTermNode:restart(full)
+    TermNode.restart(self, full)
+    if full then
+        self.status = "waitting"
+        self.has_been_started = false
+        panel.update_data_by_node(self, false)
+    end
 end
 
 ---@protected

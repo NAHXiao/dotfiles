@@ -138,6 +138,7 @@ end
 ---@private Called externally will cause uniqnameMap inconsistent
 ---@param child NNode|number
 ---@param node NNode
+---Replace will drop the origin node
 function GroupNode:replace(child, node)
     ---@type NNode?
     local childNode
@@ -162,6 +163,7 @@ function GroupNode:replace(child, node)
     self.children[index] = node
     panel.update_data_by_node(self, true)
     panel.update_termwinbuf()
+    childNode:drop()
 end
 
 ---@generic T:NNode

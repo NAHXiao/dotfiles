@@ -1,4 +1,19 @@
 local M = {}
+local path = vim.fn.stdpath("data") .. package.config:sub(1, 1) .. "nvim_transparent_cache"
+---@type boolean
+M.transparent_enabled = nil
+---@type boolean
+M.use_lightbg = nil
+function M.read_config()
+    local exists, lines = pcall(vim.fn.readfile, path)
+    M.transparent_enabled = exists and #lines > 0 and vim.trim(lines[1]) == "true"
+    M.use_lightbg = exists and #lines > 1 and vim.trim(lines[2]) == "true"
+end
+function M.save_config()
+    assert(M.transparent_enabled ~= nil and M.use_lightbg ~= nil)
+    vim.fn.writefile({ tostring(M.transparent_enabled), tostring(M.use_lightbg) }, path)
+end
+
 ---@type table<string,HighlightTable|fun():HighlightTable>
 M.colorscheme_idi = {
     FoldColumn = { link = "Normal" },
@@ -50,4 +65,6 @@ M.transparent_groups_idi = {
     "Pmenu",
     "PmenuExtra",
 }
+M.read_config()
+M.save_config()
 return M

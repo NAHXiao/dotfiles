@@ -1,0 +1,97 @@
+[mgr]
+linemode       = "size"
+[open]
+rules = [
+	# Folder
+	{ name = "*/", use = [ "edit", "open", "reveal" ] },
+	# Text
+	{ mime = "text/*", use = [ "edit", "open" ,"reveal" ] },
+    { mime = "application/{*json*,*xml*,*yaml*,*script*,*text*,*plain*,*ini*,*csv*,*sql*,rtf,toml,javascript}" , use = [ "edit", "open" ,"reveal"]},
+	# Image
+	{ mime = "image/*", use = [ "open", "reveal" ] },
+	# Media
+	{ mime = "{audio,video}/*", use = [ "play", "reveal" ] },
+	# Archive
+    {mime="application/{tar,x-tar}",use= ["tar -xvf","extract","reveal"]},
+    {mime="application/{gzip,x-gzip,x-gtar,x-tgz}",use= ["tar -xvzf", "7z x","extract","reveal"]},
+    {mime="application/{xz,x-xz}",use= ["tar -xvJf", "7z x","extract","reveal"]},
+    {mime="application/{bzip*,x-bzip2,x-bz2}",use= ["tar -xvjf", "7z x","extract","reveal"]},
+    {mime="application/{lzma,x-lzma}",use= ["tar -xv --lzma -f", "7z x","extract","reveal"]},
+    {mime="application/{compress,x-compress}",use= ["tar -xvZf", "7z x","extract","reveal"]},
+    {mime="application/zip",use= ["7z x", "unzip","extract","reveal"]},
+    {mime="application/*lz4",use= ["lz4 -d","extract","reveal"]},
+    {mime="application/{zstd,x-zstd}",use= ["7z x","unzstd","extract","reveal"]},
+    {mime="application/x-cpio",use= ["tar -xvf", "7z x","extract","reveal"]},
+    {mime="application/{rar,x-rar*,vnd.rar,x-7z-compressed,7z*,x-ms-cab*,vnd.ms-cab*,x-cab,x-arj,arj,x-ace,ace,x-lha,x-lzh,x-zoo,archive,x-archive,x-iso9660-image,x-cd-image,x-stuffit,x-sit,x-rpm,x-deb,x-xar,x-lzo,x-lz4,x-snappy-framed}",use= ["7z x","extract","reveal"]},
+	# Empty file
+	{ mime = "inode/empty", use = [ "edit", "reveal" ] },
+	# Fallback
+	{ name = "*", use = [ "open","edit","reveal" ] },
+]
+[opener]
+edit= [
+	{ run = '${EDITOR} "$@"', desc = "$EDITOR", block = true, for = "unix" },
+	{ run = 'nvim "$@"', desc = "nvim", block = true, for = "unix" },
+	{ run = 'vim "$@"', desc = "vim", block = true, for = "unix" },
+	{ run = 'vi "$@"', desc = "vi", block = true, for = "unix" },
+	{ run = 'nvim %*',    block=true,    desc = "nvim",           for = "windows" },
+	{ run = 'code %*',    orphan = true, desc = "code",           for = "windows" },
+	{ run = 'code -w %*', block = true,  desc = "code (block)",   for = "windows" },
+]
+"7z x"=[
+  { run = "7z x %* -o*", desc = "7z extract to folder", for = "windows" },
+  { run = '7z x %*', desc = "7z extract here", for = "windows" },
+  { run = "7z x \"$@\" '-o*'", desc = "7z extract to folder", for = "unix" },
+  { run = '7z x "$@"', desc = "7z extract here", for = "unix" },
+]
+"tar -xvf"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xvf %f -C "%~nf" "', desc = "tar extract to folder", for = "windows" },
+  { run = 'tar -xvf %*', desc = "tar extract here", for = "windows" },
+  { run = 'tar -xvf "$@" --one-top-level', desc = "tar extract to folder", for = "unix" },
+  { run = 'tar -xvf "$@"', desc = "tar extract here", for = "unix" },
+]
+"tar -xvzf"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xvzf %f -C "%~nf" "', desc = "tar -xvzf extract to folder", for = "windows" },
+  { run = 'tar -xvzf %*', desc = "tar -xvzf extract here", for = "windows" },
+  { run = 'tar -xvzf "$@" --one-top-level', desc = "tar -xvzf extract to folder", for = "unix" },
+  { run = 'tar -xvzf "$@"', desc = "tar -xvzf extract here", for = "unix" },
+]
+"tar -xvJf"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xvJf %f -C "%~nf" "', desc = "tar -xvJf extract to folder", for = "windows" },
+  { run = 'tar -xvJf %*', desc = "tar -xvJf extract here", for = "windows" },
+  { run = 'tar -xvJf "$@" --one-top-level', desc = "tar -xvJf extract to folder", for = "unix" },
+  { run = 'tar -xvJf "$@"', desc = "tar -xvJf extract here", for = "unix" },
+]
+"tar -xvjf"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xvjf %f -C "%~nf" "', desc = "tar -xvjf extract to folder", for = "windows" },
+  { run = 'tar -xvjf %*', desc = "tar -xvjf extract here", for = "windows" },
+  { run = 'tar -xvjf "$@" --one-top-level', desc = "tar -xvjf extract to folder", for = "unix" },
+  { run = 'tar -xvjf "$@"', desc = "tar -xvjf extract here", for = "unix" },
+]
+"tar -xv --lzma -f"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xv --lzma -f %f -C "%~nf" "', desc = "tar -xv --lzma -f extract to folder", for = "windows" },
+  { run = 'tar -xv --lzma -f %*', desc = "tar -xv --lzma -f extract here", for = "windows" },
+  { run = 'bash -c "for f in \"$@\" ; do mkdir \${f%%.*} ; tar -xv --lzma -f \$f -C \${f%%.*}; done" ', desc = "unzip extract to folder", for = "unix" },
+  { run = 'tar -xv --lzma -f "$@"', desc = "tar -xv --lzma -f extract here", for = "unix" },
+]
+"tar -xvZf"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && tar -xvZf %f -C "%~nf" "', desc = "tar -xvZf extract to folder", for = "windows" },
+  { run = 'tar -xvZf %*', desc = "tar -xvZf extract here", for = "windows" },
+  { run = 'tar -xvZf "$@" --one-top-level', desc = "tar -xvZf extract to folder", for = "unix" },
+  { run = 'tar -xvZf "$@"', desc = "tar -xvZf extract here", for = "unix" },
+]
+"unzip"=[
+  { run = 'cmd.exe /C "for %f in (%*) do mkdir "%~nf" && unzip %f -d "%~nf" "', desc = "unzip extract to folder", for = "windows" },
+  { run = 'unzip %*', desc = "unzip extract here", for = "windows" },
+  { run = 'bash -c "for f in \"$@\" ; do mkdir \${f%%.*} ; unzip \$f -d \${f%%.*}; done" ', desc = "unzip extract to folder", for = "unix" },
+  { run = 'unzip "$@"', desc = "unzip extract here", for = "unix" },
+]
+
+"unzstd"=[
+  { run = 'unzstd -k %*', desc = "unzstd extract here", for = "windows" },
+  { run = 'unzstd -k "$@"', desc = "unzstd extract here", for = "unix" },
+]
+"lz4 -d"=[
+  { run = 'lz4 -d %*', desc = "lz4 extract here", for = "windows" },
+  { run = 'lz4 -d "$@"', desc = "lz4 extract here", for = "unix" },
+]

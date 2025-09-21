@@ -1,0 +1,2 @@
+#!/bin/bash
+env http_proxy=http://172.25.0.1:7890 https_proxy=http://172.25.0.1:7890 socks_proxy=socks5://172.25.0.1:7890 no_proxy= "$@"; 

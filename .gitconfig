@@ -1,0 +1,16 @@
+[user]
+	email = xiaohanzero@163.com
+	name = NAHxiao
+[init]
+	defaultBranch = main
+    
+[core]
+	autocrlf =  false 
+
+
+
+[diff]
+    tool = nvimdiff
+
+[difftool "nvimdiff"]
+    cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""

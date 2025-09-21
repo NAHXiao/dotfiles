@@ -1,6 +1,6 @@
 **/__pycache__
 README.md
-Makefile
+sync_latest_commit_to_main.sh
 
 {{/*********带加密参数时忽略************/}}
 {{ if (not (and (lookPath "bw") (not (and (has "--exclude" .chezmoi.args) (has "encrypted" .chezmoi.args)) ))) }}

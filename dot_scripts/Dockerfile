@@ -93,7 +93,7 @@ RUN set -e  && \
 USER ubuntu
 #fnm
 RUN set -e && useproxy retry bash -c 'curl -fsSL https://fnm.vercel.app/install | bash' || exit 127
-RUN useproxy retry /usr/local/bin/chezmoi init --apply NAHXiao --exclude encrypted --mode=file || exit 127
+RUN useproxy retry /usr/local/bin/chezmoi init --apply NAHXiao --branch chezmoi --exclude encrypted --mode=file || exit 127
 USER root
 RUN rm /usr/local/bin/useproxy || exit 127
 EXPOSE 22

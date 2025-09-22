@@ -36,7 +36,7 @@ case $SYSNAMEALL in
             *microsoft*)
                 ISWSL=1;
                 ;;
-            *android*)
+            *android*|*Android*)
                 ISANDROID=1;
                 ;;
             *)# Common Linux

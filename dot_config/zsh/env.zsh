@@ -19,24 +19,24 @@ function append_path_chk(){
     [[ -e "$1" ]] && append_path "$1" || return 1
 }
 ############################################# XDG ##################################################
-export XDG_DESKTOP_DIR="$HOME/Desktop"
-export XDG_DOWNLOAD_DIR="$HOME/Downloads"
-export XDG_TEMPLATES_DIR="$HOME/Templates"
-export XDG_DOCUMENTS_DIR="$HOME/Documents"
-export XDG_MUSIC_DIR="$HOME/Music"
-export XDG_PICTURES_DIR="$HOME/Pictures"
-export XDG_VIDEOS_DIR="$HOME/Videos"
-export XDG_PUBLICSHARE_DIR="$HOME/Public"
+[[ -z $XDG_DESKTOP_DIR ]] && export XDG_DESKTOP_DIR="$HOME/Desktop"
+[[ -z $XDG_DOWNLOAD_DIR ]] && export XDG_DOWNLOAD_DIR="$HOME/Downloads"
+[[ -z $XDG_TEMPLATES_DIR ]] && export XDG_TEMPLATES_DIR="$HOME/Templates"
+[[ -z $XDG_DOCUMENTS_DIR ]] && export XDG_DOCUMENTS_DIR="$HOME/Documents"
+[[ -z $XDG_MUSIC_DIR ]] && export XDG_MUSIC_DIR="$HOME/Music"
+[[ -z $XDG_PICTURES_DIR ]] && export XDG_PICTURES_DIR="$HOME/Pictures"
+[[ -z $XDG_VIDEOS_DIR ]] && export XDG_VIDEOS_DIR="$HOME/Videos"
+[[ -z $XDG_PUBLICSHARE_DIR ]] && export XDG_PUBLICSHARE_DIR="$HOME/Public"
 
-export XDG_CONFIG_HOME="$HOME/.config"
-export XDG_CACHE_HOME="$HOME/.cache"
-export XDG_DATA_HOME="$HOME/.local/share"
-export XDG_STATE_HOME="$HOME/.local/state"
+[[ -z $XDG_CONFIG_HOME ]] && export XDG_CONFIG_HOME="$HOME/.config"
+[[ -z $XDG_CACHE_HOME ]] && export XDG_CACHE_HOME="$HOME/.cache"
+[[ -z $XDG_DATA_HOME ]] && export XDG_DATA_HOME="$HOME/.local/share"
+[[ -z $XDG_STATE_HOME ]] && export XDG_STATE_HOME="$HOME/.local/state"
 
-export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+[[ -z $XDG_RUNTIME_DIR ]] && export_chk XDG_RUNTIME_DIR="/run/user/$(id -u)"
+[[ -z $XDG_RUNTIME_DIR ]] && export XDG_RUNTIME_DIR="$(mktemp -u|xargs dirname)/XDG_RUNTIME_DIR-$(id -u)" && mkdir $XDG_RUNTIME_DIR &>/dev/null && chown $(id -u):$(id -u) -R $XDG_RUNTIME_DIR && chmod 700 $XDG_RUNTIME_DIR
 
-export XDG_CONFIG_DIRS="/etc/xdg"
-export XDG_DATA_DIRS="/usr/local/share:/usr/share:/var/lib/flatpak/exports/share:$XDG_DATA_HOME/flatpak/exports/share"
+[[ -z $XDG_CONFIG_DIRS ]] && export_chk XDG_CONFIG_DIRS="/etc/xdg"
 
 if [ ! $ISANDROID ] ;then #Termux不支持
     export LANG=zh_CN.UTF-8

@@ -1,5 +1,5 @@
 ################WSL适配#################
-if test $ISWSL ;then
+if (( ISWSL )) ;then
     function split_winpath(){
         export WINPATH=$(command printenv PATH | command perl -ne 'print join(":", grep { /\/mnt\/[a-z]/ } split(/:/));')
         export PATH=$(command printenv PATH | command perl -ne 'print join(":", grep { !/\/mnt\/[a-z]/ } split(/:/));')
@@ -27,14 +27,6 @@ if test $ISWSL ;then
     function wsl_auto_proxy(){
         local cmd=''
         local ports=(7890 7891 1080 8080)
-        if command -v curl &>/dev/null; then
-            cmd='curl --max-time 3  --connect-timeout 0.5 -Is -x $ip:$port http://223.5.5.5 -o/dev/null'
-        elif command -v wget &>/dev/null; then
-            cmd='env http_proxy=http://$ip:$port https_proxy=http://$ip:$port wget --timeout=3 --tries=1 --content-on-error --no-check-certificate --spider -O /dev/null http://223.5.5.5 ; [[ $? == 0 || $? == 8 ]]'
-        else
-            echo "No curl or wget found, cannot auto detect proxy." >&2
-            return
-        fi
         local arr=("127.0.0.1")
         local ipconfig_exe=$(get_winbin ipconfig.exe)
         local gateway=$(command -v ip &>/dev/null && command -v jq &>/dev/null && ip -j route | jq -r '.[]|select(.dst=="default")|.gateway')
@@ -47,7 +39,7 @@ if test $ISWSL ;then
         for port in ${ports[@]}; do
             for ip in ${arr[@]}; do
                 echo "try: $ip:$port"
-                if eval $cmd &>/dev/null; then
+                if try_proxy $ip $port;then
                     set_proxy $ip:$port
                     echo "set proxy to $ip:$port"
                     return

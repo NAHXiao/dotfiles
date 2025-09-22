@@ -28,10 +28,10 @@ command -v trash&>/dev/null && {
     # alias rt='gio trash'
     alias rt='trash'
     _trash() {
-      local curcontext="$curcontext" state line
-      typeset -A opt_args
-      _arguments -C \
-        '*:filename:_files'
+        local curcontext="$curcontext" state line
+        typeset -A opt_args
+        _arguments -C \
+            '*:filename:_files'
     }
     compdef _trash trash
 }
@@ -41,7 +41,7 @@ alias utar='tar -zxvf' # utar <archive_decompress> <file_list>
 alias z='zip -r' # z <archive_compress> <file_list>
 alias uz='unzip' # uz <archive_decompress> -d <dir>
 
-alias psg="ps aux | grep -v grep | grep -i -e VSZ -e" 
+alias psg="ps aux | grep -v grep | grep -i -e VSZ -e"
 alias cleanram="sudo sh -c 'sync; echo 3 > /proc/sys/vm/drop_caches'"
 alias trim_all="sudo fstrim -va"
 alias mkgrub='sudo grub-mkconfig -o /boot/grub/grub.cfg'
@@ -52,15 +52,17 @@ alias Man='tldr'
 alias inconda='source /opt/anaconda/bin/activate'
 alias exitconda='conda deactivate'
 alias ra='ranger'
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
+command -v yazi &>/dev/null && {
+    function y() {
+        local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+        yazi "$@" --cwd-file="$tmp"
+        IFS= read -r -d '' cwd < "$tmp"
+        [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+        command rm -f -- "$tmp"
+    }
+    alias yz='y'
+    alias ra="yz"
 }
-alias yz='y'
-alias ra="yz"
 
 alias py='python'
 
@@ -83,7 +85,7 @@ _cw() {
     local -a workspace
     while IFS= read -r line;do
         workspace+=("$line")
-    done<  <(IFS=$'\n'; for i in $(command ls "$_workspaceRoot");do for j in $(command ls "$_workspaceRoot/$i");do echo "$i/$j"; done; done)
+    done <<< $(IFS=$'\n'; for i in $(command ls "$_workspaceRoot");do for j in $(command ls "$_workspaceRoot/$i");do echo "$i/$j"; done; done)
     _describe 'workspace subdir' workspace
 }
 compdef _cw cw

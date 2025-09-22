@@ -38,7 +38,7 @@ function append_path_chk(){
 
 [[ -z $XDG_CONFIG_DIRS ]] && export_chk XDG_CONFIG_DIRS="/etc/xdg"
 
-if [ ! $ISANDROID ] ;then #Termux不支持
+if (( ! ISANDROID )) ;then #Termux不支持
     export LANG=zh_CN.UTF-8
     export LC_ALL=zh_CN.UTF-8
 fi
@@ -57,40 +57,40 @@ prepend_path_chk "$HOME/.nix-profile/bin"
 ############################################ ZSH CONF ##############################################
 ##APP:FZF
 export FZF_DEFAULT_OPTS="
-  --color fg:#cdd6f4
-  --color fg+:#cdd6f4
-  --color bg:#1e1e2e
-  --color bg+:#313244
-  --color hl:#f38ba8
-  --color hl+:#f38ba8
-  --color info:#cba6f7
-  --color prompt:#cba6f7
-  --color spinner:#f5e0dc
-  --color pointer:#f5e0dc
-  --color marker:#f5e0dc
-  --color border:#1e1e2e
-  --color header:#f38ba8
-  --prompt '▌ '
-  --pointer ' λ'
-  --layout=reverse
-  --border horizontal
-  --height 40"
+--color fg:#cdd6f4
+--color fg+:#cdd6f4
+--color bg:#1e1e2e
+--color bg+:#313244
+--color hl:#f38ba8
+--color hl+:#f38ba8
+--color info:#cba6f7
+--color prompt:#cba6f7
+--color spinner:#f5e0dc
+--color pointer:#f5e0dc
+--color marker:#f5e0dc
+--color border:#1e1e2e
+--color header:#f38ba8
+--prompt '▌ '
+--pointer ' λ'
+--layout=reverse
+--border horizontal
+--height 40"
 ##zshplugin:FZF Tab
 zstyle ':fzf-tab:*' use-fzf-default-opts yes
 ##Comment this to use normal manpager
 export MANPAGER='nvim +Man! +"set nocul" +"set noshowcmd" +"set noruler" +"set noshowmode" +"set laststatus=0" +"set showtabline=0" +"set nonumber"'
 
 if [ $(echo $MANPAGER | awk '{print $1}') = nvim ]; then
-  export LESS="--RAW-CONTROL-CHARS"
-  export MANPAGER="less -s -M +Gg"
+    export LESS="--RAW-CONTROL-CHARS"
+    export MANPAGER="less -s -M +Gg"
 
-  export LESS_TERMCAP_mb=$'\e[1;32m'
-  export LESS_TERMCAP_md=$'\e[1;32m'
-  export LESS_TERMCAP_me=$'\e[0m'
-  export LESS_TERMCAP_se=$'\e[0m'
-  export LESS_TERMCAP_so=$'\e[01;33m'
-  export LESS_TERMCAP_ue=$'\e[0m'
-  export LESS_TERMCAP_us=$'\e[1;4;31m'
+    export LESS_TERMCAP_mb=$'\e[1;32m'
+    export LESS_TERMCAP_md=$'\e[1;32m'
+    export LESS_TERMCAP_me=$'\e[0m'
+    export LESS_TERMCAP_se=$'\e[0m'
+    export LESS_TERMCAP_so=$'\e[01;33m'
+    export LESS_TERMCAP_ue=$'\e[0m'
+    export LESS_TERMCAP_us=$'\e[1;4;31m'
 fi
 ##APP:LS_COLORS
 export LS_COLORS

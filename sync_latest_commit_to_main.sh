@@ -14,6 +14,7 @@ done
 
 RESET=$'\033[0m'
 GREEN=$'\033[92m'
+RED=$'\033[91m'
 stash_created=false
 temp_dir=$(mktemp -d)
 [[ -n $temp_dir ]] || exit 1
@@ -46,9 +47,10 @@ git rm -rf . --quiet >/dev/null 2>&1
 rsync -a --delete --exclude .git "$temp_dir/" "./" || exit 1
 git add -A
 if ! git diff --staged --quiet; then
-    git commit -m "[${commit_hash}]:$commit_message"
-    git --no-pager log -n 1 --stat --oneline
-    echo $GREEN"Sync ok: [${commit_hash}]:$commit_message"$RESET
+    git commit -m "[${commit_hash}]:$commit_message" "$@" &&
+    git --no-pager log -n 1 --stat --oneline &&
+    echo $GREEN"Sync ok: [${commit_hash}]:$commit_message"$RESET ||
+    echo $RED"Sync failed"$RESET
 else
     echo $GREEN"Nothing to sync"$RESET
 fi

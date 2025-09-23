@@ -22,9 +22,9 @@ autoload compinit
 compinit
 
 zinit light-mode for \
-  hlissner/zsh-autopair \
-  zdharma-continuum/fast-syntax-highlighting \
-  MichaelAquilina/zsh-you-should-use
+    hlissner/zsh-autopair \
+    zdharma-continuum/fast-syntax-highlighting \
+    MichaelAquilina/zsh-you-should-use
 
 zinit ice wait'2' lucid
 zinit light zsh-users/zsh-history-substring-search
@@ -44,24 +44,24 @@ if  ! command -v fzf &>/dev/null ;then
         zinit pack for fzf
     else
         bpickkey=;
-        if [[  $ISLINUX && $IS_AMD64 ]];then
+        if (( ISLINUX && IS_AMD64 )); then
             bpickkey='*linux*amd64*'
-        elif [[  $ISLINUX && $IS_ARM64 ]];then
+        elif (( ISLINUX && IS_ARM64 )); then
             bpickkey='*linux*arm64*'
-        elif [[  $ISMAC && $IS_AMD64 ]];then
+        elif (( ISMAC && IS_AMD64 )); then
             bpickkey='*darwin*amd64*'
-        elif [[  $ISMAC && $IS_ARM64 ]];then
+        elif (( ISMAC && IS_ARM64 )); then
             bpickkey='*darwin*arm64*'
-        elif [[ $ISCYGWIN || $ISMSYS  ]];then
-            if [[ $IS_AMD64 ]];then
+        elif (( ISCYGWIN || ISMSYS )); then
+            if (( IS_AMD64 )); then
                 bpickkey='*windows*amd64*'
-            elif [[ $IS_ARM64 ]];then
+            elif (( IS_ARM64 )); then
                 bpickkey='*windows*arm64*'
             fi
         fi
         if test $bpickkey ;then
             zinit ice from"gh-r" as"command" bpick$bpickkey
-            zinit light junegunn/fzf 
+            zinit light junegunn/fzf
             unset bpickkey
         fi
     fi
@@ -77,12 +77,12 @@ if  ! command -v eza &>/dev/null ;then
     zinit load eza-community/eza
 
     bpickkey=;
-    if [[  $ISLINUX && $IS_AMD64 ]];then
+    if (( ISLINUX && IS_AMD64 )); then
         bpickkey='*x86_64*linux*gnu*zip'
-    elif [[  $ISLINUX && $IS_ARM64 ]];then
+    elif (( ISLINUX && IS_ARM64 && ISANDROID==0 )); then
         bpickkey='*aarch64*linux*gnu*zip'
-    elif [[ $ISCYGWIN || $ISMSYS  ]];then
-        if [[ $IS_AMD64 ]];then
+    elif (( ISCYGWIN || ISMSYS )); then
+        if (( IS_AMD64 )); then
             bpickkey='*x86_64*windows*gnu*zip'
         fi
     fi
@@ -94,7 +94,7 @@ if  ! command -v eza &>/dev/null ;then
 fi
 
 zinit light-mode for \
-  Aloxaf/fzf-tab
+    Aloxaf/fzf-tab
 
 # zinit ice depth=1
 # zinit light jeffreytse/zsh-vi-mode

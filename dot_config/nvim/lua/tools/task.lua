@@ -156,6 +156,9 @@ function T.ensure_valid_utask(utask, field)
                 "utask.duplicated",
                 utask,
                 function(it)
+                    if not field then
+                        return true
+                    end
                     for _, existing_task in ipairs(T.data[field].tasks) do
                         if existing_task.name == it.name and existing_task.label == it.label then
                             return false

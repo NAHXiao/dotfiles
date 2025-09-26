@@ -131,11 +131,11 @@ function GroupNode:swap(node, offset)
         self.children[swap_idx], self.children[swapped_idx] =
             self.children[swapped_idx], self.children[swap_idx]
         panel.update_data_by_node(self, true) --TODO:更细的粒度
+        self:verify_and_repair()
         return true
     end
     return false
 end
----@private Called externally will cause uniqnameMap inconsistent
 ---@param child NNode|number
 ---@param node NNode
 ---Replace will drop the origin node
@@ -161,9 +161,14 @@ function GroupNode:replace(child, node)
     end
     node.prev, node.next, node.parent = childNode.prev, childNode.next, self
     self.children[index] = node
+    local uniqname = self.uniqnameMap:getByKey(childNode)
+    if uniqname then
+        self.uniqnameMap:setKey(uniqname, node)
+    end
     panel.update_data_by_node(self, true)
     panel.update_termwinbuf()
     childNode:drop()
+    self:verify_and_repair()
 end
 
 ---@generic T:NNode
@@ -174,7 +179,6 @@ function GroupNode:addnode(node, uniqname)
     if uniqname then
         if self.uniqnameMap:getByValue(uniqname) then
             self:replace(self.uniqnameMap:getByValue(uniqname), node)
-            self.uniqnameMap:setKey(uniqname, node)
             return node
         else
             self.uniqnameMap:set(node, uniqname)
@@ -187,6 +191,7 @@ function GroupNode:addnode(node, uniqname)
     end
     self.children[#self.children + 1] = node
     panel.update_data_by_node(self, true) --TODO:更细的粒度
+    self:verify_and_repair()
     return node
 end
 
@@ -194,6 +199,7 @@ function GroupNode:clean()
     for _, child in ipairs(self.children) do
         child:clean()
     end
+    self:verify_and_repair()
 end
 ---@param node NNode
 ---@return boolean
@@ -211,6 +217,7 @@ function GroupNode:delnode(node)
         end
     end
     utils.log_notify(("%s.delnode: find node %s failed: "):format(self:tostring(), node:tostring()))
+    self:verify_and_repair()
     return false
 end
 ---Delete All Children
@@ -220,5 +227,79 @@ function GroupNode:clear()
         table.remove(self.children, idx)
     end
     panel.update_data_by_node(self, true)
+    self:verify_and_repair()
+end
+---@class GroupNodeStructError
+---@field type "invalid_prev_var"|"invalid_next_var"|"invalid_parent_var"|"unknown_node_occured_in_uniqueMap"
+---@return table<NNode,GroupNodeStructError> errors
+function GroupNode:verify()
+    local errors = {}
+    local childrens = {}
+    for i, child in ipairs(self.children) do
+        childrens[child] = true
+        if child.prev ~= self.children[i - 1] then
+            errors[child] = { type = "invalid_prev_var" }
+        elseif child.next ~= self.children[i + 1] then
+            errors[child] = { type = "invalid_next_var" }
+        elseif child.parent ~= self then
+            errors[child] = { type = "invalid_parent_var" }
+        end
+    end
+    for node, _ in self.uniqnameMap:pairs() do
+        if childrens[node] == nil then
+            errors[node] = { type = "unknown_node_occured_in_uniqueMap" }
+        end
+    end
+    return errors
+end
+
+function GroupNode:repair()
+    for i, child in ipairs(self.children) do
+        child.parent = self
+        child.prev = self.children[i - 1]
+        child.next = self.children[i + 1]
+    end
+    for node, _ in self.uniqnameMap:pairs() do
+        local found = false
+        for _, child in ipairs(self.children) do
+            if child == node then
+                found = true
+                break
+            end
+        end
+        if not found then
+            self.uniqnameMap:delByKey(node)
+        end
+    end
+    panel.update_data_by_node(self, true)
+end
+function GroupNode:verify_and_repair()
+    local function tostring(errs)
+        return vim.inspect(vim.iter(errs)
+            :map(function(k, v)
+                return k:tostring(), v
+            end)
+            :fold({}, function(t, k, v)
+                t[k] = v
+                return t
+            end))
+    end
+    local errors = self:verify()
+    if next(errors) then
+        vim.notify(
+            ("[Terminal]: GroupNode Verify Failed: %s"):format(tostring(errors)),
+            vim.log.levels.WARN
+        )
+        self:repair()
+        errors = self:verify()
+        if next(errors) then
+            vim.notify(
+                ("[Terminal]: GroupNode Verify Failed And Repair Failed: %s"):format(
+                    tostring(errors)
+                ),
+                vim.log.levels.ERROR
+            )
+        end
+    end
 end
 return GroupNode

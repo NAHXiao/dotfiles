@@ -1,5 +1,5 @@
 # FROM ubuntu:latest
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 # FROM ubuntu:18.04 #无ripgrep,fd-find
 ARG HTTP_PROXY=""
 ARG HTTPS_PROXY=""

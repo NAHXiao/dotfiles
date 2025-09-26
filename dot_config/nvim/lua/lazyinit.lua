@@ -9,22 +9,8 @@ if not vim.uv.fs_stat(lazypath) then
         lazypath,
     }
 end
--- -- Hook
--- local old_require = require
--- _G.require = setmetatable({}, {
--- 	__call = function(_, modname)
--- 		local ret = old_require(modname)
--- 		if modname == "obsidian.util" then
--- 			ret.ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
--- 		elseif modname == "obsidian" then
--- 			ret.util.ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
--- 		end
--- 		return ret
--- 	end,
--- })
 vim.opt.rtp:prepend(lazypath)
 local lazy = require("lazy")
-
 ---NOTE:DIRTY
 ---@param plugin_full_name string e.g. copilot.lua surround.vim
 function lazy.is_loaded(plugin_full_name)
@@ -58,6 +44,9 @@ lazy.setup({
     },
     ui = {
         border = "rounded",
+    },
+    rocks = {
+        enabled = false,
     },
 })
 vim.api.nvim_create_autocmd("User", {

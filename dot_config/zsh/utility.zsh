@@ -179,9 +179,6 @@ function _vi_search_fix() {
 function toppy() {
     history | awk '{CMD[$2]++;count++;}END { for (a in CMD)print CMD[a] " " CMD[a]/count*100 "% " a;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl |  head -n 21
 }
-function cd() {
-    builtin cd "$@" && command ls --group-directories-first --color=auto -F
-}
 function git-svn(){
     if [[ ! -z "$1" && ! -z "$2" ]]; then
         echo "Starting clone/copy ..."

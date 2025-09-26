@@ -37,9 +37,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(${PROJECT_NAME} src/main.cpp)
 #target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
+EOF
+
+if test $IS_WIN;then
+    cat >>CMakeLists.txt <<-'EOF'
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_BINARY_DIR}/compile_commands.json" "${CMAKE_SOURCE_DIR}/compile_commands.json")
+EOF
+else
+    cat >>CMakeLists.txt <<-'EOF'
 file(RELATIVE_PATH compile_commands_relpath "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/compile_commands.json")
 execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${compile_commands_relpath}" "${CMAKE_SOURCE_DIR}/compile_commands.json")
 EOF
+fi
 
 sed -i "s/PROJECT_NAME_PLACEHOLDER/$PROJECT_NAME/g" CMakeLists.txt
 sed -i "s/VCPKG_TARGET_TRIPLET_PLACEHOLDER/$VCPKG_TARGET_TRIPLET/g" CMakeLists.txt

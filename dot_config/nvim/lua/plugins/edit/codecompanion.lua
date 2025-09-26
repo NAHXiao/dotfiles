@@ -90,9 +90,9 @@ When given a task:
         },
         {
             "<M-i>",
-            ":CodeCompanionChat ",
+            ":CodeCompanion",
             mode = { "v" },
-            desc = "CodeCompanionChat",
+            desc = "CodeCompanion Inline/Chat",
         },
         {
             "<leader>a/",

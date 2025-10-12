@@ -43,6 +43,7 @@ local function pmsgcall(...)
         end
         vim.notify("[Terminal]: " .. result_or_errmsg, ERROR)
     end
+    return ok, result_or_errmsg
 end
 local function validbuf(bufnr) --strict
     return bufnr

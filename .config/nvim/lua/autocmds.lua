@@ -39,7 +39,9 @@ then
 
     local function stop()
         if __lock_jobid and vim.fn.jobwait({ __lock_jobid }, 0)[1] == -1 then
-            vim.fn.jobstop(__lock_jobid)
+            vim.defer_fn(function()
+                pcall(vim.fn.jobstop, __lock_jobid)
+            end, 1000 * 3)
             __lock_jobid = nil
             return true
         end

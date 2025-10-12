@@ -11,8 +11,7 @@ local function scroll(node)
     end
     local is_running = vim.uv.kill(vim.b[node.bufnr].terminal_job_pid, 0) == 0
     local winid = panel.get_termwin()
-    local is_focused = vim.api.nvim_get_current_buf() == node.bufnr
-        and vim.api.nvim_get_current_win() == winid
+    local is_focused = vim.api.nvim_get_current_win() == winid
     if winid ~= nil and is_running and not is_focused then
         vim.api.nvim_win_call(winid, function()
             local last = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(winid))

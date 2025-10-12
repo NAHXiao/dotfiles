@@ -4,17 +4,17 @@
 ---@class UserTask
 ---@field name string
 ---@field label? string
----@field cmds string[]|string
+---@field cmds string[]|string `support $()`
 ---@field filetypes? string[]|"*" default nil
 ---@field with_shell? boolean default false
 ---@field with_cmd_wrapper? boolean default true;when with_shell is true,only work with the first shell command
----@field with_tmpfile? table<string,string>
----@field cwd? string default $(VIM_ROOT)
+---@field with_tmpfile? table<string,string> `value: support $()`
+---@field cwd? string default $(VIM_ROOT) `support $()`
 ---@field clear_env? boolean default nil(false)
----@field env? table<string,string>
+---@field env? table<string,string> `support $() except self-table-ref`
 ---@field detach? boolean default nil(false)
----@field stdin_file? string cannot coexist with stdin_pipe
----@field stdin_pipe? string
+---@field stdin_file? string cannot coexist with stdin_pipe `support $()`
+---@field stdin_pipe? string `support $()`
 ---@field stdin_pipe_close? boolean default nil(false)
 ---@field before_start? fun()
 ---@field on_start? fun(jobid,code,event)
@@ -156,6 +156,9 @@ function T.ensure_valid_utask(utask, field)
                 "utask.duplicated",
                 utask,
                 function(it)
+                    if not field then
+                        return true
+                    end
                     for _, existing_task in ipairs(T.data[field].tasks) do
                         if existing_task.name == it.name and existing_task.label == it.label then
                             return false
@@ -441,8 +444,13 @@ function T.ensure_valid_utaskset(utaskset, field)
                     if not ok then
                         return tostring(err)
                     end
-                    task.repeat_opts =
-                        vim.tbl_extend("force", task.repeat_opts or {}, opts.repeat_opts)
+                    task.repeat_opts = vim.tbl_extend("force", {
+                        time = math.huge,
+                        stop_cond = function(code, stdout, stderr)
+                            return code == 0
+                        end,
+                        timeinterval = 1,
+                    }, task.repeat_opts or {}, opts.repeat_opts)
                     opts.repeat_opts = nil
                 end
                 ---@cast utaskset TaskSet
@@ -752,7 +760,8 @@ local input_cache = setmetatable({}, {
         assert(false, "k should be Task")
     end,
 })
-
+---@type table<string,boolean>
+local tmp_filepaths = {}
 ---@param task Task
 ---cmds,env,after_finish
 local function macro_repalce(task)
@@ -788,41 +797,32 @@ local function macro_repalce(task)
             return vim.fs.basename(require("utils").get_rootdir() or vim.fn.getcwd())
         end,
     }
+    ---@alias content string
+    ---@alias filename string
+    ---@type table<filename,content>
+    local tmpfile_map = {}
     for macro_name, content in pairs(task.with_tmpfile or {}) do
         vim.fn.mkdir(vim.fs.joinpath(vim.fn.stdpath("cache"), "task"), ":p")
         local fd, path_or_msg = vim.uv.fs_mkstemp(
-            vim.fs.joinpath(vim.fn.stdpath("cache"), "task", macro_name .. "-XXXXXXX")
+            vim.fs.joinpath(
+                vim.fn.stdpath("cache"),
+                "task",
+                ("NAME-%s-FIELD-%s-MACRO-%s-XXXXXXX"):format(task.name, task.field, macro_name)
+            )
         )
         if fd then
-            vim.uv.fs_write(fd, content)
             vim.uv.fs_close(fd)
             macros[macro_name] = function()
                 return path_or_msg
             end
-            local _before_start = task.before_start
-            task.before_start = function()
-                if 0 == vim.fn.filereadable(path_or_msg) then
-                    fd = vim.uv.fs_open(path_or_msg, "w", tonumber("644", 8))
-                    if fd then
-                        vim.uv.fs_write(fd, content)
-                        vim.uv.fs_close(fd)
-                    end
-                end
-                if _before_start then
-                    _before_start()
-                end
-            end
-            local _after_finish = task.after_finish
-            task.after_finish = function(...)
-                vim.fn.delete(path_or_msg)
-                if _after_finish then
-                    _after_finish(...)
-                end
-            end
+            tmpfile_map[path_or_msg] = content
+            tmp_filepaths[path_or_msg] = true
         else
             error()
         end
     end
+    ---@type table<string,string> this time inputed args
+    local inputed_args = {}
     local replacers = {
         MACRO = function(match, varname, _)
             local var = macros[varname] and macros[varname]()
@@ -848,6 +848,9 @@ local function macro_repalce(task)
             return match
         end,
         ARG = function(match, varname, default)
+            if inputed_args[varname] then
+                return inputed_args[varname]
+            end
             local cache_key = match
             local cached_value = nil
             if input_cache[task] and input_cache[task][cache_key] then
@@ -863,6 +866,7 @@ local function macro_repalce(task)
             end
             input_cache[task] = input_cache[task] or {}
             input_cache[task][cache_key] = input
+            inputed_args[varname] = input
             return input
         end,
     }
@@ -875,11 +879,13 @@ local function macro_repalce(task)
             return replacer(match, varname, default ~= "" and default or nil)
         end)
     end
+    ---1. ENV
     if type(task.env) == "table" then
         for k, v in pairs(task.env) do
             task.env[k] = replace_template_vars(v)
         end
     end
+    --- 2. OTHER
     local cmds = task.cmds
     if type(cmds) == "string" then
         task.cmds = replace_template_vars(cmds)
@@ -894,6 +900,54 @@ local function macro_repalce(task)
     if type(task.stdin_file) == "string" then
         task.stdin_file = replace_template_vars(task.stdin_file)
     end
+    if type(task.stdin_pipe) == "string" then
+        task.stdin_pipe = replace_template_vars(task.stdin_pipe)
+    end
+    for filepath, content in pairs(tmpfile_map) do
+        tmpfile_map[filepath] = replace_template_vars(content)
+    end
+    local _before_start = task.before_start
+    task.before_start = function()
+        for filepath, content in pairs(tmpfile_map) do
+            local not_exist_or_inconsistent = false
+            if 0 == vim.fn.filereadable(filepath) then
+                not_exist_or_inconsistent = true
+            else
+                local fd_r = vim.uv.fs_open(filepath, "w", tonumber("644", 8))
+                if fd_r then
+                    local stat = vim.uv.fs_fstat(fd_r)
+                    if not stat then
+                        not_exist_or_inconsistent = true
+                    else
+                        local data = vim.uv.fs_read(fd_r, stat.size, 0)
+                        vim.uv.fs_close(fd_r)
+                        if data ~= content then
+                            not_exist_or_inconsistent = true
+                        end
+                    end
+                end
+                if not_exist_or_inconsistent then
+                    local fd = vim.uv.fs_open(filepath, "w", tonumber("644", 8))
+                    if fd then
+                        vim.uv.fs_write(fd, content)
+                        vim.uv.fs_close(fd)
+                    end
+                end
+            end
+        end
+        if _before_start then
+            _before_start()
+        end
+    end
+    -- local _after_finish = task.after_finish
+    -- task.after_finish = function(...)
+    --     for filepath, _ in pairs(tmpfile_map) do
+    --         vim.fn.delete(filepath)
+    --     end
+    --     if _after_finish then
+    --         _after_finish(...)
+    --     end
+    -- end
     return task
 end
 
@@ -1055,6 +1109,14 @@ function T.setup()
                     end
                 end,
             })
+        end,
+    })
+    require("utils").auc("VimLeavePre", {
+        group = require("utils").aug("tools.task.delete_tmpfile_when_exit", true),
+        callback = function()
+            for filepath, _ in pairs(tmp_filepaths) do
+                vim.fn.delete(filepath)
+            end
         end,
     })
     local map = require("utils").map

@@ -29,7 +29,7 @@ do
     if jit.os == "Windows" then
         obsidianpath = "E:/Obsidian/main"
     elseif jit.os == "Linux" then
-        obsidianpath = os.getenv("HOME") .. "/.local/Obsidian/main"
+        obsidianpath = "/mnt/e/Obsidian/main"
     else
         obsidianpath = nil
     end

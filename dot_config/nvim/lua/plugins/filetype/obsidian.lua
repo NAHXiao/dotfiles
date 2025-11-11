@@ -1,7 +1,8 @@
+local arg1 = "obsidian"
 return {
     "obsidian-nvim/obsidian.nvim",
     version = "*",
-    lazy = true,
+    lazy = vim.fn.argv()[1] ~= arg1,
     event = {
         vim.g.obsidianPath and "BufReadPre " .. vim.g.obsidianPath .. "/*.md" or nil,
         vim.g.obsidianPath and "BufNewFile  " .. vim.g.obsidianPath .. "/*.md" or nil,
@@ -40,25 +41,28 @@ return {
         -- Either 'wiki' or 'markdown'.
         preferred_link_style = "wiki",
         disable_frontmatter = false,
+        frontmatter = {
+            func = function(note)
+                if note.title then
+                    note:add_alias(note.title)
+                end
+                -- 初始
+                local out = { id = note.id, aliases = note.aliases, tags = note.tags }
+                -- 覆盖
+                if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
+                    for k, v in pairs(note.metadata) do
+                        out[k] = v
+                    end
+                end
+                -- 始终更新
+                out["date"] = os.date("%Y-%m-%d %H:%M:%S")
+                return out
+            end,
+        },
 
         -- Optional, alternatively you can customize the frontmatter data.
-        ---@return table
-        note_frontmatter_func = function(note)
-            if note.title then
-                note:add_alias(note.title)
-            end
-            -- 初始
-            local out = { id = note.id, aliases = note.aliases, tags = note.tags }
-            -- 覆盖
-            if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
-                for k, v in pairs(note.metadata) do
-                    out[k] = v
-                end
-            end
-            -- 始终更新
-            out["date"] = os.date("%Y-%m-%d %H:%M:%S")
-            return out
-        end,
+        -- ---@return table
+        -- note_frontmatter_func =,
         templates = {
             folder = "Templates",
             date_format = "%Y-%m-%d",
@@ -138,5 +142,15 @@ return {
         require("obsidian").setup(opts)
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+        if vim.fn.argv()[1] == arg1 then
+            local bufnr = vim.fn.bufnr("obsidian")
+            local buf_exists = bufnr and bufnr ~= -1
+            if buf_exists then
+                vim.api.nvim_buf_delete(bufnr, { force = true })
+            end
+            vim.cmd.cd(vim.g.obsidianPath)
+            vim.cmd.Obsidian("today")
+            vim.keymap.set("n", "<localleader>", ":Obsidian")
+        end
     end,
 }

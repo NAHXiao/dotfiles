@@ -73,6 +73,10 @@ alias vil='nvim leetcode'
 alias viml='nvim leetcode'
 alias nviml='nvim leetcode'
 
+alias vio='nvim obsidian'
+alias vimo='nvim obsidian'
+alias nvimo='nvim obsidian'
+
 alias viz='nvim $HOME/.config/zsh'
 alias vimz="nvim --cmd \"cd $HOME/.config/zsh\""
 alias nvimz='nvim $HOME/.config/zsh'

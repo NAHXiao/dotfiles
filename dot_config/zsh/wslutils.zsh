@@ -24,6 +24,9 @@ if (( ISWSL )) ;then
         fi
         return 1
     }
+    command -v wslpath &>/dev/null && function cdwin(){
+        [[ -n $1 ]] && cd "$(wslpath $1)"
+    }
     function wsl_auto_proxy(){
         local cmd=''
         local ports=(7890 7891 1080 8080)

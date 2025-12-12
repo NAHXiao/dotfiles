@@ -279,6 +279,7 @@ return {
         config = function(_, opts)
             require("tools.hl").register({
                 TreesitterContextLineNumber = { link = "CursorLineNr" },
+                TreesitterContext = { link = "Normal" },
             }, { dependency = "outer<-inner", type = "colorscheme" })
             require("treesitter-context").setup(opts)
         end,

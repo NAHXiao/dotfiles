@@ -136,14 +136,16 @@ return {
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
         if vim.fn.argv()[1] == arg1 then
-            local bufnr = vim.fn.bufnr("obsidian")
-            local buf_exists = bufnr and bufnr ~= -1
-            if buf_exists then
-                vim.api.nvim_buf_delete(bufnr, { force = true })
-            end
-            vim.cmd.cd(vim.g.obsidianPath)
-            vim.cmd.Obsidian("today")
-            vim.keymap.set("n", "<localleader>", ":Obsidian")
+            vim.schedule(function()
+                local bufnr = vim.fn.bufnr("obsidian")
+                local buf_exists = bufnr and bufnr ~= -1
+                if buf_exists then
+                    vim.api.nvim_buf_delete(bufnr, { force = true })
+                end
+                vim.cmd.cd(vim.g.obsidianPath)
+                vim.cmd.Obsidian("today")
+                vim.keymap.set("n", "<localleader>", ":Obsidian")
+            end)
         end
     end,
 }

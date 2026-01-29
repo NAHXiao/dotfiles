@@ -43,7 +43,7 @@ return {
         frontmatter = {
             enable = true,
             func = function(note)
-                vim.notify(vim.inspect(note))
+                -- vim.notify(vim.inspect(note))
                 -- if note.title then
                 --     note:add_alias(note.title)
                 -- end

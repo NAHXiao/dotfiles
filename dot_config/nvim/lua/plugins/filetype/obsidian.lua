@@ -43,9 +43,10 @@ return {
         frontmatter = {
             enable = true,
             func = function(note)
-                if note.title then
-                    note:add_alias(note.title)
-                end
+                -- vim.notify(vim.inspect(note))
+                -- if note.title then
+                --     note:add_alias(note.title)
+                -- end
                 -- 初始
                 local out = { id = note.id, aliases = note.aliases, tags = note.tags }
                 -- 覆盖

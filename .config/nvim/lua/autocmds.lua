@@ -148,7 +148,7 @@ then
                 -- vim.cmd("normal! G")
             end
         end
-    end)
+    end, { desc = "Enter Ex-insert mode" })
 end
 -- 终端终止时自动进入normal模式
 aucmd("TermClose", {

@@ -18,6 +18,7 @@ function prepend_path_chk(){
 function append_path_chk(){
     [[ -e "$1" ]] && append_path "$1" || return 1
 }
+
 ############################################# XDG ##################################################
 [[ -z $XDG_DESKTOP_DIR ]] && export XDG_DESKTOP_DIR="$HOME/Desktop"
 [[ -z $XDG_DOWNLOAD_DIR ]] && export XDG_DOWNLOAD_DIR="$HOME/Downloads"
@@ -53,6 +54,7 @@ prepend_path_chk "$HOME/.local/share/npm/bin"
 prepend_path_chk "/snap/bin"
 prepend_path_chk "/usr/local/go/bin"
 prepend_path_chk "$HOME/.nix-profile/bin"
+prepend_path_chk "$HOME/.npm-global/bin"
 
 ############################################ ZSH CONF ##############################################
 ##APP:FZF

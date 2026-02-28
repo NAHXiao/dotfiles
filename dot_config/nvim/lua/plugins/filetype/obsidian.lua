@@ -55,8 +55,8 @@ return {
                         out[k] = v
                     end
                 end
-                -- 始终更新
-                out["date"] = os.date("%Y-%m-%d %H:%M:%S")
+                out["create_date"] = out["create_date"] or os.date("%Y-%m-%d %H:%M:%S")
+                out["modify_date"] = os.date("%Y-%m-%d %H:%M:%S")
                 return out
             end,
         },
@@ -135,6 +135,13 @@ return {
         require("obsidian").setup(opts)
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+
+        local Patterns = require("obsidian.search").Patterns
+        Patterns.TagCharsOptional = "[A-Za-z\u{4e00}-\u{9fff}0-9_/-]*"
+        Patterns.TagCharsRequired =
+            "[A-Za-z\u{4e00}-\u{9fff}]+[A-Za-z\u{4e00}-\u{9fff}0-9_/-]*[A-Za-z\u{4e00}-\u{9fff}0-9]+"
+        Patterns.Tag =
+            "#[A-Za-z\u{4e00}-\u{9fff}]+[A-Za-z\u{4e00}-\u{9fff}0-9_/-]*[A-Za-z\u{4e00}-\u{9fff}0-9]+"
         if vim.fn.argv()[1] == arg1 then
             vim.schedule(function()
                 local bufnr = vim.fn.bufnr("obsidian")
@@ -144,7 +151,7 @@ return {
                 end
                 vim.cmd.cd(vim.g.obsidianPath)
                 vim.cmd.Obsidian("today")
-                vim.keymap.set("n", "<localleader>", ":Obsidian")
+                vim.keymap.set("n", "<localleader>", "<cmd>Obsidian<cr>")
             end)
         end
     end,

@@ -14,6 +14,7 @@ map(
     [[<cmd>:%s/\\u\(\x\{4}\)/\=nr2char(str2nr(submatch(1), 16))/g<cr>]],
     { silent = true, desc = "Decode unicode \\uxxxx / \\uxxxxxx" }
 )
+map("n", "<leader>;h", [[<cmd>:%s/<\_.\{-}>//g<cr>]], { silent = true, desc = "Delete all <Tag>" })
 -- 翻页
 map({ "n", "i" }, "<C-f>", "<PageDown>")
 map({ "n", "i" }, "<C-b>", "<PageUp>")

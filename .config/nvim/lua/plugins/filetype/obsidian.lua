@@ -28,7 +28,7 @@ return {
         daily_notes = {
             folder = "Diary",
             default_tags = { "日记" },
-            template = "diary.md",
+            -- template = "diary.md",
         },
         new_notes_location = "current_dir",
         wiki_link_func = function(opts)
@@ -42,29 +42,32 @@ return {
         preferred_link_style = "wiki",
         frontmatter = {
             enable = true,
+            ---@type fun(note: obsidian.Note): table<string, any>
             func = function(note)
-                -- vim.notify(vim.inspect(note))
-                -- if note.title then
-                --     note:add_alias(note.title)
-                -- end
-                -- 初始
-                local out = { id = note.id, aliases = note.aliases, tags = note.tags }
-                -- 覆盖
-                if note.metadata ~= nil and not vim.tbl_isempty(note.metadata) then
-                    for k, v in pairs(note.metadata) do
-                        out[k] = v
-                    end
+                local out = vim.deepcopy(vim.F.if_nil(note.metadata, {}))
+                --不存在则加入
+                for k, v in pairs {
+                    id = note.id,
+                    aliases = note.aliases,
+                    tags = note.tags,
+                    create_date = os.date("%Y-%m-%d %H:%M:%S"),
+                    title = vim.fn.fnamemodify(note:fname() or "", ":t:r"),
+                } do
+                    out[k] = out[k] or v
                 end
-                out["create_date"] = out["create_date"] or os.date("%Y-%m-%d %H:%M:%S")
-                out["modify_date"] = os.date("%Y-%m-%d %H:%M:%S")
+                --强制覆盖
+                for k, v in pairs {
+                    modify_data = os.date("%Y-%m-%d %H:%M:%S"),
+                } do
+                    out[k] = v
+                end
                 return out
             end,
         },
 
         -- Optional, alternatively you can customize the frontmatter data.
-        -- ---@return table
-        -- note_frontmatter_func =,
         templates = {
+            enable = false,
             folder = "Templates",
             date_format = "%Y-%m-%d",
             time_format = "%H:%M:%S",
@@ -135,6 +138,24 @@ return {
         require("obsidian").setup(opts)
         --https://github.com/epwalsh/obsidian.nvim/issues/669  (无法跳转中文标题)
         require("obsidian.util").ANCHOR_LINK_PATTERN = "#[%w%d\u{4e00}-\u{9fff}][^#]*"
+        ---@type fun(templateName:string):string[]
+        local function loadTemplates(templateName)
+            local templateFilePath =
+                vim.fs.joinpath(vim.g.obsidianPath, "/Templates", templateName .. ".lua")
+            if vim.fn.filereadable(templateFilePath) == 0 then
+                return {}
+            end
+            local ok, content = pcall(
+                loadfile(templateFilePath) or function() end,
+                vim.g.obsidianPath,
+                "Templates",
+                "Templates/scripts"
+            )
+            if ok and type(content) == "string" then
+                return vim.split(content, "\n")
+            end
+            return {}
+        end
 
         local Patterns = require("obsidian.search").Patterns
         Patterns.TagCharsOptional = "[A-Za-z\u{4e00}-\u{9fff}0-9_/-]*"
@@ -150,7 +171,14 @@ return {
                     vim.api.nvim_buf_delete(bufnr, { force = true })
                 end
                 vim.cmd.cd(vim.g.obsidianPath)
-                vim.cmd.Obsidian("today")
+                local diary_file = vim.g.obsidianPath .. "/Diary/" .. os.date("%Y-%m-%d") .. ".md"
+                -- 打开今日日记文件(Dairy/YYYY-MM-DD.md)
+                vim.cmd.edit(diary_file)
+                -- 不存在则创建并保存
+                if vim.fn.filereadable(diary_file) == 0 then
+                    vim.api.nvim_buf_set_lines(0, 0, -1, false, loadTemplates("diary"))
+                    vim.cmd.write()
+                end
                 vim.keymap.set("n", "<localleader>", "<cmd>Obsidian<cr>")
             end)
         end

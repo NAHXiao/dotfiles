@@ -127,7 +127,13 @@ export_chk NEMU_HOME="$HOME/workspace/2.lab/pa/ics2023/nemu"
 export_chk AM_HOME="$HOME/workspace/3.project/jyy_os/os-workbench/abstract-machine"
 export_chk XV6_HOME="$HOME/workspace/2.lab/oslab_xv6/xv6-riscv"
 
-[[ -f ~/.DEEPSEEK_API_KEY ]] && export DEEPSEEK_API_KEY=$(cat ~/.DEEPSEEK_API_KEY)
+# [[ -f ~/.DEEPSEEK_API_KEY ]] && export DEEPSEEK_API_KEY=$(cat ~/.DEEPSEEK_API_KEY)
+[[ -f ~/.GPTENV ]] && while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    key=${line%%=*}
+    value=${line#*=}
+    export "$key=$value"
+done < ~/.GPTENV
 ############################################# BUGFIX ###############################################
 export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 

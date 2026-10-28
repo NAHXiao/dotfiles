@@ -3,7 +3,7 @@ linemode       = "size"
 [open]
 rules = [
 	# Folder
-	{ name = "*/", use = [ "edit", "open", "reveal" ] },
+	{ url = "*/", use = [ "edit", "open", "reveal" ] },
 	# Text
 	{ mime = "text/*", use = [ "edit", "open" ,"reveal" ] },
     { mime = "application/{*json*,*xml*,*yaml*,*script*,*text*,*plain*,*ini*,*csv*,*sql*,rtf,toml,javascript}" , use = [ "edit", "open" ,"reveal"]},
@@ -26,7 +26,7 @@ rules = [
 	# Empty file
 	{ mime = "inode/empty", use = [ "edit", "reveal" ] },
 	# Fallback
-	{ name = "*", use = [ "open","edit","reveal" ] },
+	{ url = "*", use = [ "open","edit","reveal" ] },
 ]
 [opener]
 edit= [

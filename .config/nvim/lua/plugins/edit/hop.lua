@@ -1,5 +1,6 @@
 return {
-    "phaazon/hop.nvim",
+    -- "phaazon/hop.nvim",
+    "smoka7/hop.nvim",
     version = "*",
     lazy = true,
     keys = {

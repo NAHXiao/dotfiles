@@ -1,5 +1,3 @@
-## THIS SCRIPT SHOULE BE LOAD AT FIRST
-########################################## OS ARCH VARABLE ##########################################
 cat &>/dev/null <<-EOF
 .
 ├── nix(root)
@@ -70,3 +68,17 @@ case $SYSARCH in
 esac
 unset SYSNAMEALL
 unset SYSARCH
+
+################WSL适配#################
+if (( ISWSL )) ;then
+    function wsl_split_winpath(){
+        export WINPATH=$(command printenv PATH | command perl -ne 'print join(":", grep { /\/mnt\/[a-z]/ } split(/:/));')
+        export PATH=$(command printenv PATH | command perl -ne 'print join(":", grep { !/\/mnt\/[a-z]/ } split(/:/));')
+    }
+    [[ -z $WINPATH ]] && wsl_split_winpath
+
+    # fix MESA:ZINK(VK_ERROR_INCOMPATIBLE_DRIVER) error
+    export GALLIUM_DRIVER=llvmpipe
+fi
+################WSL适配#################
+umask 022

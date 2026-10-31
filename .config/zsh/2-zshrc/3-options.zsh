@@ -2,18 +2,13 @@
 ## ZSH Options
 ##
 
-umask 022
 zmodload zsh/zle
 zmodload zsh/zpty
 zmodload zsh/complist
 
-autoload _vi_search_fix
 autoload -Uz colors
 autoload -U compinit
 colors
-
-zle -N _vi_search_fix
-zle -N _sudo_command_line
 
 # Completion
 # disable sort when completing `git checkout`
@@ -76,9 +71,6 @@ CORRECT
 EQUALS
 EOF
 
-command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
-
 # Set editor default keymap to emacs (`-e`) or vi (`-v`)
 bindkey -e
-
 # vim:filetype=zsh:nowrap

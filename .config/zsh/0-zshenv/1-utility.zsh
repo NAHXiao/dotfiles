@@ -18,6 +18,7 @@ function set_proxy(){
 #@param ip
 #@param port
 #no param ip/port: only-check-dependency
+#output: only stderr
 function try_proxy(){
     local cmd=""
     if command -v curl &>/dev/null; then
@@ -30,7 +31,7 @@ function try_proxy(){
     fi
     local ip=$1
     local port=$2
-    [[ -z $ip || -z $port ]] && echo "no ip/port provided,only check dependency" && return
+    [[ -z $ip || -z $port ]] && echo "no ip/port provided,only check dependency" >&2 && return
     if eval $cmd &>/dev/null; then
         return 0
     fi
@@ -40,10 +41,10 @@ function auto_proxy(){
     try_proxy || return
     local ports=(7890 7891 1080 8080)
     local arr=("127.0.0.1")
-    command -v ip 2>/dev/null && local gw=$(ip route show default | awk '{print $3}') && arr+=("$gw")
+    command -v ip &>/dev/null && local gw=$(ip route show default | awk '{print $3}') && arr+=("$gw")
     for ip in ${arr[@]}; do
         for port in ${ports[@]}; do
-            echo "try: $ip:$port"
+            echo "try: $ip:$port" >&2
             if try_proxy $ip $port; then
                 set_proxy $ip:$port
                 echo "set proxy to $ip:$port"

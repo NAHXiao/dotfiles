@@ -107,6 +107,12 @@ export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 ############################################# PROXY ###############################################
 export NO_PROXY="localhost,127.0.0.1,::1"
 export no_proxy="$NO_PROXY"
-[[ -z HTTP_PROXY ]] && auto_proxy
+[[ -z "$HTTP_PROXY" ]] && {
+if [[ -o interactive ]]; then
+    auto_proxy 2>/dev/null
+else
+    auto_proxy &>/dev/null
+fi
+}
 ############################################# END ##################################################
 # vim:ft=zsh:nowrap

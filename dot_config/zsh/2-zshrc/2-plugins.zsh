@@ -38,7 +38,7 @@ zinit light zsh-users/zsh-autosuggestions
 
 
 
-# FZF
+# FZF Download
 if  ! command -v fzf &>/dev/null ;then
     if command -v go  &>/dev/null && command -v jq  &>/dev/null; then
         zinit pack for fzf
@@ -66,7 +66,7 @@ if  ! command -v fzf &>/dev/null ;then
         fi
     fi
 fi
-#EZA
+#EZA Download
 if  ! command -v eza &>/dev/null ;then
     zinit ice from"gh-r" as"completion" \
         bpick"*completions*" \
@@ -96,7 +96,9 @@ fi
 zinit light-mode for \
     Aloxaf/fzf-tab
 
-# zinit ice depth=1
-# zinit light jeffreytse/zsh-vi-mode
-# ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
-# zsh_vim
+zinit ice as'command' from'gh-r' \
+  atload'export STARSHIP_CONFIG=$XDG_CONFIG_HOME/starship/starship.toml; eval $(starship init zsh)' \
+  atclone'./starship init zsh > init.zsh; ./starship completions zsh > _starship' \
+  atpull'%atclone' src'init.zsh'
+
+zinit light starship/starship

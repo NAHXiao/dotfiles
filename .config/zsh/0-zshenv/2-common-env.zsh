@@ -104,5 +104,7 @@ export_chk_exist MANDOCPATH="$HOME/.local/share/Obsidian/main/计算机/CLIMAN"
 done < ~/.GPTENV
 ############################################# BUGFIX ###############################################
 export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
+############################################# PROXY ###############################################
+[[ -z HTTP_PROXY ]] && auto_proxy
 ############################################# END ##################################################
 # vim:ft=zsh:nowrap

@@ -1,5 +1,3 @@
--- local branch = vim.fn.has("0.11") and "main" or "master"
-local branch = "master"
 -- stylua: ignore
 local ensure_install = { "bash", "c", "cpp", "cmake", "css", "dockerfile", "go", "gomod", "gowork", "html", "http", "java", "javascript", "json", "lua",  "make", "markdown", "markdown_inline", "python", "regex", "rust", "toml", "vim", "yaml", }
 
@@ -43,8 +41,15 @@ local function set_visual_select_range(cursor_at_end, begin_row, begin_col, end_
         vim.api.nvim_win_set_cursor(0, { begin_row, begin_col - 1 })
     end
 end
+local function node_at_cursor(buf)
+    local ok, node = pcall(vim.treesitter.get_node, { bufnr = buf })
+    if ok then
+        return node
+    end
+end
+
 local function select_inner()
-    local node = require("nvim-treesitter.ts_utils").get_node_at_cursor(0)
+    local node = node_at_cursor(0)
     if not node or node:child_count() < 3 then
         return
     end
@@ -119,55 +124,14 @@ local function select_inner()
         set_visual_select_range(a, b, c, d, e)
     end
 end
-local jmprefbuf = function(offset)
-    local t = require("nvim-treesitter.ts_utils")
-    local l = require("nvim-treesitter.locals")
-    local bufnr = vim.api.nvim_get_current_buf()
-    local node_at_point = t.get_node_at_cursor()
-    if not node_at_point then
-        return
-    end
-    local def_node, scope = l.find_definition(node_at_point, bufnr)
-    local usages = l.find_usages(def_node, scope, bufnr)
-    local index = require("utils").index_of(usages, node_at_point)
-    if not index then
-        return
-    end
-    local target_index = (index + offset + #usages - 1) % #usages + 1
-    t.goto_node(usages[target_index])
-end
+
 return {
     {
         "nvim-treesitter/nvim-treesitter",
-        version = "*",
         lazy = false,
-        branch = branch,
+        branch = "main",
         build = ":TSUpdate",
         keys = {
-            {
-                "]s",
-                function()
-                    jmprefbuf(1)
-                end,
-                desc = "Jump To Next Usage(Buffer)",
-            },
-            {
-                "[s",
-                function()
-                    jmprefbuf(-1)
-                end,
-                desc = "Jump To Prev Usage(Buffer)",
-            },
-            {
-                "<leader>\\th",
-                "<cmd>TSBufToggle highlight<cr>",
-                desc = "Toggle TreeSitter(Buffer highlight)",
-            },
-            {
-                "<leader>\\ti",
-                "<cmd>TSBufToggle indent<cr>",
-                desc = "Toggle TreeSitter(Buffer indent)",
-            },
             {
                 "ii",
                 select_inner,
@@ -176,83 +140,61 @@ return {
             },
         },
         config = function()
-            if branch == "main" then
-                -- require("nvim-treesitter").setup()
-                require("nvim-treesitter").install(ensure_install)
-                local enable_ts = function(buf, lang)
-                    if require("utils").is_bigfile(buf) then
-                        return
-                    end
-                    if
-                        not vim.tbl_contains(
-                            require("nvim-treesitter.config").get_available(),
-                            lang
-                        )
-                    then
-                        return
-                    end
-                    vim.wo.foldmethod = "expr"
-                    vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-                    vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-                    if not vim.g.vscode then
-                        vim.treesitter.start(buf, lang)
-                    end
+            local treesitter = require("nvim-treesitter")
+            -- vim.notify(vim.inspect(treesitter))
+            treesitter.setup()
+            -- vim.notify(vim.inspect(treesitter))
+            treesitter.install(ensure_install)
+            local available = treesitter.get_available()
+
+            --启动对某个buf的ts,忽略大文件
+            local function enable_ts(buf, lang)
+                if require("utils").is_bigfile(buf) then
+                    return
                 end
-                vim.api.nvim_create_autocmd("FileType", {
-                    pattern = "*",
-                    group = require("utils").aug("ts_filetype"),
-                    callback = function(event)
-                        local filetype = event.match
-                        local lang = vim.treesitter.language.get_lang(filetype)
-                        if
-                            not vim.tbl_contains(
-                                require("nvim-treesitter.config").get_installed("parsers"),
-                                lang
-                            )
-                        then
-                            require("nvim-treesitter").install(lang):await(function()
-                                enable_ts(event.buf, lang)
-                            end)
-                        else
-                            enable_ts(event.buf, lang)
-                        end
-                    end,
-                })
-            else
-                require("nvim-treesitter.configs").setup {
-                    ensure_installed = ensure_install,
-                    sync_install = false,
-                    ignore_install = {},
-                    modules = {},
-                    auto_install = true,
-                    highlight = {
-                        enable = true,
-                        disable = function(lang, buf)
-                            require("utils").is_bigfile(buf)
-                        end,
-                    },
-                    incremental_selection = {
-                        enable = true,
-                        keymaps = {
-                            init_selection = "<S-Tab>", -- normal mode
-                            node_incremental = "<Tab>", -- visual mode
-                            node_decremental = "<S-Tab>", -- visual mode
-                        },
-                    },
-                    indent = { enable = true },
-                }
-                vim.o.foldmethod = "expr"
-                vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-                vim.api.nvim_create_autocmd("LspAttach", {
-                    callback = function(args)
-                        local client = vim.lsp.get_client_by_id(args.data.client_id)
-                        if client and client:supports_method("textDocument/foldingRange") then
-                            local win = vim.api.nvim_get_current_win()
-                            vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
-                        end
-                    end,
-                })
+                vim.wo.foldmethod = "expr"
+                vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                if not vim.b[buf].ts_indent then
+                    vim.b[buf].ts_indent_saved = vim.bo[buf].indentexpr
+                end
+                vim.bo[buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                vim.b[buf].ts_indent = true
+                if not vim.g.vscode and not vim.b[buf].ts_highlight then
+                    vim.treesitter.start(buf, lang)
+                    vim.b[buf].ts_highlight = true
+                end
             end
+            --进入Buf -> 已安装ts则启动,未安装则安装 (安装后启动了吗?)
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = "*",
+                group = require("utils").aug("ts_filetype"),
+                callback = function(event)
+                    local buf = event.buf
+                    local filetype = vim.bo[buf].filetype
+                    if filetype == "" then
+                        return
+                    end
+                    local lang = vim.treesitter.language.get_lang(filetype) or filetype
+                    if vim.treesitter.language.add(lang) then
+                        enable_ts(buf, lang)
+                    else
+                        if vim.tbl_contains(available, lang) then
+                            treesitter.install(lang)
+                        end
+                    end
+                end,
+            })
+
+            --折叠函数,TODO: 不是有ufo吗?
+            vim.api.nvim_create_autocmd("LspAttach", {
+                callback = function(args)
+                    local client = vim.lsp.get_client_by_id(args.data.client_id)
+                    if client and client:supports_method("textDocument/foldingRange") then
+                        local win = vim.api.nvim_get_current_win()
+                        vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+                    end
+                end,
+            })
         end,
     },
     {
@@ -290,32 +232,36 @@ return {
     },
     {
         "nvim-treesitter/nvim-treesitter-textobjects",
+        branch = "main",
         event = { "BufReadPost", "BufWritePost", "BufNewFile" },
+        init = function()
+            vim.g.no_plugin_maps = true
+        end,
         opts = {
-            textobjects = {
-                select = {
-                    enable = true,
-                    -- Automatically jump forward to textobj, similar to targets.vim
-                    lookahead = true,
-                    keymaps = {
-                        -- You can use the capture groups defined in textobjects.scm
-                        ["af"] = { query = "@function.outer", desc = "function" },
-                        ["if"] = { query = "@function.inner", desc = "inner function" },
-                        ["ac"] = { query = "@class.outer", desc = "class" },
-                        ["ic"] = { query = "@class.inner", desc = "inner class" },
-                    },
-                    include_surrounding_whitespace = true,
-                },
-                swap = {
-                    enable = false,
-                },
-                move = {
-                    enable = false,
+            select = {
+                lookahead = true,
+                include_surrounding_whitespace = true,
+                selection_modes = {
+                    ["@function.outer"] = "V",
+                    ["@class.outer"] = "V",
                 },
             },
         },
         config = function(_, opts)
-            require("nvim-treesitter.configs").setup(opts)
+            require("nvim-treesitter-textobjects").setup(opts)
+            local select = require("nvim-treesitter-textobjects.select")
+            vim.keymap.set({ "x", "o" }, "af", function()
+                select.select_textobject("@function.outer", "textobjects")
+            end, { desc = "function outer" })
+            vim.keymap.set({ "x", "o" }, "if", function()
+                select.select_textobject("@function.inner", "textobjects")
+            end, { desc = "inner function" })
+            vim.keymap.set({ "x", "o" }, "ac", function()
+                select.select_textobject("@class.outer", "textobjects")
+            end, { desc = "class outer" })
+            vim.keymap.set({ "x", "o" }, "ic", function()
+                select.select_textobject("@class.inner", "textobjects")
+            end, { desc = "inner class" })
         end,
     },
 }

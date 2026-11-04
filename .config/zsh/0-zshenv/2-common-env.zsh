@@ -53,10 +53,10 @@ function append_path_chk_exist_dup(){
 
 [[ -z $XDG_CONFIG_DIRS ]] && export_chk_exist XDG_CONFIG_DIRS="/etc/xdg"
 
-if (( ! ISANDROID )) ;then #Termux不支持
+locale -a 2>/dev/null | grep -qiE '^zh_CN\.utf-?8$' && {
     export LANG=zh_CN.UTF-8
     export LC_ALL=zh_CN.UTF-8
-fi
+}
 ############################################# PATH #################################################
 #  NODE
 #FNM管理node版本和npm版本,不设置npm prefix时npm package默认按nodejs版本隔离,设置npm prefix时npm package不隔离,pnpm不归fnm管始终不隔离
@@ -95,24 +95,24 @@ export_chk_exist MANDOCPATH="$HOME/.local/Obsidian/main/CLIMAN"
 ############################################# APPS #################################################
 export_chk_exist MANDOCPATH="$HOME/.local/share/Obsidian/main/计算机/CLIMAN"
 
-# [[ -f ~/.DEEPSEEK_API_KEY ]] && export DEEPSEEK_API_KEY=$(cat ~/.DEEPSEEK_API_KEY)
-[[ -f ~/.GPTENV ]] && while IFS= read -r line; do
+[[ -f ~/.APIENV ]] && while IFS= read -r line; do
     [ -z "$line" ] && continue
     key=${line%%=*}
     value=${line#*=}
     export "$key=$value"
-done < ~/.GPTENV
+done < ~/.APIENV
 ############################################# BUGFIX ###############################################
 export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 ############################################# PROXY ###############################################
-export NO_PROXY="localhost,127.0.0.1,::1"
-export no_proxy="$NO_PROXY"
-[[ -z "$HTTP_PROXY" ]] && {
-if [[ -o interactive ]]; then
-    auto_proxy 2>/dev/null
-else
-    auto_proxy &>/dev/null
-fi
+[[ "${ZSH_AUTO_PROXY:-false}" == "false" && -z "$HTTP_PROXY" && -z "$HTTPS_PROXY" ]] && {
+    export ZSH_AUTO_PROXY=true
+    export NO_PROXY="localhost,127.0.0.1,::1"
+    export no_proxy="$NO_PROXY"
+    if [[ -o interactive ]]; then
+        auto_proxy 2>/dev/null
+    else
+        auto_proxy &>/dev/null
+    fi
 }
 ############################################# END ##################################################
 # vim:ft=zsh:nowrap

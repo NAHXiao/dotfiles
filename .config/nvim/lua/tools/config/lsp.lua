@@ -113,7 +113,17 @@ M.extend = {
         },
     },
     jsonls = {
-        settings = { json = { validate = { enable = true } } },
+        settings = {
+            json = {
+                schemas = {
+                    {
+                        fileMatch = { "openrpc.json", "*openrpc*.json" },
+                        url = "https://github.com/open-rpc/meta-schema/releases/latest/download/open-rpc-meta-schema.json",
+                    },
+                },
+                validate = { enable = true },
+            },
+        },
         on_attach = function(client)
             client.config.settings.json.schemas = require("schemastore").json.schemas()
         end,

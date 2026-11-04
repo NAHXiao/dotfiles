@@ -4,7 +4,10 @@
 ########################################### UTILS ###################################################
 function export_chk_exist(){
     local val="${1#*=}"
-    [[ -e "$val" ]] && export "$1"
+    if [[ -e "$val" ]]; then
+        export "$1"
+    fi
+    return 0
 }
 function prepend_path(){
     export PATH="$1:$PATH"
@@ -13,20 +16,22 @@ function append_path(){
     export PATH="$PATH:$1"
 }
 function prepend_path_chk_exist(){
-    [[ -e "$1" ]] && prepend_path "$1"
+    [[ -e "$1" ]] || return 0
+    prepend_path "$1"
 }
 function append_path_chk_exist(){
-    [[ -e "$1" ]] && append_path "$1"
+    [[ -e "$1" ]] || return 0
+    append_path "$1"
 }
 function prepend_path_chk_exist_dup(){
-    [[ -e "$1" ]] || return
+    [[ -e "$1" ]] || return 0
     case ":$PATH:" in
         *":$1:"*) ;;
         *) prepend_path "$1" ;;
     esac
 }
 function append_path_chk_exist_dup(){
-    [[ -e "$1" ]] || return
+    [[ -e "$1" ]] || return 0
     case ":$PATH:" in
         *":$1:"*) ;;
         *) append_path "$1" ;;
@@ -108,11 +113,13 @@ export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
     export ZSH_AUTO_PROXY=true
     export NO_PROXY="localhost,127.0.0.1,::1"
     export no_proxy="$NO_PROXY"
-    if [[ -o interactive ]]; then
+    if [[ $- == *i* ]]; then
         auto_proxy 2>/dev/null
     else
         auto_proxy &>/dev/null
     fi
 }
 ############################################# END ##################################################
+# Keep source status 0 when auto-proxy is already configured.
+true
 # vim:ft=zsh:nowrap

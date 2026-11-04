@@ -38,7 +38,7 @@ function try_proxy(){
     return 1
 }
 function auto_proxy(){
-    try_proxy || return
+    try_proxy || return 0
     local ports=(7890 7891 1080 8080)
     local arr=("127.0.0.1")
     command -v ip &>/dev/null && local gw=$(ip route show default | awk '{print $3}') && arr+=("$gw")
@@ -52,4 +52,5 @@ function auto_proxy(){
             fi
         done
     done
+    return 0
 }

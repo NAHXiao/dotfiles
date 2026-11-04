@@ -21,11 +21,8 @@ IS_WIN=;
 IS_ARM64=;
 IS_AMD64=;
 
-SYSNAMEALL=$(uname -a)
-SYSARCH=$(uname -m)
-#PLEASE ENSURE ZSH VERSION>=5.0.8
-SYSNAMEALL="${SYSNAMEALL:l}" 
-SYSARCH="${SYSARCH:l}"
+SYSNAMEALL=$(uname -a | tr '[:upper:]' '[:lower:]')
+SYSARCH=$(uname -m | tr '[:upper:]' '[:lower:]')
 
 case $SYSNAMEALL in
     *linux*)
@@ -42,13 +39,13 @@ case $SYSNAMEALL in
         esac
         ;;
     *darwin*)
-        ISNIX=1;ISMAC=1;
+        IS_NIX=1;ISMAC=1;
         ;;
     *msys*)
-        ISNIX=1;ISMSYS=1;
+        IS_NIX=1;ISMSYS=1;
         ;;
     *cygwin*)
-        ISNIX=1;ISCYGWIN=1;
+        IS_NIX=1;ISCYGWIN=1;
         ;;
     *windows_nt*)
         IS_WIN=1;

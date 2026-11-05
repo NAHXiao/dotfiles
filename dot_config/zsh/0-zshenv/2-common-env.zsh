@@ -23,14 +23,14 @@ function append_path_chk_exist(){
     [[ -e "$1" ]] || return 0
     append_path "$1"
 }
-function prepend_path_chk_exist_dup(){
+function prepend_path_chk_exist_nodup(){
     [[ -e "$1" ]] || return 0
     case ":$PATH:" in
         *":$1:"*) ;;
         *) prepend_path "$1" ;;
     esac
 }
-function append_path_chk_exist_dup(){
+function append_path_chk_exist_nodup(){
     [[ -e "$1" ]] || return 0
     case ":$PATH:" in
         *":$1:"*) ;;
@@ -67,21 +67,22 @@ locale -a 2>/dev/null | grep -qiE '^zh_CN\.utf-?8$' && {
 #FNM管理node版本和npm版本,不设置npm prefix时npm package默认按nodejs版本隔离,设置npm prefix时npm package不隔离,pnpm不归fnm管始终不隔离
 
 #本地fnm本身的位置
-prepend_path_chk_exist_dup "$HOME/.local/share/fnm"
+prepend_path_chk_exist_nodup "$HOME/.local/share/fnm"
+prepend_path_chk_exist_nodup "$HOME/.local/share/fnm/aliases/default/bin"
 #非交互式用node绝对路径
 
 #npm package binary位置: ~/.npmrc设置了prefix -> npm package不隔离
-prepend_path_chk_exist_dup "$HOME/.npm-global/bin"
+prepend_path_chk_exist_nodup "$HOME/.npm-global/bin"
 
 #本地pnpm本身的位置+pnpm package binary位置
 export_chk_exist PNPM_HOME="$HOME/.local/share/pnpm"
-prepend_path_chk_exist_dup "$PNPM_HOME"
+prepend_path_chk_exist_nodup "$PNPM_HOME"
 # Other
-prepend_path_chk_exist_dup "$HOME/.scripts"
-prepend_path_chk_exist_dup "$HOME/.local/bin"
-prepend_path_chk_exist_dup "$HOME/.cargo/bin"
-prepend_path_chk_exist_dup "/snap/bin"
-prepend_path_chk_exist_dup "/usr/local/go/bin"
+prepend_path_chk_exist_nodup "$HOME/.scripts"
+prepend_path_chk_exist_nodup "$HOME/.local/bin"
+prepend_path_chk_exist_nodup "$HOME/.cargo/bin"
+prepend_path_chk_exist_nodup "/snap/bin"
+prepend_path_chk_exist_nodup "/usr/local/go/bin"
 
 ############################################ ZSH CONF ##############################################
 

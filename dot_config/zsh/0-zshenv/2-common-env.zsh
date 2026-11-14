@@ -62,7 +62,7 @@ locale -a 2>/dev/null | grep -qiE '^zh_CN\.utf-?8$' && {
     export LANG=zh_CN.UTF-8
     export LC_ALL=zh_CN.UTF-8
 }
-############################################# PATH #################################################
+########################################## DEV TOOLCHAIN ###########################################
 #  NODE
 #FNM管理node版本和npm版本,不设置npm prefix时npm package默认按nodejs版本隔离,设置npm prefix时npm package不隔离,pnpm不归fnm管始终不隔离
 
@@ -83,6 +83,8 @@ prepend_path_chk_exist_nodup "$HOME/.local/bin"
 prepend_path_chk_exist_nodup "$HOME/.cargo/bin"
 prepend_path_chk_exist_nodup "/snap/bin"
 prepend_path_chk_exist_nodup "/usr/local/go/bin"
+
+export GOPATH="$HOME/.go"
 
 ############################################ ZSH CONF ##############################################
 

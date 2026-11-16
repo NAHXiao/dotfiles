@@ -15,6 +15,35 @@ function set_proxy(){
     export HTTPS_PROXY=http://$1
     export socks_proxy=socks5://$1
 }
+build_no_proxy() {
+    if command -v ip &>/dev/null  && command -v jq &>/dev/null ;then
+        {
+            # 1) 回环 + 常见别名
+            printf '%s\n' localhost 127.0.0.1 ::1 '[::1]' 127.0.0.0/8
+            hostname
+            hostname -f 2>/dev/null || true
+
+            # 2) IPv4 直连路由：connected 路由的 scope 是 link，dst 已是规范网段
+            ip -j -4 route show |
+            jq -r '.[] | select(.scope == "link") | .dst // empty'
+
+            # 3) IPv6 on-link 路由：无 gateway，排除 default 和组播 ff00::/8
+            ip -j -6 route show |
+            jq -r '.[] | select(.gateway == null) | .dst // empty
+             | select(. != "default" and (startswith("ff") | not))'
+
+            # 4) 本机各接口地址：给不支持 CIDR 的老客户端留精确 IP
+            ip -j addr show |
+            jq -r '.[] | select(.ifname != "lo") | .addr_info[]?
+             | select(.family == "inet") | .local'
+        } | sed -e 's:/32$::' -e 's:/128$::' | sort -u | paste -sd, -
+    else
+        echo "localhost,127.0.0.1,::1"
+    fi
+}
+
+NO_PROXY="$(build_no_proxy)"; export NO_PROXY
+no_proxy="$NO_PROXY";            export no_proxy   # 两个都设
 #@param ip
 #@param port
 #no param ip/port: only-check-dependency

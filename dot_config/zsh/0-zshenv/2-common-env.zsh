@@ -114,8 +114,13 @@ export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=true #inconda报错 旧SSL算法问题
 ############################################# PROXY ###############################################
 [[ "${ZSH_AUTO_PROXY:-false}" == "false" && -z "$HTTP_PROXY" && -z "$HTTPS_PROXY" ]] && {
     export ZSH_AUTO_PROXY=true
-    export NO_PROXY="localhost,127.0.0.1,::1"
-    export no_proxy="$NO_PROXY"
+    NO_PROXY=$(build_no_proxy 2>/dev/null) &&{
+        export NO_PROXY
+        export no_proxy="$NO_PROXY"
+        } ||{
+        export NO_PROXY="localhost,127.0.0.1,::1"
+        export no_proxy="$NO_PROXY"
+    }
     if [[ $- == *i* ]]; then
         auto_proxy 2>/dev/null
     else
